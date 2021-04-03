@@ -1,0 +1,335 @@
+<project name="morphadorner" default="full" basedir="."
+	xmlns:ivy="antlib:org.apache.ivy.ant"
+>
+
+<!-- This is the Ant build script for MorphAdorner. -->
+
+	<!-- Java compiler type. -->
+
+	<property name="build.compiler" value="modern"/>
+	<property name="build.compiler.emacs" value="true"/>
+
+    <!-- The parent directory of the Java source files. -->
+
+    <property name="src.dir"      value="src"/>
+
+    <!-- The parent directory of the Java class files. -->
+
+    <property name="bin.dir"      value="bin"/>
+
+	<!-- The main Java libraries directory. -->
+
+	<property name="lib.dir"	  value="lib"/>
+
+	<!-- The Gate libraries directory. -->
+
+	<property name="gatelib.dir"  value="gatelib"/>
+
+    <!-- The directory containing the MorphAdorner JAR file.  -->
+
+    <property name="dist.dir"     value="dist"/>
+
+	<!-- The Javadoc directory. -->
+
+    <property name="javadoc.dir"  value="javadoc"/>
+
+	<!-- Apache Ivy settings. -->
+
+	<property name="ivy.install.version" value="2.3.0"/>
+	<property name="ivy.jar.file"	  value="${lib.dir}/ivy.jar"/>
+	<property name="ivy.lib.dir"	  value="${lib.dir}"/>
+
+	<!-- MorphAdorner root directory. -->
+
+	<property name="morphadorner" value ="edu/northwestern/at/morphadorner"/>
+
+	<!-- MorphAdorner tools directory. -->
+
+	<property name="morphadornertools" value ="edu/northwestern/at/morphadorner/tools"/>
+
+	<!-- Other MorphAdorner directories. -->
+
+	<property name="corpuslinguistics" value="edu/northwestern/at/morphadorner/corpuslinguistics"/>
+	<property name="corplingabbreviations" value="edu/northwestern/at/morphadorner/corpuslinguistics/abbreviations"/>
+	<property name="corplingapostokens" value="edu/northwestern/at/morphadorner/corpuslinguistics/apostokens"/>
+	<property name="corplingpostagger" value="edu/northwestern/at/morphadorner/corpuslinguistics/postagger"/>
+	<property name="corplingcontractionexpander" value="edu/northwestern/at/morphadorner/corpuslinguistics/contractionexpander"/>
+	<property name="corplinghyphenator" value="edu/northwestern/at/morphadorner/corpuslinguistics/hyphenator"/>
+	<property name="corplinginflector" value="edu/northwestern/at/morphadorner/corpuslinguistics/inflector"/>
+	<property name="corplinglemmatizer" value="edu/northwestern/at/morphadorner/corpuslinguistics/lemmatizer"/>
+	<property name="corplinglexicon" value="edu/northwestern/at/morphadorner/corpuslinguistics/lexicon"/>
+	<property name="corplingsentencesplitter" value="edu/northwestern/at/morphadorner/corpuslinguistics/sentencesplitter"/>
+	<property name="corplingpartsofspeech" value="edu/northwestern/at/morphadorner/corpuslinguistics/partsofspeech"/>
+	<property name="corplingstandardizer" value="edu/northwestern/at/morphadorner/corpuslinguistics/spellingstandardizer"/>
+	<property name="corplingspellingmapper" value="edu/northwestern/at/morphadorner/corpuslinguistics/spellingmapper"/>
+	<property name="corplingsyllablecounter" value="edu/northwestern/at/morphadorner/corpuslinguistics/syllablecounter"/>
+	<property name="corplingtokenizer" value="edu/northwestern/at/morphadorner/corpuslinguistics/tokenizer"/>
+	<property name="corplingtransmat" value="edu/northwestern/at/morphadorner/corpuslinguistics/postagger/transitionmatrix"/>
+	<property name="hepple" value="edu/northwestern/at/morphadorner/corpuslinguistics/postagger/hepple"/>
+	<property name="namerecognizer" value="edu/northwestern/at/morphadorner/corpuslinguistics/namerecognizer"/>
+	<property name="langdetect" value="com/cybozu/labs/langdetect"/>
+	<property name="utils" value ="edu/northwestern/at/utils"/>
+
+    <!-- Macro to require that a property be set and not empty. -->
+
+    <macrodef name="prop-require">
+    <attribute name="prop"/>
+        <sequential>
+            <fail message="Property &quot;@{prop}&quot; must be set">
+            <condition>
+                <not>
+                <isset property="@{prop}"/>
+                </not>
+               </condition>
+            </fail>
+
+            <fail message="Property &quot;@{prop}&quot; must not be empty">
+                <condition>
+                <equals arg1="${@{prop}}" arg2=""/>
+               </condition>
+            </fail>
+            </sequential>
+    </macrodef>
+
+	<!-- Ivy ant tasks library. -->
+
+	<path id="ivy.lib.path">
+		<fileset dir="${lib.dir}" includes="ivy*.jar"/>
+	</path>
+
+	<!-- Main library jar files ID. -->
+
+	<path id="lib.path.id">
+		<fileset dir="${lib.dir}" />
+	</path>
+
+	<!-- Java class path. -->
+
+	<path id="classpath">
+		<pathelement path="."/>
+		<pathelement path="${bin.dir}"/>
+		<path	     refid="lib.path.id"/>
+                <fileset dir="${gatelib.dir}">
+                	<include name="**/*.jar"/>
+      		</fileset>
+	</path>
+
+	<!-- Download ivy if not already done. -->
+
+	<target name="download-ivy" unless="skip.download">
+		<mkdir dir="${lib.dir}"/>
+		<echo message="Installing ivy..."/>
+		<get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
+			dest="${ivy.jar.file}"
+			usetimestamp="true"/>
+	</target>
+
+	<!-- Install ivy if not already done. -->
+
+	<target name="install-ivy"
+		depends="download-ivy"
+		description="Install ivy">
+		<path id="ivy.lib.path">
+			<fileset dir="${lib.dir}" includes="ivy*.jar"/>
+		</path>
+		<taskdef resource="org/apache/ivy/ant/antlib.xml"
+			uri="antlib:org.apache.ivy.ant"
+			classpathref="ivy.lib.path"
+		/>
+	</target>
+
+	<!-- Resolve dependencies using ivy. -->
+
+	<target name="resolve"
+		depends="install-ivy"
+		description="Retrieve dependencies using ivy">
+		<ivy:retrieve pattern="${lib.dir}/[originalname].[ext]" conf="main" type="jar"/>
+		<ivy:retrieve pattern="${gatelib.dir}/[originalname].[ext]" conf="gate" type="jar"/>
+	</target>
+
+	<!-- Delete the output directories. -->
+
+	<target name="clean">
+		<delete dir="${bin.dir}"/>
+		<delete dir="${javadoc.dir}"/>
+		<delete dir="${dist.dir}"/>
+	</target>
+
+	<!-- Create the output directories for the classes, javadocs, etc. -->
+
+	<target name="init"
+		depends="resolve"
+        description="Create directories."
+	>
+        <mkdir  dir="${bin.dir}"/>
+        <mkdir  dir="${dist.dir}"/>
+        <mkdir  dir="${javadoc.dir}"/>
+
+		<copy todir="${bin.dir}/${morphadorner}/resources/">
+			<fileset dir="${src.dir}/${morphadorner}/resources/"
+				includes="*.properties,*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${morphadornertools}/namedentities/resources/">
+			<fileset dir="${src.dir}/${morphadornertools}/namedentities/resources/"
+				includes="*.properties,*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${morphadorner}/">
+			<fileset dir="${src.dir}/${morphadorner}/"
+				includes="morphadornerlog.config"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${namerecognizer}/resources/">
+			<fileset dir="${src.dir}/${namerecognizer}/resources/"
+				includes="*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplingabbreviations}/resources/">
+			<fileset dir="${src.dir}/${corplingabbreviations}/resources/"
+				includes="*.properties,*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplingapostokens}/resources/">
+			<fileset dir="${src.dir}/${corplingapostokens}/resources/"
+				includes="*.properties,*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplingcontractionexpander}/resources/">
+			<fileset dir="${src.dir}/${corplingcontractionexpander}/resources/"
+				includes="*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplinghyphenator}/resources/">
+			<fileset dir="${src.dir}/${corplinghyphenator}/resources/"
+				includes="*.tex"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplinginflector}/conjugator/resources/">
+			<fileset dir="${src.dir}/${corplinginflector}/conjugator/resources/"
+				includes="*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplinginflector}/pluralizer/resources/">
+			<fileset dir="${src.dir}/${corplinginflector}/pluralizer/resources/"
+				includes="*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplinglemmatizer}/resources/">
+			<fileset dir="${src.dir}/${corplinglemmatizer}/resources/"
+				includes="*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplinglexicon}/resources/">
+			<fileset dir="${src.dir}/${corplinglexicon}/resources/"
+				includes="*.*"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplingpartsofspeech}/resources/">
+			<fileset dir="${src.dir}/${corplingpartsofspeech}/resources/"
+				includes="*.properties"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplingsyllablecounter}/resources/">
+			<fileset dir="${src.dir}/${corplingsyllablecounter}/resources/"
+				includes="*.tab"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplingtransmat}/resources/">
+			<fileset dir="${src.dir}/${corplingtransmat}/resources/"
+				includes="*.*"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplingtokenizer}/resources/">
+			<fileset dir="${src.dir}/${corplingtokenizer}/resources/"
+				includes="*.txt"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplingstandardizer}/resources/">
+			<fileset dir="${src.dir}/${corplingstandardizer}/resources/"
+				includes="*.*"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${corplingspellingmapper}/resources/">
+			<fileset dir="${src.dir}/${corplingspellingmapper}/resources/"
+				includes="*.*"/>
+		</copy>
+
+		<copy todir="${bin.dir}/${langdetect}/util/resources/">
+			<fileset dir="${src.dir}/${langdetect}/util/resources/"
+				includes="*.properties"/>
+		</copy>
+	</target>
+
+	<!-- Delete the library directory. -->
+
+	<target
+		name="cleanlib"
+		description="Delete libraries directory"
+	>
+		<delete dir="${lib.dir}"/>
+		<delete dir="${gatelib.dir}"/>
+	</target>
+
+	 <!-- Compile the source code (in 'src') and store in 'bin'. -->
+
+	<target name="compile" depends="init">
+		<javac
+			srcdir="${src.dir}"
+			destdir="${bin.dir}"
+			classpathref="classpath"
+			debug="on"
+			target="1.6"
+			source="1.6"
+			deprecation="on"
+			includeantruntime="false">
+            <compilerarg value="-Xlint:unchecked,-options"/>
+		</javac>
+	</target>
+
+	<!-- Generate the jar file -->
+
+	<target name="jar" depends="compile">
+		<mkdir dir="${dist.dir}"/>
+		<jar jarfile="${dist.dir}/morphadorner.jar" basedir="${bin.dir}"
+		/>
+	</target>
+
+	<!-- Generate the javadocs for the source code. -->
+
+	<target name="javadoc" depends="init">
+		<javadoc sourcepath="${src.dir}" destdir="${javadoc.dir}"
+			maxmemory="512m"
+			packagenames="edu.northwestern.at.*,com.*,jargs.*,net.*,org.*"
+			windowtitle="MorphAdorner"
+			classpathref="classpath"
+			overview="misc/overview.html"
+			package="true">
+			<doctitle><![CDATA[<h2>Morphological Adorner</h2>]]></doctitle>
+		</javadoc>
+	</target>
+
+	<!-- Generate everything from scratch. -->
+
+	<target name="full" depends="clean,jar,javadoc"/>
+
+	<!-- Display help. -->
+
+	<target name="help">
+		<echo>
+
+
+Targets:
+
+clean: Deletes the bin and javadoc directories.
+cleanlib: Deletes the lib directory.
+init: Makes the bin and javadoc directories.
+compile: Compiles all the .java source files to the bin directory.
+jar: Creates morphadorner.jar file.
+javadoc: Creates javadoc.
+full: Full build: clean, jar, doc.
+help: Displays this help text.
+		</echo>
+	</target>
+
+</project>

@@ -1,0 +1,12 @@
+java -Xmx1024m -Xss1m -cp bin\;dist\*;lib\*; ^
+	edu.northwestern.at.morphadorner.MorphAdorner ^
+	-p ecco.properties \
+	-l data/eccolexicon.lex \
+	-t data/ncftransmat.mat \
+	-u data/eccosuffixlexicon.lex \
+	-a data/ncfmergedspellingpairs.tab \
+	-a data/eccomergedspellingpairs.tab \
+	-s data/standardspellings.txt \
+	-w data/spellingsbywordclass.txt \
+	-o %1 ^
+	%2 %3 %4 %5 %6 %7 %8 %9
