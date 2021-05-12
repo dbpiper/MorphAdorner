@@ -1,4 +1,4 @@
-java -Xmx1024m -Xss1m -cp bin\;dist\*;lib\*; ^
+java -Xmx2048m -Xss1m -cp bin\;dist\*;lib\*; ^
 	edu.northwestern.at.morphadorner.MorphAdorner ^
 	-p ecco.properties \
 	-l data/eccolexicon.lex \
