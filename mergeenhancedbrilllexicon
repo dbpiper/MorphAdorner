@@ -1,5 +1,7 @@
 #!/bin/sh
-java -Xmx2048m -Xss1m -cp .:bin/:dist/* \
+SCRIPTPATH=$(dirname "$0")
+CLASSPATH="$SCRIPTPATH":"$SCRIPTPATH"/bin/:"$SCRIPTPATH"/dist/\*:lib/\*
+java -Xmx2048m -Xss1m -cp "$CLASSPATH" \
 	edu.northwestern.at.morphadorner.tools.mergeenhancedbrilllexicon.MergeEnhancedBrillLexicon \
 	"$1" "$2" "$3"
 

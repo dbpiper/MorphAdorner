@@ -1,3 +1,5 @@
 #!/bin/sh
-java -Xmx2048m -Xss1m -cp .:bin/:dist/*:lib/* \
+SCRIPTPATH=$(dirname "$0")
+CLASSPATH="$SCRIPTPATH":"$SCRIPTPATH"/bin/:"$SCRIPTPATH"/dist/\*:"$SCRIPTPATH"/lib/\*
+java -Xmx2048m -Xss1m -cp "$CLASSPATH" \
 	edu.northwestern.at.morphadorner.tools.punktabbreviationdetector.PunktAbbreviationDetector "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"

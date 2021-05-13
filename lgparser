@@ -1,3 +1,5 @@
 #!/bin/sh
-java -cp .:bin/:dist/* edu.northwestern.at.morphadorner.tools.lgparser.LGParser \
-	data/lgparser "$1"
+SCRIPTPATH=$(dirname "$0")
+CLASSPATH="$SCRIPTPATH":"$SCRIPTPATH"/bin/:"$SCRIPTPATH"/dist/\*:lib/\*
+java -cp "$CLASSPATH"  edu.northwestern.at.morphadorner.tools.lgparser.LGParser \
+	"$SCRIPTPATH"/data/lgparser "$1"
