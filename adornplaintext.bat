@@ -1,4 +1,4 @@
-java -Xmx2048m -Xss1m -cp bin\;dist\*;lib\*; ^
+java -Xmx2048m -Xss1m -cp "%~dp0bin\;%~dp0dist\*;%~dp0lib\*;" ^
 	edu.northwestern.at.morphadorner.MorphAdorner ^
 	-p plaintext.properties ^
 	-l data/ncflexicon.lex ^
