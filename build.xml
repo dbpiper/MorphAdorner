@@ -279,8 +279,8 @@
 			destdir="${bin.dir}"
 			classpathref="classpath"
 			debug="on"
-			target="1.6"
-			source="1.6"
+			target="1.7"
+			source="1.7"
 			deprecation="on"
 			includeantruntime="false">
             <compilerarg value="-Xlint:unchecked,-options"/>
