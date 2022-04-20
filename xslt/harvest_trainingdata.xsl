@@ -7,6 +7,7 @@
     xmlns:ep="http://earlyprint.org/ns/1.0"
     exclude-result-prefixes="xs hdw" version="3.0">
 
+    <xsl:strip-space elements="tei:w" />
 
     <!-- Run with something like:
 
@@ -35,7 +36,7 @@
     <!-- Output a tab-separated line for each tei:w that has a lemma -->
     <xsl:template match="tei:w[@lemma and @lemma != '']">
         <xsl:param name="year" required="true"/>
-        <xsl:variable name="spelling" select="(@orig, text())[1]"/>
+        <xsl:variable name="spelling" select="normalize-space((@orig, text())[1])"/>
         <xsl:value-of select="concat($spelling, '&#x09;', @pos, '&#x09;', @lemma, '&#x09;', @reg, '&#x09;', $year, '&#xA;')"></xsl:value-of>
     </xsl:template>
     
