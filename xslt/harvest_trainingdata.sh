@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Modify the path to saxon in the following:
-SAXON_JAR=~/Downloads/SaxonHE10-3J/saxon-he-10.3.jar
+SAXON_JAR=~/Downloads/SaxonHE10-5J/saxon-he-10.5.jar
 
 if [ $# -lt 2 ]
 then
