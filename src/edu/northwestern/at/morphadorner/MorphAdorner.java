@@ -11,6 +11,7 @@ import java.text.*;
 import java.util.*;
 
 import javax.xml.xpath.*;
+import javax.xml.parsers.*;
 
 import org.w3c.dom.*;
 
@@ -1984,11 +1985,11 @@ public class MorphAdorner
      *
      *  @param  inputFileName   Input XML file name.
      *
-     *  @throws SAXException
+     *  @throws SAXException, ParserConfigurationException
      */
 
     public void readorn( String inputFileName )
-        throws SAXException, IOException, FileNotFoundException
+        throws SAXException, IOException, FileNotFoundException, ParserConfigurationException
     {
         morphAdornerLogger.println( "Loading_previously_adorned" );
 
@@ -1999,10 +2000,15 @@ public class MorphAdorner
                                 //  from word elements in the adorned
                                 //  file.
 
+        SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+        parserFactory.setNamespaceAware(true);
+        SAXParser parser = parserFactory.newSAXParser();
+        XMLReader reader = parser.getXMLReader();
+
         StripWordAttributesFilter stripFilter   =
             new StripWordAttributesFilter
             (
-                XMLReaderFactory.createXMLReader()
+                reader
             );
 
         ExtendedAdornedWordFilter wordInfoFilter    =
@@ -2126,7 +2132,7 @@ public class MorphAdorner
         AddWordAttributesFilter addFilter   =
             new AddWordAttributesFilter
             (
-                XMLReaderFactory.createXMLReader() ,
+                reader,
                 wordInfoFilter ,
                 morphAdornerSettings
             );

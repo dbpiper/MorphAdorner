@@ -3,15 +3,15 @@ package edu.northwestern.at.morphadorner.tools;
 /*  Please see the license information at the end of this file. */
 
 import java.io.*;
-import java.text.*;
 import java.util.*;
 
-import org.xml.sax.*;
-import org.xml.sax.helpers.*;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
+import org.xml.sax.*;
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.sentencemelder.*;
-import edu.northwestern.at.utils.csv.*;
 import edu.northwestern.at.utils.xml.*;
 
 /** Reads adorned word information from MorphAdorner XML output.
@@ -29,7 +29,7 @@ public class AdornedXMLReader
      */
 
     public AdornedXMLReader( String xmlInputFileName )
-        throws org.xml.sax.SAXException, java.io.IOException
+        throws ParserConfigurationException, SAXException, java.io.IOException
     {
                                 //  Read XML and load word information.
 
@@ -42,12 +42,15 @@ public class AdornedXMLReader
      */
 
     protected void readXML( String xmlInputFileName )
-        throws org.xml.sax.SAXException, java.io.IOException
+        throws ParserConfigurationException, SAXException, java.io.IOException
     {
                                 //  Create XML reader for XML input.
 
-        XMLReader reader        =
-            XMLReaderFactory.createXMLReader();
+        SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+        parserFactory.setNamespaceAware(true);
+        SAXParser parser = parserFactory.newSAXParser();
+        XMLReader reader  = parser.getXMLReader();
+
 
                                 //  Add filter to XML reader to
                                 //  add path attributes to XML elements.
@@ -70,32 +73,8 @@ public class AdornedXMLReader
             new ExtendedAdornedWordFilter( xmlPathFilter , true );
 
                                 //  Parse the XML input.
-                                //
-                                //  $$$PIB$$$ So you wonder why
-                                //  we don't just call
-                                //
-                                //  wordInfoFilter.parse( xmlInputFileName );
-                                //
-                                //  here.  At least in Java 1.6, the
-                                //  runtime SAX parser is too stupid to open
-                                //  some file names correctly.  So we
-                                //  create the input source ourselves.
-
-        BufferedReader bufferedReader   =
-            new BufferedReader
-            (
-                new UnicodeReader
-                (
-                    new FileInputStream( xmlInputFileName ) ,
-                    "utf-8"
-                )
-            );
-
-        InputSource inputSource = new InputSource( bufferedReader );
-
-        wordInfoFilter.parse( inputSource );
-
-        bufferedReader.close();
+ 
+        wordInfoFilter.parse( xmlInputFileName );
     }
 
     /** Return list of adorned word IDs.

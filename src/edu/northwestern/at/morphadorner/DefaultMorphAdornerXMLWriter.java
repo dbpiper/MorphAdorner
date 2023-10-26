@@ -6,6 +6,10 @@ import java.io.*;
 import java.text.*;
 import java.util.*;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
@@ -53,7 +57,7 @@ public class DefaultMorphAdornerXMLWriter
      *  @param  adorner             The adorner.
      *  @param  tokenizingOnly      Only emit tokenization-related attributes.
      *
-     *  @throws                     IOException, SAXException
+     *  @throws                     IOException, SAXException, ParserConfigurationException
      */
 
     public void writeXML
@@ -68,7 +72,7 @@ public class DefaultMorphAdornerXMLWriter
         MorphAdorner adorner ,
         boolean tokenizingOnly
     )
-        throws IOException, SAXException
+        throws IOException, SAXException, ParserConfigurationException
     {
                                 //  Get settings.
 
@@ -79,8 +83,10 @@ public class DefaultMorphAdornerXMLWriter
         MorphAdornerLogger logger       = adorner.morphAdornerLogger;
 
                                 //  Create XML reader.
-
-        XMLReader reader    = XMLReaderFactory.createXMLReader();
+        SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+        parserFactory.setNamespaceAware(true);
+        SAXParser parser = parserFactory.newSAXParser();
+        XMLReader saxReader  = parser.getXMLReader();
 
                                 //  Add filter for updating word
                                 //  tag attribute fields.
@@ -88,7 +94,7 @@ public class DefaultMorphAdornerXMLWriter
         IDFixerFilter idFilter  =
             new IDFixerFilter
             (
-                reader ,
+                saxReader ,
                 posTags ,
                 outFile ,
                 maxID ,

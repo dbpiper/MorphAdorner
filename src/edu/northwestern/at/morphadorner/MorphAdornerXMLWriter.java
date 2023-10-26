@@ -5,12 +5,10 @@ package edu.northwestern.at.morphadorner;
 import java.io.*;
 import java.util.Map;
 
-import edu.northwestern.at.morphadorner.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
-import edu.northwestern.at.utils.logger.*;
+import javax.xml.parsers.ParserConfigurationException;
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import org.xml.sax.*;
-import org.xml.sax.helpers.*;
 
 /** Interface for writing an adorned XML file with added ID fields.
  */
@@ -31,6 +29,7 @@ public interface MorphAdornerXMLWriter
      *  @param  tokenizingOnly  true if only performing tokenization.
      *
      *  @throws             IOException, SAXException
+     * @throws ParserConfigurationException
      */
 
     public void writeXML
@@ -45,7 +44,7 @@ public interface MorphAdornerXMLWriter
         MorphAdorner adorner ,
         boolean tokenizingOnly
     )
-        throws IOException, SAXException;
+        throws IOException, SAXException, ParserConfigurationException;
 }
 
 /*
