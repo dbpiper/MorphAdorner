@@ -2,13 +2,10 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.regexp;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import java.util.regex.*;
 
-import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
 
 /** Regular Expression Part of Speech tagger.
  *
@@ -19,7 +16,6 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
  */
 
 public class RegexpTagger extends UnigramTagger
-    implements PartOfSpeechTagger, CanTagOneWord
 {
     /** Parts of speech for each lexical rule.
      */

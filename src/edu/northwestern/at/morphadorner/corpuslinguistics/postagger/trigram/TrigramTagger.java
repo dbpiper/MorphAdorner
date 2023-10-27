@@ -10,8 +10,6 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.contextual.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.lexical.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
 import edu.northwestern.at.utils.math.*;
 
 /** Trigram Part of Speech tagger.

@@ -5,7 +5,6 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.noopretagge
 import java.util.*;
 
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
 

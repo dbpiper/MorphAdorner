@@ -2,12 +2,7 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.affix;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
 
 /** Affix Part of Speech tagger.
  *
@@ -19,7 +14,6 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
  */
 
 public class AffixTagger extends UnigramTagger
-    implements PartOfSpeechTagger, CanTagOneWord
 {
     /** Create a affix tagger.
      */

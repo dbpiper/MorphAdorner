@@ -6,9 +6,6 @@ import java.util.*;
 
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.math.*;
-import edu.northwestern.at.utils.math.distributions.*;
-import edu.northwestern.at.utils.math.statistics.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.ngram.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.statistics.*;
 

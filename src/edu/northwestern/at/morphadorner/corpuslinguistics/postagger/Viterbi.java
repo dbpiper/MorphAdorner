@@ -78,10 +78,10 @@ public class Viterbi
         tracebackTags       = Map2DFactory.createNewMap2D();
 
         trellis.put(
-            new Integer( -2 ) , startState , Probability.ONE_PROBABILITY );
+            Integer.valueOf( -2 ) , startState , Probability.ONE_PROBABILITY );
 
         trellis.put(
-            new Integer( -1 ) , startState , Probability.ONE_PROBABILITY );
+            Integer.valueOf( -1 ) , startState , Probability.ONE_PROBABILITY );
 
         beamSearchRejections    = 0;
 
@@ -103,7 +103,7 @@ public class Viterbi
         Probability result  = Probability.ZERO_PROBABILITY;
 
         Probability score   =
-            (Probability)trellis.get( new Integer( index ) , tag );
+            (Probability)trellis.get( Integer.valueOf( index ) , tag );
 
         if ( score != null )
         {
@@ -128,7 +128,7 @@ public class Viterbi
     public String getTracebackTag( int index , String tag )
     {
         String result   =
-            (String)tracebackTags.get( new Integer( index ) , tag );
+            (String)tracebackTags.get( Integer.valueOf( index ) , tag );
 
         if ( result == null ) result = "*";
 
@@ -151,8 +151,8 @@ public class Viterbi
         Probability score
     )
     {
-        trellis.put( new Integer( index ) , tag , score );
-        tracebackTags.put( new Integer( index ) , tag , tracebackTag );
+        trellis.put( Integer.valueOf( index ) , tag , score );
+        tracebackTags.put( Integer.valueOf( index ) , tag , tracebackTag );
     }
 
     /** Perform Viterbi scoring for bigram.

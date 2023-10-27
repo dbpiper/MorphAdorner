@@ -4,7 +4,6 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.propernounr
 
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;

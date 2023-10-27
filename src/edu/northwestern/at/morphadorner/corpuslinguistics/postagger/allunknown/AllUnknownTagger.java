@@ -16,7 +16,7 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
  */
 
 public class AllUnknownTagger extends AbstractPartOfSpeechTagger
-    implements PartOfSpeechTagger, CanTagOneWord
+    implements CanTagOneWord
 {
     /** Unknown part of speech tag. "zz" is NUPos unknown. */
 
@@ -39,7 +39,7 @@ public class AllUnknownTagger extends AbstractPartOfSpeechTagger
         String unknownPOS
     )
     {
-        this.unknownPOS = unknownPOS;
+        AllUnknownTagger.unknownPOS = unknownPOS;
     }
 
     /** Tag a sentence.
