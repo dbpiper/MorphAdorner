@@ -337,7 +337,7 @@ public class MorphAdornerSettings implements Serializable
     /** XML schema to use when parsing XML input files. */
 
     public String xmlSchema =
-        "http://ariadne.northwestern.edu/monk/dtds/TEIAnalytics.rng";
+        "https://schemata.earlyprint.org/schemata/TEIAnalytics.rng";
 
     /** XML tags from which to remove word tags. */
 
