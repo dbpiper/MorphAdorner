@@ -635,19 +635,21 @@ abstract public class AbstractPartOfSpeechTags
     {
         String result   = "";
 
-        if  (   (   tag.indexOf( tagSeparatorString ) >= 0 ) &&
-                    !tag.equals( tagSeparatorString )
-            )
-        {
-            result  = "multiple";
-        }
-        else
-        {
-            PartOfSpeech partOfSpeech   = getPartOfSpeechData( tag );
-
-            if ( partOfSpeech != null )
+        if (tag != null) {
+            if  (   (   tag.indexOf( tagSeparatorString ) >= 0 ) &&
+                        !tag.equals( tagSeparatorString )
+                )
             {
-                result  = partOfSpeech.getMajorWordClass();
+                result  = "multiple";
+            }
+            else
+            {
+                PartOfSpeech partOfSpeech   = getPartOfSpeechData( tag );
+
+                if ( partOfSpeech != null )
+                {
+                    result  = partOfSpeech.getMajorWordClass();
+                }
             }
         }
 
@@ -1110,18 +1112,20 @@ abstract public class AbstractPartOfSpeechTags
                                 //  separator, it represents itself
                                 //  instead of being the separator.
 
-        if ( ( tag.length() == 1 ) && ( tag.charAt( 0 ) == tagSeparator ) )
-        {
-        }
-                                //  Otherwise count the number of tag
-                                //  separators.
-        else
-        {
-            for ( int i = 0 ; i < tag.length() ; i++ )
+        if (tag != null) {
+            if ( ( tag.length() == 1 ) && ( tag.charAt( 0 ) == tagSeparator ) )
             {
-                if ( tag.charAt( i ) == tagSeparator )
+            }
+                                    //  Otherwise count the number of tag
+                                    //  separators.
+            else
+            {
+                for ( int i = 0 ; i < tag.length() ; i++ )
                 {
-                    result++;
+                    if ( tag.charAt( i ) == tagSeparator )
+                    {
+                        result++;
+                    }
                 }
             }
         }

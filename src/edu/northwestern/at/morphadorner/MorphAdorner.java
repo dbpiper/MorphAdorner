@@ -1825,7 +1825,7 @@ public class MorphAdorner
                                 //  and the lemma to the lowercase
                                 //  original spelling.
 
-                if ( lemmatizer != null )
+                if ( lemmatizer != null && undeterminedPosTag != null)
                 {
                     if  (   partOfSpeechTags.countTags( partOfSpeechTag ) !=
                             lemmatizer.countLemmata( lemma )

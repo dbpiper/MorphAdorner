@@ -11,7 +11,6 @@ import java.text.*;
 import java.util.*;
 
 import org.jdom2.*;
-import org.jdom2.contrib.schema.*;
 import org.jdom2.input.*;
 import org.jdom2.input.sax.*;
 import org.jdom2.output.*;

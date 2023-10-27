@@ -783,6 +783,7 @@ public class IDFixerFilter extends ExtendedXMLFilterImpl
                                 //  lemma to the spelling.
 
             if  (   !foreignStack.isEmpty() &&
+                    foreignStack.peek() != null &&
                     ( foreignStack.peek().length() > 0 )
                 )
             {

@@ -691,16 +691,19 @@ abstract public class AbstractPartOfSpeechGuesser
             if ( wordList.containsString( word ) )
             {
                                 //  Yes -- return part of speech tag(s).
-                result  =
-                    posTagsToMap
-                    (
-                        StringUtils.makeTokenArray
+                String tag = (String)wordList.getTag( word );
+                if (tag != null) {
+                    result  =
+                        posTagsToMap
                         (
-                            (String)wordList.getTag( word )
-                        )
-                    );
+                            StringUtils.makeTokenArray
+                            (
+                                (String)wordList.getTag( word )
+                            )
+                        );
 
-                break;
+                    break;
+                }
             }
             else
             {
@@ -712,16 +715,19 @@ abstract public class AbstractPartOfSpeechGuesser
                 {
                                 //  Yes -- return part of speech tag(s).
 
-                    result  =
-                        posTagsToMap
-                        (
-                            StringUtils.makeTokenArray
+                    String tag = (String)wordList.getTag( word );
+                    if (tag != null) {
+                        result  =
+                            posTagsToMap
                             (
-                                (String)wordList.getTag( lowerWord )
-                            )
-                        );
+                                StringUtils.makeTokenArray
+                                (
+                                    (String)wordList.getTag( lowerWord )
+                                )
+                            );
 
-                    break;
+                        break;
+                    }
                 }
             }
         }
