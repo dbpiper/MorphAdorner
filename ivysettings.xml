@@ -1,17 +1,19 @@
 <?xml version="1.0"?>
 <ivysettings >
+    <version-matchers usedefaults="true"/>
     <settings defaultResolver="default" />
     <include url="${ivy.default.settings.dir}/ivysettings-shared.xml"/>
     <include url="${ivy.default.settings.dir}/ivysettings-local.xml"/>
     <resolvers>
         <chain name="public">
-            <ibiblio name="maven2" m2compatible="true" />
+            <ibiblio name="maven2" m2compatible="true"
+                     root="https://repo1.maven.org/maven2"/>
             <ibiblio name="restlet" m2compatible="true"
                      root="https://maven.restlet.org/" />
         </chain>
         <url name="morphadornerlibs">
             <artifact
-                pattern="http://morphadorner.northwestern.edu/morphadornerlibs/[module]/[artifact]-[revision].[ext]" />
+                pattern="https://morphadorner.northwestern.edu/morphadornerlibs/[module]/[artifact]-[revision].[ext]" />
         </url>
     </resolvers>
     <include url="${ivy.default.settings.dir}/ivysettings-main-chain.xml" />
