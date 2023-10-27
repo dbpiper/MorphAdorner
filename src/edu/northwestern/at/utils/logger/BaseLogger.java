@@ -5,7 +5,8 @@ package edu.northwestern.at.utils.logger;
 import java.util.*;
 import java.io.*;
 
-import org.apache.log4j.*;
+import org.apache.logging.log4j.*;
+import org.apache.logging.log4j.core.net.Priority;
 
 /** Base logger which wraps Jakarta Common Logging Log manager.
  *
@@ -19,7 +20,7 @@ public class BaseLogger implements Logger
 {
     /** Log4J logger. */
 
-    protected org.apache.log4j.Logger logger;
+    protected org.apache.logging.log4j.Logger logger;
 
     /** True if logger enabled. */
 
@@ -53,7 +54,7 @@ public class BaseLogger implements Logger
     )
         throws FileNotFoundException, IOException
     {
-        logger  = org.apache.log4j.Logger.getLogger( logClassName );
+        logger  = org.apache.logging.log4j.LogManager.getLogger( logClassName );
 
         Properties properties = new Properties();
 
@@ -75,15 +76,12 @@ public class BaseLogger implements Logger
             }
         }
 
-        PropertyConfigurator.configure( properties );
-
         loggerEnabled = true;
     }
 
     /** Terminates the logger.
      */
 
-    @SuppressWarnings( "deprecation" )
     public void terminate()
     {
         synchronized( lock )
@@ -92,7 +90,7 @@ public class BaseLogger implements Logger
             {
                 loggerEnabled = false;
 
-                logger.shutdown();
+                LogManager.shutdown();
             }
         }
     }
@@ -104,7 +102,7 @@ public class BaseLogger implements Logger
      *  @return     log4j level.
      */
 
-    protected static Priority mapLevel( int level )
+    protected static Level mapLevel( int level )
     {
         switch ( level )
         {

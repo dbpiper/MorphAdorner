@@ -5,7 +5,7 @@ package edu.northwestern.at.utils.logger;
 import java.util.*;
 import java.io.*;
 
-import org.apache.log4j.*;
+import org.apache.logging.log4j.*;
 
 /** Dummy logger which generates no output.
  */

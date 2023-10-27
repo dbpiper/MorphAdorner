@@ -64,13 +64,13 @@
                                         />
                 <dependency org="org.slf4j"
                                         name="jul-to-slf4j"
-                                        rev="1.5.8"
+                                        rev="2.0.9"
                                         transitive="false"
                                         conf="main->default"
                                         />
-                <dependency org="morphadornerlibs"
-                                        name="log4j"
-                                        rev="1.2.15"
+                <dependency org="org.apache.logging.log4j"
+                                        name="log4j-core"
+                                        rev="2.21.1"
                                         conf="main->default"
                                         />
                 <dependency org="morphadornerlibs"
@@ -107,13 +107,13 @@
                                         />
                 <dependency org="org.slf4j"
                                         name="slf4j-api"
-                                        rev="1.5.8"
+                                        rev="2.0.9"
                                         transitive="false"
                                         conf="main->default"
                                         />
                 <dependency org="org.slf4j"
-                                        name="slf4j-log4j12"
-                                        rev="1.5.8"
+                                        name="slf4j-reload4j"
+                                        rev="2.0.9"
                                         transitive="false"
                                         conf="main->default"
                                         />
