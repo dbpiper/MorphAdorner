@@ -35,7 +35,7 @@
 
 	<!-- Apache Ivy settings. -->
 
-	<property name="ivy.install.version" value="2.3.0"/>
+	<property name="ivy.install.version" value="2.5.2"/>
 	<property name="ivy.jar.file"	  value="${lib.dir}/ivy.jar"/>
 	<property name="ivy.lib.dir"	  value="${lib.dir}"/>
 
