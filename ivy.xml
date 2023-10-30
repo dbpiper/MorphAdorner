@@ -157,9 +157,9 @@
                                         name="xsdlib"
                                         conf="main->default"
                                         rev="2022.7"/>
-                <dependency org="morphadornerlibs"
+                <dependency org="com.thoughtworks.xstream"
                                         name="xstream"
-                                        rev="1.3.1"
+                                        rev="1.4.20"
                                         conf="main->default"
                                         />
         </dependencies>
