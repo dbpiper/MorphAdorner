@@ -10,19 +10,19 @@
                                         rev="4"
                                         conf="gate->default"
                                         />
-                <dependency org="morphadornerlibs"
+                <dependency org="com.ibm.icu"
                                         name="icu4j"
-                                        rev="51.1"
+                                        rev="73.2"
                                         conf="main->default"
                                         />
-                <dependency org="morphadornerlibs"
+                <dependency org="com.ibm.icu"
                                         name="icu4j-charset"
-                                        rev="51.1"
+                                        rev="73.2"
                                         conf="main->default"
                                         />
-                <dependency org="morphadornerlibs"
+                <dependency org="com.ibm.icu"
                                         name="icu4j-localespi"
-                                        rev="51.1"
+                                        rev="73.2"
                                         conf="main->default"
                                         />
                 <dependency org="isorelax"
