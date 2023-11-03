@@ -128,9 +128,9 @@
                                         rev="0.4"
                                         conf="main->default"
                                         />
-                <dependency org="morphadornerlibs"
+                <dependency org="com.googlecode.texhyphj"
                                         name="texhyphj"
-                                        rev="1.1"
+                                        rev="1.2"
                                         conf="main->default"
                                         />
                 <dependency org="xml-apis"
