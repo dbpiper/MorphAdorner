@@ -100,9 +100,9 @@
                                         rev="1.0"
                                         conf="main->default"
                                         />
-                <dependency org="morphadornerlibs"
-                                        name="servlet-api"
-                                        rev="2.5"
+                <dependency org="javax.servlet"
+                                        name="javax.servlet-api"
+                                        rev="4.0.1"
                                         conf="main->default"
                                         />
                 <dependency org="org.slf4j"
