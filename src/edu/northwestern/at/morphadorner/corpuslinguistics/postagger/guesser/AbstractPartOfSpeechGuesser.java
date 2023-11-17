@@ -239,6 +239,7 @@ abstract public class AbstractPartOfSpeechGuesser
 
     protected Map<String, MutableInteger> posTagToMap( String posTag )
     {
+        if ( posTag == null ) return null;
         Map<String, MutableInteger> result  = MapFactory.createNewMap();
 
         int count   =
@@ -817,7 +818,9 @@ abstract public class AbstractPartOfSpeechGuesser
                             getSingularNounTag() );
             }
 
-            addCachedWord( word , result );
+            if (result != null) {
+                addCachedWord( word , result );
+            }
         }
 
         return result;
