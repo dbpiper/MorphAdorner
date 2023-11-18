@@ -387,6 +387,9 @@ public class DefaultPartOfSpeechGuesser
             }
         }
 
+        // Last chance (zz = "unknown") if we still don't have a POS
+        if (result == null) result = posTagToMap("zz");
+
         return result;
     }
 
