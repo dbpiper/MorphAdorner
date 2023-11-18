@@ -1,0 +1,383 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "MorphAdorner",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.MorphAdorner",
+            "projectName": "morphadorner_86415cd0",
+            "args": [
+                "-d","morphadorner.properties",
+                "-p", "eme.properties",
+                "-l", "data/wordlexiconeme_before_1570.lex",
+                "-t", "data/emetransmat_before_1570.mat",
+                "-u", "data/suffixlexiconeme_before_1570.lex",
+                "-a", "data/ememergedspellingpairs.tab",
+                "-s", "data/standardspellings.txt",
+                "-w", "data/spellingsbywordclass.txt",
+                "-o", "output",
+                "test.xml"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "AdornAString",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.examples.AdornAString",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "PosTagString",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.examples.PosTagString",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "SentenceAndTokenOffsets",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.examples.SentenceAndTokenOffsets",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "UsingAnAdornedText",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.examples.UsingAnAdornedText",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "AddCharacterOffsets",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.addcharacteroffsets.AddCharacterOffsets",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "AddPseudoPages",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.addpseudopages.AddPseudoPages",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "AdornedToSimpleTEIP5",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.adornedtosimpleteip5.AdornedToSimpleTEIP5",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "AdornedToSketch",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.adornedtosketch.AdornedToSketch",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "AdornedToTCF04",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.adornedtotcf.AdornedToTCF04",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "MergeAnnolexCorrectionsIntoAdornedXML",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.annolex.MergeAnnolexCorrectionsIntoAdornedXML",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "ApplyXSLT",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.applyxslt.ApplyXSLT",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "CompareAdornedFiles",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.compareadornedfiles.CompareAdornedFiles",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "GetTokenChanges",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.compareadornedfiles.GetTokenChanges",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "UpdateAdornedFile",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.compareadornedfiles.UpdateAdornedFile",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "CompareStringCounts",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.comparestringcounts.CompareStringCounts",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "CountAdornedWords",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.countadornedwords.CountAdornedWords",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "CountAffixes",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.countaffixes.CountAffixes",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "CreateLexicon",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.createlexicon.CreateLexicon",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "CreateSuffixLexicon",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.createsuffixlexicon.CreateSuffixLexicon",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "FindTEITextLanguage",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.findteitextlanguage.FindTEITextLanguage",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "FixQuotes",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.fixquotes.FixQuotes",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "FixXMLQuotes",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.fixquotes.FixXMLQuotes",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "LGParser",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.lgparser.LGParser",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "MergeBrillLexicon",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.mergebrilllexicon.MergeBrillLexicon",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "MergeEnhancedBrillLexicon",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.mergeenhancedbrilllexicon.MergeEnhancedBrillLexicon",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "MergeSpellingData",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.mergespellingdata.MergeSpellingData",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "MergeTextFiles",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.mergetextfiles.MergeTextFiles",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "MergeWordLists",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.mergewordlists.MergeWordLists",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "AdornWithNamedEntities",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.namedentities.AdornWithNamedEntities",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "PunktAbbreviationDetector",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.punktabbreviationdetector.PunktAbbreviationDetector",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "Relemmatize",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.relemmatize.Relemmatize",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "ExactlySampleTextFile",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.sampletextfile.ExactlySampleTextFile",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "RandomlySampleTextFile",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.sampletextfile.RandomlySampleTextFile",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "StripWordAttributes",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.stripwordattributes.StripWordAttributes",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "TagDiff",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.tagdiff.TagDiff",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "NGramTaggerTrainer",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.taggertrainer.ngram.NGramTaggerTrainer",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "AddUnclear",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.tcp.AddUnclear",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "CountDividedWords",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.tcp.CountDividedWords",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "ExtractSoftHyphens",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.tcp.ExtractSoftHyphens",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "FindSoftHyphens",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.tcp.FindSoftHyphens",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "FixWordBreaks",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.tcp.FixWordBreaks",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "RemoveCruft",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.tcp.RemoveCruft",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "SuperFixer",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.tcp.SuperFixer",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "Unadorn",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.unadorn.Unadorn",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "ValidateXMLFiles",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.validatexmlfiles.ValidateXMLFiles",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "AdornedToTabularFile",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.xmltotab.AdornedToTabularFile",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "XMLToTab",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.morphadorner.tools.xmltotab.XMLToTab",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "PreprocessDirectoryTree",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.utils.preprocessor.PreprocessDirectoryTree",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "Preprocessor",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.utils.preprocessor.Preprocessor",
+            "projectName": "morphadorner_86415cd0"
+        },
+        {
+            "type": "java",
+            "name": "makedict",
+            "request": "launch",
+            "mainClass": "edu.northwestern.at.utils.spellcheck.tools.makedict",
+            "projectName": "morphadorner_86415cd0"
+        }
+    ]
+}
