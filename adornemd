@@ -3,12 +3,12 @@ SCRIPTPATH=$(dirname "$0")
 CLASSPATH="$SCRIPTPATH":"$SCRIPTPATH"/bin/:"$SCRIPTPATH"/dist/\*:"$SCRIPTPATH"/lib/\*
 java -Xmx2048m -Xss1m -cp "$CLASSPATH" \
 	edu.northwestern.at.morphadorner.MorphAdorner \
-	-p emd.properties \
-	-l data/emelexicon.lex \
-	-t data/emetransmat.mat \
-	-u data/emesuffixlexicon.lex \
-	-a data/ememergedspellingpairs.tab \
-	-s data/standardspellings.txt \
-	-w data/spellingsbywordclass.txt \
+	-p "$SCRIPTPATH"/emd.properties \
+	-l "$SCRIPTPATH"/data/emelexicon.lex \
+	-t "$SCRIPTPATH"/data/emetransmat.mat \
+	-u "$SCRIPTPATH"/data/emesuffixlexicon.lex \
+	-a "$SCRIPTPATH"/data/ememergedspellingpairs.tab \
+	-s "$SCRIPTPATH"/data/standardspellings.txt \
+	-w "$SCRIPTPATH"/data/spellingsbywordclass.txt \
 	-o "$1" \
 	"$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"

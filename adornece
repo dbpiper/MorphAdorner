@@ -3,14 +3,14 @@ SCRIPTPATH=$(dirname "$0")
 CLASSPATH="$SCRIPTPATH":"$SCRIPTPATH"/bin/:"$SCRIPTPATH"/dist/\*:"$SCRIPTPATH"/lib/\*
 java -Xmx2048m -Xss1m -cp "$CLASSPATH" \
 	edu.northwestern.at.morphadorner.MorphAdorner \
-	-p ece.properties \
-	-p ecco.properties \
-	-l data/eccolexicon.lex \
-	-t data/ncftransmat.mat \
-	-u data/eccosuffixlexicon.lex \
-	-a data/ncfmergedspellingpairs.tab \
-	-a data/eccomergedspellingpairs.tab \
-	-s data/standardspellings.txt \
-	-w data/spellingsbywordclass.txt \
+	-p "$SCRIPTPATH"/ece.properties \
+	-p "$SCRIPTPATH"/ecco.properties \
+	-l "$SCRIPTPATH"/data/eccolexicon.lex \
+	-t "$SCRIPTPATH"/data/ncftransmat.mat \
+	-u "$SCRIPTPATH"/data/eccosuffixlexicon.lex \
+	-a "$SCRIPTPATH"/data/ncfmergedspellingpairs.tab \
+	-a "$SCRIPTPATH"/data/eccomergedspellingpairs.tab \
+	-s "$SCRIPTPATH"/data/standardspellings.txt \
+	-w "$SCRIPTPATH"/data/spellingsbywordclass.txt \
 	-o "$1" \
 	"$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
