@@ -9,7 +9,11 @@
             <ibiblio name="maven2" m2compatible="true"
                      root="https://repo1.maven.org/maven2"/>
             <ibiblio name="restlet" m2compatible="true"
-                     root="https://maven.restlet.org/" />
+                     root="https://maven.restlet.talend.com/" />
+            <ibiblio name="pavlab" m2compatible="true"
+                     root="https://maven2.pavlab.msl.ubc.ca/" />
+            <ibiblio name="ow2public" m2compatible="true"
+                     root="https://repository.ow2.org/nexus/content/repositories/public/" />
         </chain>
         <url name="morphadornerlibs">
             <artifact
