@@ -1,7 +1,7 @@
 #!/bin/sh
 SCRIPTPATH=$(dirname "$0")
 CLASSPATH="$SCRIPTPATH":"$SCRIPTPATH"/bin/:"$SCRIPTPATH"/dist/\*:"$SCRIPTPATH"/lib/\*
-java -Xmx6144m -cp "$CLASSPATH" \
+java -Xmx8192m -cp "$CLASSPATH" \
 	edu.northwestern.at.morphadorner.MorphAdorner \
 	-d "$SCRIPTPATH"/morphadorner.properties \
 	-p "$SCRIPTPATH"/eme.properties \
