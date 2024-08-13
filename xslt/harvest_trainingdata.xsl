@@ -34,7 +34,7 @@
     </xsl:template>
 
     <!-- Output a tab-separated line for each tei:w that has a lemma -->
-    <xsl:template match="tei:w[@lemma and @lemma != '' and @pos != 'zz']">
+    <xsl:template match="tei:w[@lemma and @lemma != '' and @pos != 'zz' and not(matches(@lemma, '[●〈◊〉〈…〉▪]+'))]">
         <xsl:param name="year" required="true"/>
         <xsl:variable name="spelling" select="normalize-space((@orig, text())[1])"/>
         <xsl:value-of select="concat($spelling, '&#x09;', @pos, '&#x09;', @lemma, '&#x09;', @reg, '&#x09;', $year, '&#xA;')"></xsl:value-of>
