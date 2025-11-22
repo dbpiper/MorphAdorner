@@ -6,6 +6,12 @@
     <include url="${ivy.default.settings.dir}/ivysettings-local.xml"/>
     <resolvers>
         <chain name="public">
+            <filesystem name="local-libs">
+                <artifact pattern="${ivy.settings.dir}/lib/[artifact]-[revision].[ext]" />
+            </filesystem>
+            <filesystem name="local-gatelib">
+                <artifact pattern="${ivy.settings.dir}/gatelib/[artifact]-[revision].[ext]" />
+            </filesystem>
             <ibiblio name="maven2" m2compatible="true"
                      root="https://repo1.maven.org/maven2"/>
             <ibiblio name="restlet" m2compatible="true"
@@ -49,5 +55,9 @@
                 resolver="morphadornerlibs"/>
         <module organisation="morphadornerlibs" name="xstream"
                 resolver="morphadornerlibs"/>
+        <module organisation="gate" name="gate"
+                resolver="local-gatelib"/>
+        <module organisation="edu.smu.cse" name="jaws"
+                resolver="local-libs"/>
     </modules>
 </ivysettings>
