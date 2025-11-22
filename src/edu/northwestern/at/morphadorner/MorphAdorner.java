@@ -47,35 +47,32 @@ import edu.northwestern.at.utils.html.*;
 import edu.northwestern.at.utils.logger.*;
 import edu.northwestern.at.utils.xml.*;
 
-/** Morphological Adorner.
+/**
+ * Morphological Adorner.
  *
- *  <p>
- *  Given an input text, the morphological adorner adorns each word with
- *  morphological information such as part of speech, lemma and
- *  standardized spelling.
- *  </p>
+ * <p>
+ * Given an input text, the morphological adorner adorns each word with
+ * morphological information such as part of speech, lemma and
+ * standardized spelling.
+ * </p>
  */
 
-public class MorphAdorner
-{
+public class MorphAdorner {
     /** Stores initialized MorphAdorner objects for reuse. */
 
-    protected static Map<String, MorphAdorner> storedAdorners   =
-        MapFactory.createNewSynchronizedMap();
+    protected static Map<String, MorphAdorner> storedAdorners = MapFactory.createNewSynchronizedMap();
 
     /** Number of chararacters in a KWIC line. */
 
-    public int defaultKWICWidth     = 80;
+    public int defaultKWICWidth = 80;
 
     /** Latin words file. */
 
-    public String latinWordsFileName    =
-        "resources/latinwords.txt";
+    public String latinWordsFileName = "resources/latinwords.txt";
 
     /** Extra words file. */
 
-    public String extraWordsFileName    =
-        "resources/extrawords.txt";
+    public String extraWordsFileName = "resources/extrawords.txt";
 
     /** Extra words. */
 
@@ -83,8 +80,7 @@ public class MorphAdorner
 
     /** Spelling tokenizer for lemmatization. */
 
-    public WordTokenizer spellingTokenizer  =
-        new PennTreebankTokenizer();
+    public WordTokenizer spellingTokenizer = new PennTreebankTokenizer();
 
     /** Part of speech tags. */
 
@@ -132,1147 +128,920 @@ public class MorphAdorner
 
     /** Proper names. */
 
-    public Names names  = new Names();
+    public Names names = new Names();
 
     /** Abbreviations. */
 
-    public Abbreviations abbreviations  = new Abbreviations();
+    public Abbreviations abbreviations = new Abbreviations();
 
     /** Main text abbreviations. */
 
-    public Abbreviations mainAbbreviations  = new Abbreviations();
+    public Abbreviations mainAbbreviations = new Abbreviations();
 
     /** Side text abbreviations. */
 
-    public Abbreviations sideAbbreviations  = new Abbreviations();
+    public Abbreviations sideAbbreviations = new Abbreviations();
 
     /** Part of speech tag separator. */
 
-    public String tagSeparator  = "|";
+    public String tagSeparator = "|";
 
-    /*  Separates lemmata in compound lemma forms. */
+    /* Separates lemmata in compound lemma forms. */
 
-    public String lemmaSeparator    = "|";
+    public String lemmaSeparator = "|";
 
     /** MorphAdorner logger. */
 
-    public MorphAdornerLogger morphAdornerLogger    = null;
+    public MorphAdornerLogger morphAdornerLogger = null;
 
     /** MorphAdorner settings. */
 
-    public MorphAdornerSettings morphAdornerSettings    = null;
+    public MorphAdornerSettings morphAdornerSettings = null;
 
     /** MorphAdorner settings for XML tokenization. */
 
-    public MorphAdornerSettings tokenizationSettings    = null;
+    public MorphAdornerSettings tokenizationSettings = null;
 
     /** Tag classifier. */
 
-    public TEITagClassifier tagClassifier   = new TEITagClassifier();
+    public TEITagClassifier tagClassifier = new TEITagClassifier();
 
-    /** Create empty MorphAdorner object.
+    /**
+     * Create empty MorphAdorner object.
      */
 
-    public MorphAdorner()
-    {
+    public MorphAdorner() {
     }
 
-    /** Create MorphAdorner object.
+    /**
+     * Create MorphAdorner object.
      *
-     *  @param  args                Command line parameters.
-     *  @param  logConfiguration    Log file configuration.
-     *  @param  logDirectory        Log file directory.
+     * @param args             Command line parameters.
+     * @param logConfiguration Log file configuration.
+     * @param logDirectory     Log file directory.
      */
 
-    public MorphAdorner
-    (
-        String[] args ,
-        String logConfiguration ,
-        String logDirectory
-    )
-    {
-                                //  Create settings.
+    public MorphAdorner(
+            String[] args,
+            String logConfiguration,
+            String logDirectory) {
+        // Create settings.
 
-        morphAdornerSettings    = new MorphAdornerSettings();
+        morphAdornerSettings = new MorphAdornerSettings();
 
-                                //  Initialize logging.
-        try
-        {
-            morphAdornerLogger  =
-                new MorphAdornerLogger
-                (
-                    logConfiguration ,
-                    logDirectory ,
-                    morphAdornerSettings
-                );
-        }
-        catch ( Exception e )
-        {
+        // Initialize logging.
+        try {
+            morphAdornerLogger = new MorphAdornerLogger(
+                    logConfiguration,
+                    logDirectory,
+                    morphAdornerSettings);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-                                //  Initialize program settings.
+        // Initialize program settings.
 
-        morphAdornerSettings.initializeSettings( morphAdornerLogger );
+        morphAdornerSettings.initializeSettings(morphAdornerLogger);
 
-                                //  Get program settings.
-        try
-        {
-            morphAdornerSettings.getSettings( args );
-        }
-        catch ( Exception e )
-        {
+        // Get program settings.
+        try {
+            morphAdornerSettings.getSettings(args);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-                                //  Say adorner is starting.
+        // Say adorner is starting.
 
-        morphAdornerLogger.println( "programBanner" );
-        morphAdornerLogger.println( "Initializing_please_wait" );
+        morphAdornerLogger.println("programBanner");
+        morphAdornerLogger.println("Initializing_please_wait");
 
-                                //  Initialize adornment classes.
+        // Initialize adornment classes.
 
         initializeAdornment();
 
-                                //  Remember initialization complete
-                                //  for subsequent entries.
+        // Remember initialization complete
+        // for subsequent entries.
 
-        morphAdornerSettings.initialized    = true;
+        morphAdornerSettings.initialized = true;
     }
 
-    /** Create MorphAdorner object.
+    /**
+     * Create MorphAdorner object.
      *
-     *  @param  args    Parameters.
+     * @param args Parameters.
      */
 
-    public MorphAdorner( String[] args )
-    {
-        this( args , "morphadornerlog.config" , "log" );
+    public MorphAdorner(String[] args) {
+        this(args, "morphadornerlog.config", "log");
     }
 
-    /** Get map of stored adorners.
+    /**
+     * Get map of stored adorners.
      *
-     *  @return     Map from names to adorner instances.
+     * @return Map from names to adorner instances.
      */
 
-    public static Map<String, MorphAdorner> getStoredAdorners()
-    {
+    public static Map<String, MorphAdorner> getStoredAdorners() {
         return storedAdorners;
     }
 
-    /** Set map of stored adorners.
+    /**
+     * Set map of stored adorners.
      *
-     *  @param  storedAdorners  Map from names to adorner instances.
+     * @param storedAdorners Map from names to adorner instances.
      */
 
-    public static void setStoredAdorners
-    (
-        Map<String, MorphAdorner> storedAdorners
-    )
-    {
+    public static void setStoredAdorners(
+            Map<String, MorphAdorner> storedAdorners) {
         MorphAdorner.storedAdorners = storedAdorners;
     }
 
-    /** Initialize adornment classes.
+    /**
+     * Initialize adornment classes.
      */
 
-    protected void initializeAdornment()
-    {
-        try
-        {
-                                    //  Create part of speech
-                                    //  tags list.
-            partOfSpeechTags    =
-                PartOfSpeechTagsFactory.newPartOfSpeechTags
-                (
-                    morphAdornerSettings.properties
-                );
-                                //  Get part of speech tag separator.
+    protected void initializeAdornment() {
+        try {
+            // Create part of speech
+            // tags list.
+            partOfSpeechTags = PartOfSpeechTagsFactory.newPartOfSpeechTags(
+                    morphAdornerSettings.properties);
+            // Get part of speech tag separator.
 
-            tagSeparator        = partOfSpeechTags.getTagSeparator();
+            tagSeparator = partOfSpeechTags.getTagSeparator();
 
-                                //  Create a posttokenizer for the taggers.
+            // Create a posttokenizer for the taggers.
 
-            PostTokenizer postTokenizer =
-                PostTokenizerFactory.newPostTokenizer
-                (
-                    morphAdornerSettings.properties
-                );
-                                //  Create a part of speech tagger.
+            PostTokenizer postTokenizer = PostTokenizerFactory.newPostTokenizer(
+                    morphAdornerSettings.properties);
+            // Create a part of speech tagger.
 
-            tagger =
-                PartOfSpeechTaggerFactory.newPartOfSpeechTagger
-                (
-                    morphAdornerSettings.properties
-                );
-                                //  Create a part of speech retagger.
+            tagger = PartOfSpeechTaggerFactory.newPartOfSpeechTagger(
+                    morphAdornerSettings.properties);
+            // Create a part of speech retagger.
 
-            retagger =
-                PartOfSpeechRetaggerFactory.newPartOfSpeechRetagger
-                (
-                    morphAdornerSettings.properties
-                );
-                                //  Set post tokenizer into tagger.
+            retagger = PartOfSpeechRetaggerFactory.newPartOfSpeechRetagger(
+                    morphAdornerSettings.properties);
+            // Set post tokenizer into tagger.
 
-            tagger.setPostTokenizer( postTokenizer );
+            tagger.setPostTokenizer(postTokenizer);
 
-                                //  Set post tokenizer into retagger.
+            // Set post tokenizer into retagger.
 
-            retagger.setPostTokenizer( postTokenizer );
+            retagger.setPostTokenizer(postTokenizer);
 
-                                //  Set logger into tagger.
+            // Set logger into tagger.
 
-            ((UsesLogger)tagger).setLogger(
-                morphAdornerLogger.getLogger() );
+            ((UsesLogger) tagger).setLogger(
+                    morphAdornerLogger.getLogger());
 
-                                //  Set logger into retagger.
+            // Set logger into retagger.
 
-            ((UsesLogger)retagger).setLogger(
-                morphAdornerLogger.getLogger() );
+            ((UsesLogger) retagger).setLogger(
+                    morphAdornerLogger.getLogger());
 
-                                //  Get contextual and lexical smoothers
-                                //  for tagger.
+            // Get contextual and lexical smoothers
+            // for tagger.
 
-            ContextualSmoother cSmoother    =
-                ContextualSmootherFactory.newContextualSmoother
-                (
-                    morphAdornerSettings.properties
-                );
+            ContextualSmoother cSmoother = ContextualSmootherFactory.newContextualSmoother(
+                    morphAdornerSettings.properties);
 
-            cSmoother.setPartOfSpeechTagger( tagger );
+            cSmoother.setPartOfSpeechTagger(tagger);
 
-            LexicalSmoother lSmoother   =
-                LexicalSmootherFactory.newLexicalSmoother
-                (
-                    morphAdornerSettings.properties
-                );
+            LexicalSmoother lSmoother = LexicalSmootherFactory.newLexicalSmoother(
+                    morphAdornerSettings.properties);
 
-            lSmoother.setPartOfSpeechTagger( tagger );
+            lSmoother.setPartOfSpeechTagger(tagger);
 
-                                //  Set smoothers into tagger.
+            // Set smoothers into tagger.
 
-            tagger.setContextualSmoother( cSmoother );
-            tagger.setLexicalSmoother( lSmoother );
+            tagger.setContextualSmoother(cSmoother);
+            tagger.setLexicalSmoother(lSmoother);
 
-                                //  Get contextual and lexical smoothers
-                                //  for retagger.
+            // Get contextual and lexical smoothers
+            // for retagger.
 
-            ContextualSmoother cSmoother2   =
-                ContextualSmootherFactory.newContextualSmoother
-                (
-                    morphAdornerSettings.properties
-                );
+            ContextualSmoother cSmoother2 = ContextualSmootherFactory.newContextualSmoother(
+                    morphAdornerSettings.properties);
 
-            cSmoother2.setPartOfSpeechTagger( retagger );
+            cSmoother2.setPartOfSpeechTagger(retagger);
 
-            LexicalSmoother lSmoother2  =
-                LexicalSmootherFactory.newLexicalSmoother
-                (
-                    morphAdornerSettings.properties
-                );
+            LexicalSmoother lSmoother2 = LexicalSmootherFactory.newLexicalSmoother(
+                    morphAdornerSettings.properties);
 
-            lSmoother2.setPartOfSpeechTagger( retagger );
+            lSmoother2.setPartOfSpeechTagger(retagger);
 
-                                //  Set smoothers into retagger.
+            // Set smoothers into retagger.
 
-            retagger.setContextualSmoother( cSmoother2 );
-            retagger.setLexicalSmoother( lSmoother2 );
+            retagger.setContextualSmoother(cSmoother2);
+            retagger.setLexicalSmoother(lSmoother2);
 
-                                //  Set retagger into tagger.
+            // Set retagger into tagger.
 
-            tagger.setRetagger( retagger );
+            tagger.setRetagger(retagger);
 
-                                //  Display what types of tagger and
-                                //  retagger we are using.
+            // Display what types of tagger and
+            // retagger we are using.
 
-            morphAdornerLogger.println
-            (
-                "Using" , new Object[]{ tagger.toString() }
-            );
+            morphAdornerLogger.println(
+                    "Using", new Object[] { tagger.toString() });
 
-            morphAdornerLogger.println
-            (
-                "Using" , new Object[]{ retagger.toString() }
-            );
-                                //  Load word lexicon.
-            wordLexicon =
-                MorphAdornerUtils.loadWordLexicon
-                (
-                    morphAdornerSettings ,
-                    morphAdornerLogger
-                );
-                                //  Set parts of speech into lexicon.
+            morphAdornerLogger.println(
+                    "Using", new Object[] { retagger.toString() });
+            // Load word lexicon.
+            wordLexicon = MorphAdornerUtils.loadWordLexicon(
+                    morphAdornerSettings,
+                    morphAdornerLogger);
+            // Set parts of speech into lexicon.
 
-            wordLexicon.setPartOfSpeechTags( partOfSpeechTags );
+            wordLexicon.setPartOfSpeechTags(partOfSpeechTags);
 
-                                //  Get a part of speech guesser
-                                //  for words not in the lexicon.
+            // Get a part of speech guesser
+            // for words not in the lexicon.
 
-            partOfSpeechGuesser =
-                PartOfSpeechGuesserFactory.newPartOfSpeechGuesser
-                (
-                    morphAdornerSettings.properties
-                );
-                                //  Set check possessives flag.
+            partOfSpeechGuesser = PartOfSpeechGuesserFactory.newPartOfSpeechGuesser(
+                    morphAdornerSettings.properties);
+            // Set check possessives flag.
 
-            boolean checkPossessives    =
-                morphAdornerSettings.getBooleanProperty(
-                    "partofspeechguesser.check_possessives" , false );
+            boolean checkPossessives = morphAdornerSettings.getBooleanProperty(
+                    "partofspeechguesser.check_possessives", false);
 
+            partOfSpeechGuesser.setCheckPossessives(checkPossessives);
 
-            partOfSpeechGuesser.setCheckPossessives( checkPossessives );
+            // Set guesser into tagger. */
 
-                                //  Set guesser into tagger. */
+            tagger.setPartOfSpeechGuesser(partOfSpeechGuesser);
 
-            tagger.setPartOfSpeechGuesser( partOfSpeechGuesser );
+            // Set guesser into word lexicon. */
 
-                                //  Set guesser into word lexicon. */
+            partOfSpeechGuesser.setWordLexicon(wordLexicon);
 
-            partOfSpeechGuesser.setWordLexicon( wordLexicon );
+            // Set logger into guesser.
 
-                                //  Set logger into guesser.
+            ((UsesLogger) partOfSpeechGuesser).setLogger(
+                    morphAdornerLogger.getLogger());
 
-            ((UsesLogger)partOfSpeechGuesser).setLogger(
-                morphAdornerLogger.getLogger() );
+            // Load suffix lexicon if given.
+            suffixLexicon = MorphAdornerUtils.loadSuffixLexicon(
+                    morphAdornerSettings,
+                    morphAdornerLogger);
+            // Set suffix lexicon into guesser.
 
-                                //  Load suffix lexicon if given.
-            suffixLexicon   =
-                MorphAdornerUtils.loadSuffixLexicon
-                (
-                    morphAdornerSettings ,
-                    morphAdornerLogger
-                );
-                                //  Set suffix lexicon into guesser.
+            partOfSpeechGuesser.setSuffixLexicon(suffixLexicon);
 
-            partOfSpeechGuesser.setSuffixLexicon( suffixLexicon );
+            // Add extra words.
+            extraWords = MorphAdornerUtils.getExtraWordsList(
+                    extraWordsFileName,
+                    partOfSpeechTags.getSingularProperNounTag(),
+                    "Loaded_extra_words",
+                    morphAdornerSettings,
+                    morphAdornerLogger);
 
-                                //  Add extra words.
-            extraWords  =
-                MorphAdornerUtils.getExtraWordsList
-                (
-                    extraWordsFileName ,
-                    partOfSpeechTags.getSingularProperNounTag() ,
-                    "Loaded_extra_words" ,
-                    morphAdornerSettings ,
-                    morphAdornerLogger
-                );
+            partOfSpeechGuesser.addAuxiliaryWordList(extraWords);
 
-            partOfSpeechGuesser.addAuxiliaryWordList( extraWords );
+            // Add name lists.
 
-                                //  Add name lists.
+            partOfSpeechGuesser.addAuxiliaryWordList(
+                    new TaggedStringsSet(
+                            names.getPlaceNames().keySet(),
+                            partOfSpeechTags.getSingularProperNounTag()));
 
-            partOfSpeechGuesser.addAuxiliaryWordList
-            (
-                new TaggedStringsSet
-                (
-                    names.getPlaceNames().keySet() ,
-                    partOfSpeechTags.getSingularProperNounTag()
-                )
-            );
+            partOfSpeechGuesser.addAuxiliaryWordList(
+                    new TaggedStringsSet(
+                            names.getFirstNames(),
+                            partOfSpeechTags.getSingularProperNounTag()));
 
-            partOfSpeechGuesser.addAuxiliaryWordList
-            (
-                new TaggedStringsSet
-                (
-                    names.getFirstNames() ,
-                    partOfSpeechTags.getSingularProperNounTag()
-                )
-            );
+            partOfSpeechGuesser.addAuxiliaryWordList(
+                    new TaggedStringsSet(
+                            names.getSurnames(),
+                            partOfSpeechTags.getSingularProperNounTag()));
+            // Add latin words.
 
-            partOfSpeechGuesser.addAuxiliaryWordList
-            (
-                new TaggedStringsSet
-                (
-                    names.getSurnames() ,
-                    partOfSpeechTags.getSingularProperNounTag()
-                )
-            );
-                                //  Add latin words.
-
-            if ( morphAdornerSettings.useLatinWordList )
-            {
-                partOfSpeechGuesser.addAuxiliaryWordList
-                (
-                    MorphAdornerUtils.getWordList
-                    (
-                        latinWordsFileName ,
-                        partOfSpeechTags.getForeignWordTag( "latin" ) ,
-                        "Loaded_latin_words" ,
-                        morphAdornerSettings ,
-                        morphAdornerLogger
-                    )
-                );
+            if (morphAdornerSettings.useLatinWordList) {
+                partOfSpeechGuesser.addAuxiliaryWordList(
+                        MorphAdornerUtils.getWordList(
+                                latinWordsFileName,
+                                partOfSpeechTags.getForeignWordTag("latin"),
+                                "Loaded_latin_words",
+                                morphAdornerSettings,
+                                morphAdornerLogger));
             }
-                                //  Add extra abbreviations.
+            // Add extra abbreviations.
 
-            if ( morphAdornerSettings.abbreviationsURL.length() > 0 )
-            {
-                addAbbreviations
-                (
-                    abbreviations ,
-                    URLUtils.getURLFromFileNameOrURL
-                    (
-                        morphAdornerSettings.abbreviationsURL
-                    ).toString() ,
-                    "Loaded_abbreviations"
-                );
+            if (morphAdornerSettings.abbreviationsURL.length() > 0) {
+                addAbbreviations(
+                        abbreviations,
+                        URLUtils.getURLFromFileNameOrURL(
+                                morphAdornerSettings.abbreviationsURL).toString(),
+                        "Loaded_abbreviations");
             }
 
-            if ( morphAdornerSettings.abbreviationsMainTextURL.length() > 0 )
-            {
-                addAbbreviations
-                (
-                    mainAbbreviations ,
-                    URLUtils.getURLFromFileNameOrURL
-                    (
-                        morphAdornerSettings.abbreviationsMainTextURL
-                    ).toString() ,
-                    "Loaded_abbreviations"
-                );
+            if (morphAdornerSettings.abbreviationsMainTextURL.length() > 0) {
+                addAbbreviations(
+                        mainAbbreviations,
+                        URLUtils.getURLFromFileNameOrURL(
+                                morphAdornerSettings.abbreviationsMainTextURL).toString(),
+                        "Loaded_abbreviations");
             }
 
-            if ( morphAdornerSettings.abbreviationsSideTextURL.length() > 0 )
-            {
-                addAbbreviations
-                (
-                    sideAbbreviations ,
-                    URLUtils.getURLFromFileNameOrURL
-                    (
-                        morphAdornerSettings.abbreviationsSideTextURL
-                    ).toString() ,
-                    "Loaded_abbreviations"
-                );
+            if (morphAdornerSettings.abbreviationsSideTextURL.length() > 0) {
+                addAbbreviations(
+                        sideAbbreviations,
+                        URLUtils.getURLFromFileNameOrURL(
+                                morphAdornerSettings.abbreviationsSideTextURL).toString(),
+                        "Loaded_abbreviations");
             }
-                                //  Set tagger to use lexicon.
+            // Set tagger to use lexicon.
 
-            tagger.setLexicon( wordLexicon );
+            tagger.setLexicon(wordLexicon);
 
-                                //  Load tagger rules if given.
+            // Load tagger rules if given.
 
-            MorphAdornerUtils.loadTaggerRules
-            (
-                tagger ,
-                morphAdornerSettings ,
-                morphAdornerLogger
-            );
-                                //  Load transition matrix if given.
-
-            transitionMatrix        =
-                MorphAdornerUtils.loadTransitionMatrix
-                (
+            MorphAdornerUtils.loadTaggerRules(
                     tagger,
-                    morphAdornerSettings ,
-                    morphAdornerLogger
-                );
-                                //  Create a spelling standardizer.
+                    morphAdornerSettings,
+                    morphAdornerLogger);
+            // Load transition matrix if given.
 
-            spellingStandardizer    =
-                MorphAdornerUtils.createSpellingStandardizer
-                (
-                    wordLexicon ,
-                    names ,
-                    morphAdornerSettings ,
-                    morphAdornerLogger
-                );
-                                //  Create a spelling mapper.
+            transitionMatrix = MorphAdornerUtils.loadTransitionMatrix(
+                    tagger,
+                    morphAdornerSettings,
+                    morphAdornerLogger);
+            // Create a spelling standardizer.
 
-            spellingMapper  =
-                MorphAdornerUtils.createSpellingMapper
-                (
-                    morphAdornerSettings.properties
-                );
-                                //  Create a name standardizer.
+            spellingStandardizer = MorphAdornerUtils.createSpellingStandardizer(
+                    wordLexicon,
+                    names,
+                    morphAdornerSettings,
+                    morphAdornerLogger);
+            // Create a spelling mapper.
 
-            nameStandardizer    =
-                MorphAdornerUtils.createNameStandardizer
-                (
-                    wordLexicon ,
-                    morphAdornerSettings ,
-                    morphAdornerLogger
-                );
-                                //  Add spelling standardizer to
-                                //  part of speech guesser.
+            spellingMapper = MorphAdornerUtils.createSpellingMapper(
+                    morphAdornerSettings.properties);
+            // Create a name standardizer.
 
-            if ( spellingStandardizer != null )
-            {
+            nameStandardizer = MorphAdornerUtils.createNameStandardizer(
+                    wordLexicon,
+                    morphAdornerSettings,
+                    morphAdornerLogger);
+            // Add spelling standardizer to
+            // part of speech guesser.
+
+            if (spellingStandardizer != null) {
                 partOfSpeechGuesser.setSpellingStandardizer(
-                    spellingStandardizer );
+                        spellingStandardizer);
             }
-                                //  Create a lemmatizer.
+            // Create a lemmatizer.
 
-            lemmatizer  =
-                LemmatizerFactory.newLemmatizer
-                (
-                    morphAdornerSettings.properties
-                );
-                                //  Get lemma separator.
+            lemmatizer = LemmatizerFactory.newLemmatizer(
+                    morphAdornerSettings.properties);
+            // Get lemma separator.
 
-            lemmaSeparator  = lemmatizer.getLemmaSeparator();
+            lemmaSeparator = lemmatizer.getLemmaSeparator();
 
-                                //  Set lexicon for lemmatizer.
+            // Set lexicon for lemmatizer.
 
-            lemmatizer.setLexicon( wordLexicon );
+            lemmatizer.setLexicon(wordLexicon);
 
-                                //  Set standard word list for lemmatizer.
+            // Set standard word list for lemmatizer.
 
-            lemmatizer.setDictionary
-            (
-                spellingStandardizer.getStandardSpellings()
-            );
-                                //  Set logger into lemmatizer.
+            lemmatizer.setDictionary(
+                    spellingStandardizer.getStandardSpellings());
+            // Set logger into lemmatizer.
 
-            ((UsesLogger)lemmatizer).setLogger(
-                morphAdornerLogger.getLogger() );
+            ((UsesLogger) lemmatizer).setLogger(
+                    morphAdornerLogger.getLogger());
 
-                                //  Add abbreviations to guesser.
+            // Add abbreviations to guesser.
 
-            partOfSpeechGuesser.setAbbreviations( abbreviations );
-        }
-        catch ( Exception e )
-        {
+            partOfSpeechGuesser.setAbbreviations(abbreviations);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    /** Process list of files containing text to adorn.
+    /**
+     * Process list of files containing text to adorn.
      *
-     *  @param  xmlTokenizeOnly     Only tokenize XML files.
+     * @param xmlTokenizeOnly Only tokenize XML files.
      */
 
-    public void processInputFiles( boolean xmlTokenizeOnly )
-    {
-        long processStartTime   = System.currentTimeMillis();
+    public void processInputFiles(boolean xmlTokenizeOnly) {
+        long processStartTime = System.currentTimeMillis();
 
-                                //  Display # of files to process.
+        // Display # of files to process.
 
-        switch ( morphAdornerSettings.fileNames.length )
-        {
-            case 0  :   morphAdornerLogger.println
-                        (
-                            "No_files_to_process"
-                        );
-                        break;
+        switch (morphAdornerSettings.fileNames.length) {
+            case 0:
+                morphAdornerLogger.println(
+                        "No_files_to_process");
+                break;
 
-            case 1  :   morphAdornerLogger.println
-                        (
-                            "One_file_to_process"
-                        );
-                        break;
+            case 1:
+                morphAdornerLogger.println(
+                        "One_file_to_process");
+                break;
 
-            default :   morphAdornerLogger.println
-                        (
-                            "Number_of_files_to_process" ,
-                            new Object[]
-                            {
-                                Formatters.formatIntegerWithCommas
-                                (
-                                    morphAdornerSettings.fileNames.length
-                                )
-                            }
-                        );
-                        break;
+            default:
+                morphAdornerLogger.println(
+                        "Number_of_files_to_process",
+                        new Object[] {
+                                Formatters.formatIntegerWithCommas(
+                                        morphAdornerSettings.fileNames.length)
+                        });
+                break;
         }
-                                //  Note if we're using our XML handler.
+        // Note if we're using our XML handler.
 
-        boolean useXMLHandler   =
-            morphAdornerSettings.getBooleanProperty(
-                "adorner.handle_xml" , false );
+        boolean useXMLHandler = morphAdornerSettings.getBooleanProperty(
+                "adorner.handle_xml", false);
 
-        MorphAdornerUtils.logMemoryUsage
-        (
-            morphAdornerLogger ,
-            "Before processing input texts: "
-        );
-                                //  Loop over the input file names.
+        MorphAdornerUtils.logMemoryUsage(
+                morphAdornerLogger,
+                "Before processing input texts: ");
+        // Loop over the input file names.
 
-        for ( int i = 0 ; i < morphAdornerSettings.fileNames.length ; i++ )
-        {
-                                //  Get the next input file name.
+        for (int i = 0; i < morphAdornerSettings.fileNames.length; i++) {
+            // Get the next input file name.
 
-            String inputFileName    = morphAdornerSettings.fileNames[ i ];
+            String inputFileName = morphAdornerSettings.fileNames[i];
 
-                                //  Say we're processing it.
+            // Say we're processing it.
 
-            morphAdornerLogger.println
-            (
-                "Processing_file" ,
-                new Object[]{ inputFileName }
-            );
+            morphAdornerLogger.println(
+                    "Processing_file",
+                    new Object[] { inputFileName });
 
-            try
-            {
-                                //  Are we using XGTagger to process
-                                //  input XML?
+            try {
+                // Are we using XGTagger to process
+                // input XML?
 
-                if ( useXMLHandler )
-                {
-                                //  See if input file is already adorned
-                                //  or at least tokenized.
-                                //
-                                //  If so, we will (re)adorn it keeping
-                                //  the existing word IDs.
+                if (useXMLHandler) {
+                    // See if input file is already adorned
+                    // or at least tokenized.
+                    //
+                    // If so, we will (re)adorn it keeping
+                    // the existing word IDs.
 
-                    if ( MorphAdornerUtils.isAdorned( inputFileName , 500 ) )
-                    {
-                        readorn( inputFileName );
-                    }
-                    else
-                    {
-                        adornXML( inputFileName , xmlTokenizeOnly );
+                    if (MorphAdornerUtils.isAdorned(inputFileName, 500)) {
+                        readorn(inputFileName);
+                    } else {
+                        adornXML(inputFileName, xmlTokenizeOnly);
                     }
                 }
-                                //  Not using XML handler -- adorn
-                                //  as plain text.
-                else
-                {
-                    adornFile( inputFileName );
+                // Not using XML handler -- adorn
+                // as plain text.
+                else {
+                    adornFile(inputFileName);
                 }
-            }
-            catch ( Exception e )
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-                                //  Display total processing time.
+        // Display total processing time.
 
-        if ( morphAdornerSettings.fileNames.length > 0 )
-        {
-            morphAdornerLogger.println
-            (
-                "All_files_adorned" ,
-                new Object[]
-                {
-                    MorphAdornerUtils.durationString
-                    (
-                        morphAdornerSettings ,
-                        processStartTime
-                    )
-                }
-            );
+        if (morphAdornerSettings.fileNames.length > 0) {
+            morphAdornerLogger.println(
+                    "All_files_adorned",
+                    new Object[] {
+                            MorphAdornerUtils.durationString(
+                                    morphAdornerSettings,
+                                    processStartTime)
+                    });
         }
     }
 
-    /** Process list of files containing text to adorn.
+    /**
+     * Process list of files containing text to adorn.
      */
 
-    public void processInputFiles()
-    {
-        processInputFiles( false );
+    public void processInputFiles() {
+        processInputFiles(false);
     }
 
-    /** Adorn XML file.
+    /**
+     * Adorn XML file.
      *
-     *  @param  inputFileName   File name of XML file to adorn.
-     *  @param  tokenizeOnly    Only tokenize.
+     * @param inputFileName File name of XML file to adorn.
+     * @param tokenizeOnly  Only tokenize.
      *
-     *  @throws Exception       For variety of errors.
+     * @throws Exception For variety of errors.
      */
 
-    public void adornXML( String inputFileName , boolean tokenizeOnly )
-        throws Exception
-    {
-                                //  Skip adornment if output file
-                                //  already exists and appropriate
-                                //  option is set.
+    public void adornXML(String inputFileName, boolean tokenizeOnly)
+            throws Exception {
+        // Skip adornment if output file
+        // already exists and appropriate
+        // option is set.
 
-        if  (   !morphAdornerSettings.adornExistingXMLFiles &&
-                doesOutputFileNameExist( inputFileName )
-            )
-        {
-            morphAdornerLogger.println
-            (
-                "Skipping_file_which_is_already_adorned" ,
-                new Object[]
-                {
-                    inputFileName
-                }
-            );
+        if (!morphAdornerSettings.adornExistingXMLFiles &&
+                doesOutputFileNameExist(inputFileName)) {
+            morphAdornerLogger.println(
+                    "Skipping_file_which_is_already_adorned",
+                    new Object[] {
+                            inputFileName
+                    });
 
             return;
         }
-                                //  Create a new text inputter.
+        // Create a new text inputter.
 
-        TextInputter inputter   =
-            TextInputterFactory.newTextInputter
-            (
-                morphAdornerSettings.properties
-            );
-                                //  Enable gap fixer.
+        TextInputter inputter = TextInputterFactory.newTextInputter(
+                morphAdornerSettings.properties);
+        // Enable gap fixer.
 
-        inputter.enableGapFixer( morphAdornerSettings.fixGapTags );
+        inputter.enableGapFixer(morphAdornerSettings.fixGapTags);
 
-                                //  Enable orig fixer.
+        // Enable orig fixer.
 
-        inputter.enableOrigFixer( morphAdornerSettings.fixOrigTags );
+        inputter.enableOrigFixer(morphAdornerSettings.fixOrigTags);
 
-                                //  Enable split words fixer.
+        // Enable split words fixer.
 
-        inputter.enableSplitWordsFixer
-        (
-            morphAdornerSettings.fixSplitWords ,
-            morphAdornerSettings.fixSplitWordsPatternReplacers
-        );
-                                //  Load input text.  May be
-                                //  split into multiple segments.
-        URL inputFileURL    =
-            URLUtils.getURLFromFileNameOrURL( inputFileName );
+        inputter.enableSplitWordsFixer(
+                morphAdornerSettings.fixSplitWords,
+                morphAdornerSettings.fixSplitWordsPatternReplacers);
+        // Load input text. May be
+        // split into multiple segments.
+        URL inputFileURL = URLUtils.getURLFromFileNameOrURL(inputFileName);
 
-        inputter.loadText
-        (
-            inputFileURL ,
-            "utf-8" ,
-            morphAdornerSettings.xmlSchema
-        );
-                                //  Report number of segments.
+        inputter.loadText(
+                inputFileURL,
+                "utf-8",
+                morphAdornerSettings.xmlSchema);
+        // Report number of segments.
 
-        int nSegments       = inputter.getSegmentCount();
+        int nSegments = inputter.getSegmentCount();
 
-        String sSegments    =
-            Formatters.formatIntegerWithCommas( nSegments );
+        String sSegments = Formatters.formatIntegerWithCommas(nSegments);
 
-        morphAdornerLogger.println
-        (
-            "Input_file_split" ,
-            new Object[]{ inputFileName , sSegments }
-        );
-                                //  Save running word ID from one
-                                //  segment to another.
+        morphAdornerLogger.println(
+                "Input_file_split",
+                new Object[] { inputFileName, sSegments });
+        // Save running word ID from one
+        // segment to another.
 
-        int runningWordID   = 0;
+        int runningWordID = 0;
 
-                                //  Track ID for multipart words.
+        // Track ID for multipart words.
 
-        Map<Integer, Integer> splitWords    = MapFactory.createNewMap();
+        Map<Integer, Integer> splitWords = MapFactory.createNewMap();
 
-                                //  Total number of words adorned.
+        // Total number of words adorned.
 
-        int totalWords      = 0;
+        int totalWords = 0;
 
-                                //  Total number of <pb> elements.
+        // Total number of <pb> elements.
 
         int totalPageBreaks = 0;
 
-                                //  Adorn each segment separately.
+        // Adorn each segment separately.
 
-        for ( int j = 0 ; j < nSegments ; j++ )
-        {
-                                //  Get next segment name.
+        for (int j = 0; j < nSegments; j++) {
+            // Get next segment name.
 
-            String segmentName  = inputter.getSegmentName( j );
+            String segmentName = inputter.getSegmentName(j);
 
-                                //  Only adorn text segments.
+            // Only adorn text segments.
 
-            if ( !segmentName.startsWith( "text" ) ) continue;
-            if ( segmentName.equals( "text" ) ) continue;
+            if (!segmentName.startsWith("text"))
+                continue;
+            if (segmentName.equals("text"))
+                continue;
 
-                                //  Report which segment is being
-                                //  adorned.
+            // Report which segment is being
+            // adorned.
 
-            morphAdornerLogger.println
-            (
-                "Processing_segment" ,
-                new Object[]
-                {
-                    segmentName ,
-                    Formatters.formatIntegerWithCommas( j + 1 ) ,
-                    sSegments
-                }
-            );
-                                //  Get segment text.
+            morphAdornerLogger.println(
+                    "Processing_segment",
+                    new Object[] {
+                            segmentName,
+                            Formatters.formatIntegerWithCommas(j + 1),
+                            sSegments
+                    });
+            // Get segment text.
 
-            String segmentText  = inputter.getSegmentText( segmentName );
+            String segmentText = inputter.getSegmentText(segmentName);
 
-                                //  Convert XML text to DOM document.
+            // Convert XML text to DOM document.
 
-            Document document   =
-                XGParser.textToDOM
-                (
-                    morphAdornerSettings.xgOptions ,
-                    segmentText
-                );
-                                //  Fix empty soft tags.
+            Document document = XGParser.textToDOM(
+                    morphAdornerSettings.xgOptions,
+                    segmentText);
+            // Fix empty soft tags.
 
-            MorphAdornerUtils.fixEmptySoftTags
-            (
-                morphAdornerSettings.xgOptions ,
-                document
-            );
-                                //  Fix superscript tags.
+            MorphAdornerUtils.fixEmptySoftTags(
+                    morphAdornerSettings.xgOptions,
+                    document);
+            // Fix superscript tags.
 
-            MorphAdornerUtils.fixSupTags( document );
+            MorphAdornerUtils.fixSupTags(document);
 
-                                //  Add page break count this segment
-                                //  to total.
+            // Add page break count this segment
+            // to total.
 
-            totalPageBreaks +=
-                MorphAdornerUtils.countPageBreaks( document );
+            totalPageBreaks += MorphAdornerUtils.countPageBreaks(document);
 
-                                //  Extract plain text for adornment.
-            Object[] o  =
-                XGParser.extractText
-                (
-                    morphAdornerSettings.xgOptions ,
-                    document
-                );
-                                //  Set running word ID.
+            // Extract plain text for adornment.
+            Object[] o = XGParser.extractText(
+                    morphAdornerSettings.xgOptions,
+                    document);
+            // Set running word ID.
 
-            XGParser xgParser   = (XGParser)o[ 1 ];
+            XGParser xgParser = (XGParser) o[1];
 
-            xgParser.setRunningWordID( runningWordID );
+            xgParser.setRunningWordID(runningWordID);
 
-                                //  Create adorned output.
+            // Create adorned output.
 
-            AdornedWordOutputter outputter  =
-                adornText( (String)o[ 0 ] , null );
+            AdornedWordOutputter outputter = adornText((String) o[0], null);
 
-                                //  Merge adornments with original
-                                //  XML text.
+            // Merge adornments with original
+            // XML text.
 
-            morphAdornerLogger.println
-            (
-                "Inserting_adornments_into_xml"
-            );
+            morphAdornerLogger.println(
+                    "Inserting_adornments_into_xml");
 
-            long startTime  = System.currentTimeMillis();
+            long startTime = System.currentTimeMillis();
 
-            Map<Integer, Integer> segmentSplitWords =
-                XGParser.mergeAdornments
-                (
-                    morphAdornerSettings.xgOptions ,
-                    (XGParser)o[ 1 ] ,
-                    document ,
-                    segmentName ,
-                    outputter ,
-                    inputter
-                );
+            Map<Integer, Integer> segmentSplitWords = XGParser.mergeAdornments(
+                    morphAdornerSettings.xgOptions,
+                    (XGParser) o[1],
+                    document,
+                    segmentName,
+                    outputter,
+                    inputter);
 
-//          XGMisc.printNodeToFile( document , "zzbogus" + j + ".xml" );
+            // XGMisc.printNodeToFile( document , "zzbogus" + j + ".xml" );
 
-//          printWords( document );
+            // printWords( document );
 
-            fixSideWords( document , sideAbbreviations );
+            fixSideWords(document, sideAbbreviations);
 
-//          printWords( document );
+            // printWords( document );
 
-                                //  Output updated DOM tree segment as
-                                //  XML text.
+            // Output updated DOM tree segment as
+            // XML text.
 
-            File file   = File.createTempFile( "mad" , null );
+            File file = File.createTempFile("mad", null);
 
             String fileName = file.getAbsolutePath();
 
-            if ( XGMisc.printNodeToFile( document , fileName ) == 1 )
-            {
-                inputter.setSegmentText( segmentName , file );
+            if (XGMisc.printNodeToFile(document, fileName) == 1) {
+                inputter.setSegmentText(segmentName, file);
 
-                if ( !inputter.usesSegmentFiles() )
-                {
+                if (!inputter.usesSegmentFiles()) {
                     file.delete();
                 }
             }
-                                //  Add split words from this segment
-                                //  to overall map of split words.
+            // Add split words from this segment
+            // to overall map of split words.
 
-            for ( int wid : segmentSplitWords.keySet() )
-            {
-                if ( segmentSplitWords.get( wid ) > 1 )
-                {
-                    splitWords.put
-                    (
-                        wid ,
-                        segmentSplitWords.get( wid )
-                    );
+            for (int wid : segmentSplitWords.keySet()) {
+                if (segmentSplitWords.get(wid) > 1) {
+                    splitWords.put(
+                            wid,
+                            segmentSplitWords.get(wid));
                 }
             }
-                                //  Report adornment merge complete.
+            // Report adornment merge complete.
 
-            morphAdornerLogger.println
-            (
-                "Inserted_adornments_into_xml" ,
-                new Object[]
-                {
-                    MorphAdornerUtils.durationString
-                    (
-                        morphAdornerSettings ,
-                        startTime
-                    )
-                }
-            );
-                                //  Save running word ID for
-                                //  processing next segment.
+            morphAdornerLogger.println(
+                    "Inserted_adornments_into_xml",
+                    new Object[] {
+                            MorphAdornerUtils.durationString(
+                                    morphAdornerSettings,
+                                    startTime)
+                    });
+            // Save running word ID for
+            // processing next segment.
 
-            runningWordID   = xgParser.getRunningWordID();
+            runningWordID = xgParser.getRunningWordID();
 
-                                //  Add count of adorned words to total
-                                //  for this document.
+            // Add count of adorned words to total
+            // for this document.
 
-            totalWords      += xgParser.getNumberOfAdornedWords();
+            totalWords += xgParser.getNumberOfAdornedWords();
 
-                                //  Evict the temporary output file.
+            // Evict the temporary output file.
 
-            if ( !inputter.usesSegmentFiles() )
-            {
-                FileUtils.deleteFile( outputter.getOutputFileName() );
+            if (!inputter.usesSegmentFiles()) {
+                FileUtils.deleteFile(outputter.getOutputFileName());
             }
 
-            xgParser    = null;
-            document    = null;
-            outputter   = null;
-            o[ 0 ]      = null;
-            o[ 1 ]      = null;
-            o           = null;
+            xgParser = null;
+            document = null;
+            outputter = null;
+            o[0] = null;
+            o[1] = null;
+            o = null;
         }
-                                //  Create name of output file to
-                                //  which to write merged adorned XML.
+        // Create name of output file to
+        // which to write merged adorned XML.
 
-        String outputFileName   = getOutputFileName( inputFileName );
+        String outputFileName = getOutputFileName(inputFileName);
 
-        long startTime  = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 
-        morphAdornerLogger.println ( "Merging_adorned" );
+        morphAdornerLogger.println("Merging_adorned");
 
-                                //  Merged adorned XML segments to
-                                //  temporary file.
+        // Merged adorned XML segments to
+        // temporary file.
 
-        File file   = File.createTempFile( "mad" , null );
+        File file = File.createTempFile("mad", null);
 
         String tempFileName = file.getAbsolutePath();
 
-        mergeXML( inputter , tempFileName );
+        mergeXML(inputter, tempFileName);
 
-                                //  Read the merged XML file to add
-                                //  revised IDs and format the XML nicely.
+        // Read the merged XML file to add
+        // revised IDs and format the XML nicely.
 
-        morphAdornerLogger.println
-        (
-            "Writing_merged" ,
-            new Object[]{ outputFileName }
-        );
-                                //  Create XML writer.
+        morphAdornerLogger.println(
+                "Writing_merged",
+                new Object[] { outputFileName });
+        // Create XML writer.
 
-        MorphAdornerXMLWriter xmlWriter =
-            MorphAdornerXMLWriterFactory.newMorphAdornerXMLWriter
-            (
-                morphAdornerSettings.properties
-            );
-                                //  Write XML.
-        xmlWriter.writeXML
-        (
-            tempFileName ,
-            outputFileName ,
-            runningWordID ,
-            partOfSpeechTags ,
-            splitWords ,
-            totalWords ,
-            totalPageBreaks ,
-            this ,
-            tokenizeOnly
-        );
-                                //  Delete temporary XML file.
-                                //  May not work on some systems,
-                                //  but the file will be deleted when
-                                //  MorphAdorner exits anyway.
+        MorphAdornerXMLWriter xmlWriter = MorphAdornerXMLWriterFactory.newMorphAdornerXMLWriter(
+                morphAdornerSettings.properties);
+        // Write XML.
+        xmlWriter.writeXML(
+                tempFileName,
+                outputFileName,
+                runningWordID,
+                partOfSpeechTags,
+                splitWords,
+                totalWords,
+                totalPageBreaks,
+                this,
+                tokenizeOnly);
+        // Delete temporary XML file.
+        // May not work on some systems,
+        // but the file will be deleted when
+        // MorphAdorner exits anyway.
 
-        FileUtils.deleteFile( tempFileName );
+        FileUtils.deleteFile(tempFileName);
 
-                                //  Report the updated XML has been
-                                //  written out.
+        // Report the updated XML has been
+        // written out.
 
-        morphAdornerLogger.println
-        (
-            "Adorned_XML_written" ,
-            new Object[]
-            {
-                outputFileName ,
-                MorphAdornerUtils.durationString
-                (
-                    morphAdornerSettings ,
-                    startTime
-                )
-            }
-        );
-                                //  Close inputter.
+        morphAdornerLogger.println(
+                "Adorned_XML_written",
+                new Object[] {
+                        outputFileName,
+                        MorphAdornerUtils.durationString(
+                                morphAdornerSettings,
+                                startTime)
+                });
+        // Close inputter.
 
-        ((IsCloseableObject)inputter).close();
+        ((IsCloseableObject) inputter).close();
 
-        inputter    = null;
-        splitWords  = null;
-        xmlWriter   = null;
+        inputter = null;
+        splitWords = null;
+        xmlWriter = null;
 
-        MorphAdornerUtils.logMemoryUsage
-        (
-            morphAdornerLogger ,
-            "After completing " + inputFileName + ": "
-        );
+        MorphAdornerUtils.logMemoryUsage(
+                morphAdornerLogger,
+                "After completing " + inputFileName + ": ");
     }
 
-    /** Print words in DOM document.
+    /**
+     * Print words in DOM document.
      *
-     *  @param  document    The DOM document containing words to print.
+     * @param document The DOM document containing words to print.
      *
-     *  <p>
-     *  The text of <w> and <pc> elements is printed.
-     *  </p>
+     *                 <p>
+     *                 The text of <w> and <pc> elements is printed.
+     *                 </p>
      */
 
-    protected void printWords( Document document )
-    {
-        NodeList nl =
-            DOMUtils.getNodesByTagName
-            (
-                document ,
-                new String[]{ "w" , "pc" }
-            );
+    protected void printWords(Document document) {
+        NodeList nl = DOMUtils.getNodesByTagName(
+                document,
+                new String[] { "w", "pc" });
 
-        if ( nl == null )
-        {
-            System.out.println( "printWords: null node list found" );
+        if (nl == null) {
+            System.out.println("printWords: null node list found");
             return;
         }
 
-        int numWords    = nl.getLength();
+        int numWords = nl.getLength();
 
-        for ( int i = 0 ; i < numWords ; i++ )
-        {
-            Node w  = nl.item(i);
+        for (int i = 0; i < numWords; i++) {
+            Node w = nl.item(i);
 
-            NamedNodeMap nodeMap    = w.getAttributes();
+            NamedNodeMap nodeMap = w.getAttributes();
 
-            String id   = "";
+            String id = "";
 
-            if ( nodeMap != null )
-            {
-                Node idNode = nodeMap.getNamedItem( "xml:id" );
+            if (nodeMap != null) {
+                Node idNode = nodeMap.getNamedItem("xml:id");
 
-                if ( idNode != null )
-                {
-                    id  = idNode.getTextContent();
+                if (idNode != null) {
+                    id = idNode.getTextContent();
                 }
             }
 
-            System.out.println
-            (
-                w.getNodeName() + " " +
-                id + " " +
-                w.getTextContent() + " " +
-                inSideText( w )
-            );
+            System.out.println(
+                    w.getNodeName() + " " +
+                            id + " " +
+                            w.getTextContent() + " " +
+                            inSideText(w));
         }
     }
 
-    /** Fix abbreviations in side text.
+    /**
+     * Fix abbreviations in side text.
      *
-     *  @param  document            DOM document containing words to fix.
-     *  @param  sideAbbreviations   Abbreviations list for side text.
+     * @param document          DOM document containing words to fix.
+     * @param sideAbbreviations Abbreviations list for side text.
      */
 
-    protected void fixSideWords
-    (
-        Document document ,
-        Abbreviations sideAbbreviations
-    )
-    {
-        NodeList nl =
-            DOMUtils.getNodesByTagName
-            (
-                document ,
-                new String[]{ "w" , "pc" }
-            );
+    protected void fixSideWords(
+            Document document,
+            Abbreviations sideAbbreviations) {
+        NodeList nl = DOMUtils.getNodesByTagName(
+                document,
+                new String[] { "w", "pc" });
 
-        if ( nl == null )
-        {
-            System.out.println( "fixSideWords: null node list found" );
+        if (nl == null) {
+            System.out.println("fixSideWords: null node list found");
             return;
         }
 
-        for ( int i = nl.getLength() - 1 ; i >= 0 ; i-- )
-        {
-            Element w   = (Element)nl.item( i );
+        for (int i = nl.getLength() - 1; i >= 0; i--) {
+            Element w = (Element) nl.item(i);
 
-            if ( inSideText( w ) )
-            {
-                String wText    = w.getTextContent();
+            if (inSideText(w)) {
+                String wText = w.getTextContent();
 
-                if ( wText.equals( "." ) )
-                {
-                    Element prevW   = (Element)nl.item( i - 1 );
+                if (wText.equals(".")) {
+                    Element prevW = (Element) nl.item(i - 1);
 
-                    String mergedWord   =
-                        prevW.getTextContent() + wText;
+                    String mergedWord = prevW.getTextContent() + wText;
 
-                    if ( sideAbbreviations.isKnownAbbreviation( mergedWord ) )
-                    {
-                        String id1  = prevW.getAttribute( "xml:id" );
-                        String id2  = w.getAttribute( "xml:id" );
-                        String eos  = w.getAttribute( "eos" );
+                    if (sideAbbreviations.isKnownAbbreviation(mergedWord)) {
+                        String id1 = prevW.getAttribute("xml:id");
+                        String id2 = w.getAttribute("xml:id");
+                        String eos = w.getAttribute("eos");
 
-                        if ( eos == null )
-                        {
+                        if (eos == null) {
                             eos = "0";
                         }
-/*
-                        System.out.println
-                        (
-                            "Merge id " + id1 +
-                            " (" + prevW.getTextContent() + ")" +
-                            " and id " + id2 +
-                            " (" + w.getTextContent() + ")" +
-                            " to " +
-                            mergedWord + " , eos=" + eos
-                        );
-*/
-                        prevW.setTextContent( mergedWord );
+                        /*
+                         * System.out.println
+                         * (
+                         * "Merge id " + id1 +
+                         * " (" + prevW.getTextContent() + ")" +
+                         * " and id " + id2 +
+                         * " (" + w.getTextContent() + ")" +
+                         * " to " +
+                         * mergedWord + " , eos=" + eos
+                         * );
+                         */
+                        prevW.setTextContent(mergedWord);
 
-                        if ( eos.equals( "1" ) )
-                        {
-                            w.setAttribute( "eos" , "1" );
-/*
-                            System.out.println
-                            (
-                                "Add -eos to " + id1
-                            );
+                        if (eos.equals("1")) {
+                            w.setAttribute("eos", "1");
+                            /*
+                             * System.out.println
+                             * (
+                             * "Add -eos to " + id1
+                             * );
+                             * 
+                             */ }
 
-*/                      }
-
-                        w.getParentNode().removeChild( w );
+                        w.getParentNode().removeChild(w);
                     }
                 }
             }
         }
     }
 
-    /** Is element in side text.
+    /**
+     * Is element in side text.
      *
-     *  @param  element     Element.
+     * @param element Element.
      *
-     *  @return             True for side text, false otherwise.
+     * @return True for side text, false otherwise.
      */
 
-    protected boolean inSideText( Node element )
-    {
-        boolean result  = false;
+    protected boolean inSideText(Node element) {
+        boolean result = false;
 
-        String name     = element.getNodeName();
+        String name = element.getNodeName();
 
-        if ( tagClassifier.isSideTextTag( name ) )
-        {
-            result  = true;
-        }
-        else
-        {
+        if (tagClassifier.isSideTextTag(name)) {
+            result = true;
+        } else {
             Node parent = element.getParentNode();
 
-            while
-            (
-                !result && ( parent != null ) &&
-                ( parent.getNodeType() != Node.TEXT_NODE )
-            )
-            {
-                result  =
-                    result ||
-                    tagClassifier.isSideTextTag( parent.getNodeName() );
+            while (!result && (parent != null) &&
+                    (parent.getNodeType() != Node.TEXT_NODE)) {
+                result = result ||
+                        tagClassifier.isSideTextTag(parent.getNodeName());
 
-                if ( !result )
-                {
-                    parent  = parent.getParentNode();
+                if (!result) {
+                    parent = parent.getParentNode();
                 }
             }
         }
@@ -1280,1564 +1049,1230 @@ public class MorphAdorner
         return result;
     }
 
-    /** Generate output file name for adorned output.
+    /**
+     * Generate output file name for adorned output.
      *
-     *  @param      inputFileName   The input file name.
+     * @param inputFileName The input file name.
      *
-     *  @return                     The output file name.
+     * @return The output file name.
      *
-     *  @throws     IOException if output directory cannot be created.
+     * @throws IOException if output directory cannot be created.
      */
 
-    public String getOutputFileName( String inputFileName )
-        throws IOException
-    {
-        String result   =
-            FileNameUtils.stripPathName( inputFileName );
+    public String getOutputFileName(String inputFileName)
+            throws IOException {
+        String result = FileNameUtils.stripPathName(inputFileName);
 
-        result          =
-            new File
-            (
-                morphAdornerSettings.outputDirectoryName ,
-                result
-            ).getPath();
+        result = new File(
+                morphAdornerSettings.outputDirectoryName,
+                result).getPath();
 
-        if ( !FileUtils.createPathForFile( result ) )
-        {
-            throw new IOException
-            (
-                morphAdornerSettings.getString
-                (
-                    "Unable_to_create_output_directory"
-                )
-            );
-        };
+        if (!FileUtils.createPathForFile(result)) {
+            throw new IOException(
+                    morphAdornerSettings.getString(
+                            "Unable_to_create_output_directory"));
+        }
+        ;
 
-        result  = FileNameUtils.createVersionedFileName( result );
+        result = FileNameUtils.createVersionedFileName(result);
 
         return result;
     }
 
-    /** Check if output file name for adorned output already exists.
+    /**
+     * Check if output file name for adorned output already exists.
      *
-     *  @param      inputFileName   The input file name.
+     * @param inputFileName The input file name.
      *
-     *  @return                     True if output file name already exists.
+     * @return True if output file name already exists.
      */
 
-    public boolean doesOutputFileNameExist( String inputFileName )
-    {
-        String outputFileName   =
-            FileNameUtils.stripPathName( inputFileName );
+    public boolean doesOutputFileNameExist(String inputFileName) {
+        String outputFileName = FileNameUtils.stripPathName(inputFileName);
 
-        return
-            new File
-            (
-                morphAdornerSettings.outputDirectoryName ,
-                outputFileName
-            ).exists();
+        return new File(
+                morphAdornerSettings.outputDirectoryName,
+                outputFileName).exists();
     }
 
-    /** Perform word adornment processes for a single input file.
+    /**
+     * Perform word adornment processes for a single input file.
      *
-     *  @param  fileName    Input file name.
+     * @param fileName Input file name.
      *
-     *  @throws             Exception if an error occurs.
+     * @throws Exception if an error occurs.
      */
 
-    public AdornedWordOutputter adornFile( String fileName )
-        throws IOException
-    {
-        morphAdornerLogger.println( "Tagging" , new Object[]{ fileName } );
+    public AdornedWordOutputter adornFile(String fileName)
+            throws IOException {
+        morphAdornerLogger.println("Tagging", new Object[] { fileName });
 
-                                //  Get URL for file name.
+        // Get URL for file name.
 
-        URL fileURL = URLUtils.getURLFromFileNameOrURL( fileName );
+        URL fileURL = URLUtils.getURLFromFileNameOrURL(fileName);
 
-                                //  Report error if URL bad.
-        if ( fileURL == null )
-        {
-            morphAdornerLogger.println
-            (
-                "Bad_file_name_or_URL" ,
-                new Object[]{ fileName }
-            );
+        // Report error if URL bad.
+        if (fileURL == null) {
+            morphAdornerLogger.println(
+                    "Bad_file_name_or_URL",
+                    new Object[] { fileName });
 
             return null;
         }
-                                //  Read file text into a string.
-                                //  Report error if we cannot.
+        // Read file text into a string.
+        // Report error if we cannot.
 
         String fileText = "";
 
-        long startTime  = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 
-        try
-        {
-                                //  Create text inputter.
+        try {
+            // Create text inputter.
 
-            TextInputter inputter   =
-                TextInputterFactory.newTextInputter
-                (
-                    morphAdornerSettings.properties
-                );
-                                //  Enable gap fixer.
+            TextInputter inputter = TextInputterFactory.newTextInputter(
+                    morphAdornerSettings.properties);
+            // Enable gap fixer.
 
-            inputter.enableGapFixer( morphAdornerSettings.fixGapTags );
+            inputter.enableGapFixer(morphAdornerSettings.fixGapTags);
 
-                                //  Enable orig fixer.
+            // Enable orig fixer.
 
-            inputter.enableOrigFixer( morphAdornerSettings.fixOrigTags );
+            inputter.enableOrigFixer(morphAdornerSettings.fixOrigTags);
 
-                                //  Load text to adorn.
+            // Load text to adorn.
 
-            inputter.loadText
-            (
-                fileURL ,
-                "utf-8" ,
-                morphAdornerSettings.xmlSchema
-            );
-                                //  Get text.
+            inputter.loadText(
+                    fileURL,
+                    "utf-8",
+                    morphAdornerSettings.xmlSchema);
+            // Get text.
 
-            fileText    = inputter.getSegmentText( 0 );
+            fileText = inputter.getSegmentText(0);
 
-            ((IsCloseableObject)inputter).close();
-        }
-        catch ( Exception e )
-        {
-            morphAdornerLogger.println
-            (
-                "Unable_to_read_text" ,
-                new Object[]{ fileName }
-            );
+            ((IsCloseableObject) inputter).close();
+        } catch (Exception e) {
+            morphAdornerLogger.println(
+                    "Unable_to_read_text",
+                    new Object[] { fileName });
 
             return null;
         }
 
-        morphAdornerLogger.println
-        (
-            "Loaded_text" ,
-            new Object[]
-            {
-                fileName ,
-                MorphAdornerUtils.durationString
-                (
-                    morphAdornerSettings ,
-                    startTime
-                )
-            }
-        );
+        morphAdornerLogger.println(
+                "Loaded_text",
+                new Object[] {
+                        fileName,
+                        MorphAdornerUtils.durationString(
+                                morphAdornerSettings,
+                                startTime)
+                });
 
-        return adornText( fileText , fileURL );
+        return adornText(fileText, fileURL);
     }
 
-    /** Perform word adornment processes for a single input file.
+    /**
+     * Perform word adornment processes for a single input file.
      *
-     *  @param  textToAdorn     Text to adorn.
-     *  @param  outputURL       URL for output.
+     * @param textToAdorn Text to adorn.
+     * @param outputURL   URL for output.
      *
-     *  @throws                 Exception if an error occurs.
+     * @throws Exception if an error occurs.
      */
 
-    public AdornedWordOutputter adornText
-    (
-        String textToAdorn ,
-        URL outputURL
-    )
-        throws IOException
-    {
-        long startTime  = System.currentTimeMillis();
+    public AdornedWordOutputter adornText(
+            String textToAdorn,
+            URL outputURL)
+            throws IOException {
+        long startTime = System.currentTimeMillis();
 
-                                //  Get a sentence splitter.
+        // Get a sentence splitter.
 
-        SentenceSplitter sentenceSplitter   =
-            SentenceSplitterFactory.newSentenceSplitter
-            (
-                morphAdornerSettings.properties
-            );
-                                //  Set logger into splitter.
+        SentenceSplitter sentenceSplitter = SentenceSplitterFactory.newSentenceSplitter(
+                morphAdornerSettings.properties);
+        // Set logger into splitter.
 
-        ((UsesLogger)sentenceSplitter).setLogger(
-            morphAdornerLogger.getLogger() );
+        ((UsesLogger) sentenceSplitter).setLogger(
+                morphAdornerLogger.getLogger());
 
-                                //  Set guesser into splitter.
+        // Set guesser into splitter.
 
-        sentenceSplitter.setPartOfSpeechGuesser( partOfSpeechGuesser );
+        sentenceSplitter.setPartOfSpeechGuesser(partOfSpeechGuesser);
 
-                                //  Set abbreviations into splitter.
+        // Set abbreviations into splitter.
 
-        sentenceSplitter.setAbbreviations( abbreviations );
+        sentenceSplitter.setAbbreviations(abbreviations);
 
-                                //  Get a word tokenizer.
+        // Get a word tokenizer.
 
-        WordTokenizer wordTokenizer =
-            WordTokenizerFactory.newWordTokenizer
-            (
-                morphAdornerSettings.properties
-            );
-                                //  Set a pretokenizer into the word
-                                //  tokenizer.
+        WordTokenizer wordTokenizer = WordTokenizerFactory.newWordTokenizer(
+                morphAdornerSettings.properties);
+        // Set a pretokenizer into the word
+        // tokenizer.
 
-        wordTokenizer.setPreTokenizer
-        (
-            PreTokenizerFactory.newPreTokenizer
-            (
-                morphAdornerSettings.properties
-            )
-        );
-                                //  Set abbreviations in word tokenizer.
+        wordTokenizer.setPreTokenizer(
+                PreTokenizerFactory.newPreTokenizer(
+                        morphAdornerSettings.properties));
+        // Set abbreviations in word tokenizer.
 
-        wordTokenizer.setAbbreviations( abbreviations );
+        wordTokenizer.setAbbreviations(abbreviations);
 
-                                //  Extract the sentences and
-                                //  words in the sentences.
+        // Extract the sentences and
+        // words in the sentences.
 
-        List<List<String>> sentences    =
-            sentenceSplitter.extractSentences( textToAdorn , wordTokenizer );
+        List<List<String>> sentences = sentenceSplitter.extractSentences(textToAdorn, wordTokenizer);
 
-                                //  Get count of sentences and words.
+        // Get count of sentences and words.
 
-        int[] wordAndSentenceCounts =
-            MorphAdornerUtils.getWordAndSentenceCounts( sentences );
+        int[] wordAndSentenceCounts = MorphAdornerUtils.getWordAndSentenceCounts(sentences);
 
-        int wordsToTag  = wordAndSentenceCounts[ 1 ];
+        int wordsToTag = wordAndSentenceCounts[1];
 
-        morphAdornerLogger.println
-        (
-            "Extracted_words" ,
-            new Object[]
-            {
-                Formatters.formatIntegerWithCommas( wordsToTag ) ,
-                Formatters.formatIntegerWithCommas( wordAndSentenceCounts[ 0 ] ) ,
-                MorphAdornerUtils.durationString
-                (
-                    morphAdornerSettings ,
-                    startTime
-                )
-            }
-        );
-                                //  See if we should use standard
-                                //  spellings to help guess parts of
-                                //  speech for unknow  words.
+        morphAdornerLogger.println(
+                "Extracted_words",
+                new Object[] {
+                        Formatters.formatIntegerWithCommas(wordsToTag),
+                        Formatters.formatIntegerWithCommas(wordAndSentenceCounts[0]),
+                        MorphAdornerUtils.durationString(
+                                morphAdornerSettings,
+                                startTime)
+                });
+        // See if we should use standard
+        // spellings to help guess parts of
+        // speech for unknow words.
 
-        if ( partOfSpeechGuesser != null )
-        {
+        if (partOfSpeechGuesser != null) {
             partOfSpeechGuesser.setTryStandardSpellings(
-                morphAdornerSettings.tryStandardSpellings );
+                    morphAdornerSettings.tryStandardSpellings);
         }
-                                //  Can't output lemma without a
-                                //  lemmatizer.
+        // Can't output lemma without a
+        // lemmatizer.
 
-        boolean doOutputLemma   =
-            morphAdornerSettings.outputLemma &&
-            ( lemmatizer != null );
+        boolean doOutputLemma = morphAdornerSettings.outputLemma &&
+                (lemmatizer != null);
 
-                                //  Can't output standard spelling
-                                //  without a standardizer.
+        // Can't output standard spelling
+        // without a standardizer.
 
-        boolean doOutputStandardSpelling    =
-            morphAdornerSettings.outputStandardSpelling &&
-                ( spellingStandardizer != null );
+        boolean doOutputStandardSpelling = morphAdornerSettings.outputStandardSpelling &&
+                (spellingStandardizer != null);
 
-                                //  Must output original token if
-                                //  internal XML handling used.
+        // Must output original token if
+        // internal XML handling used.
 
-        boolean doOutputOriginalToken   =
-            morphAdornerSettings.outputOriginalToken ||
-            morphAdornerSettings.useXMLHandler;
+        boolean doOutputOriginalToken = morphAdornerSettings.outputOriginalToken ||
+                morphAdornerSettings.useXMLHandler;
 
-                                //  Set word attribute names.
+        // Set word attribute names.
 
-        morphAdornerSettings.setXMLWordAttributes
-        (
-            doOutputOriginalToken ,
-            doOutputLemma ,
-            doOutputStandardSpelling
-        );
-                                //  Get part of speech tags for
-                                //  each word in each sentence.
+        morphAdornerSettings.setXMLWordAttributes(
+                doOutputOriginalToken,
+                doOutputLemma,
+                doOutputStandardSpelling);
+        // Get part of speech tags for
+        // each word in each sentence.
 
-        startTime       = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
 
-        List<List<AdornedWord>> result  = tagger.tagSentences( sentences );
+        List<List<AdornedWord>> result = tagger.tagSentences(sentences);
 
-        double elapsed  =
-            ( System.currentTimeMillis() - startTime );
+        double elapsed = (System.currentTimeMillis() - startTime);
 
-        int taggingRate = (int)( ( wordsToTag / elapsed ) * 1000.0D );
+        int taggingRate = (int) ((wordsToTag / elapsed) * 1000.0D);
 
-        morphAdornerLogger.println
-        (
-            "Tagging_complete" ,
-            new Object[]
-            {
-                MorphAdornerUtils.durationString
-                (
-                    morphAdornerSettings ,
-                    startTime
-                ) ,
-                Formatters.formatIntegerWithCommas( taggingRate )
-            }
-        );
-                                //  Generate tagged word output.
+        morphAdornerLogger.println(
+                "Tagging_complete",
+                new Object[] {
+                        MorphAdornerUtils.durationString(
+                                morphAdornerSettings,
+                                startTime),
+                        Formatters.formatIntegerWithCommas(taggingRate)
+                });
+        // Generate tagged word output.
 
-        morphAdornerLogger.println( "Generating_other_adornments" );
+        morphAdornerLogger.println("Generating_other_adornments");
 
-        startTime   = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
 
-                                //  Create a tagged text output writer.
+        // Create a tagged text output writer.
 
-        AdornedWordOutputter outputter  =
-            AdornedWordOutputterFactory.newAdornedWordOutputter
-            (
-                morphAdornerSettings.properties
-            );
+        AdornedWordOutputter outputter = AdornedWordOutputterFactory.newAdornedWordOutputter(
+                morphAdornerSettings.properties);
 
-        outputter.setWordAttributeNames
-        (
-            morphAdornerSettings.getXMLWordAttributes()
-        );
+        outputter.setWordAttributeNames(
+                morphAdornerSettings.getXMLWordAttributes());
 
-        if ( outputURL != null )
-        {
-            outputter.createOutputFile
-            (
-                getOutputFileName
-                (
-                    URLUtils.getFileNameFromURL
-                    (
-                        outputURL ,
-                        morphAdornerSettings.outputDirectoryName
-                    )
-                ) ,
-                "utf-8" ,
-                '\t'
-            );
-        }
-        else
-        {
-            File file   = File.createTempFile( "mad" , null );
+        if (outputURL != null) {
+            outputter.createOutputFile(
+                    getOutputFileName(
+                            URLUtils.getFileNameFromURL(
+                                    outputURL,
+                                    morphAdornerSettings.outputDirectoryName)),
+                    "utf-8",
+                    '\t');
+        } else {
+            File file = File.createTempFile("mad", null);
 
             String tempFileName = file.getAbsolutePath();
 
-            outputter.createOutputFile
-            (
-                 tempFileName ,
-                "utf-8" ,
-                '\t'
-            );
+            outputter.createOutputFile(
+                    tempFileName,
+                    "utf-8",
+                    '\t');
         }
-                                //  Figure out what we are to output.
+        // Figure out what we are to output.
 
-        int sentenceNumber      = 0;
-        int wordNumber          = 0;
+        int sentenceNumber = 0;
+        int wordNumber = 0;
 
-        String lemma                = "";
-        String correctedSpelling    = "";
+        String lemma = "";
+        String correctedSpelling = "";
         String standardizedSpelling = "";
         AdornedWord adornedWord;
-        String sSentenceNumber      = "";
-        String sWordNumber          = "";
-        String eosFlag              = "";
-        String originalToken        = "";
-        String partOfSpeechTag      = "";
-        String xmlSurroundMarker    =
-            morphAdornerSettings.xgOptions.getSurroundMarker().trim();
+        String sSentenceNumber = "";
+        String sWordNumber = "";
+        String eosFlag = "";
+        String originalToken = "";
+        String partOfSpeechTag = "";
+        String xmlSurroundMarker = morphAdornerSettings.xgOptions.getSurroundMarker().trim();
 
-                                //  Get undetermined part of speech tag.
+        // Get undetermined part of speech tag.
 
-        String undeterminedPosTag   = partOfSpeechTags.getUndeterminedTag();
+        String undeterminedPosTag = partOfSpeechTags.getUndeterminedTag();
 
-                                //  Holds output for each word.
+        // Holds output for each word.
 
-        List<String> outputAdornments   = ListFactory.createNewList();
+        List<String> outputAdornments = ListFactory.createNewList();
 
-                                //  Output the tagged words.
+        // Output the tagged words.
 
-        Iterator<List<AdornedWord>> iterator    = result.iterator();
+        Iterator<List<AdornedWord>> iterator = result.iterator();
 
-                                //  Loop over tagged sentences.
+        // Loop over tagged sentences.
 
-        while ( iterator.hasNext() )
-        {
-                                //  Get next sentence.
+        while (iterator.hasNext()) {
+            // Get next sentence.
 
-            List<AdornedWord> sentenceFromTagger    = iterator.next();
+            List<AdornedWord> sentenceFromTagger = iterator.next();
 
-                                //  Get sentence number.
+            // Get sentence number.
 
             sentenceNumber++;
             sSentenceNumber = sentenceNumber + "";
 
-            int sentenceSizeM1  = sentenceFromTagger.size() - 1;
+            int sentenceSizeM1 = sentenceFromTagger.size() - 1;
 
-                                //  Reset word numbers for each
-                                //  sentence if running word numbers
-                                //  not requested.
+            // Reset word numbers for each
+            // sentence if running word numbers
+            // not requested.
 
-            if ( !morphAdornerSettings.outputRunningWordNumbers )
-            {
-                wordNumber  = 0;
+            if (!morphAdornerSettings.outputRunningWordNumbers) {
+                wordNumber = 0;
             }
-                                //  Loop over words in the sentence.
+            // Loop over words in the sentence.
 
-            for ( int j = 0 ; j < sentenceFromTagger.size() ; j++ )
-            {
-                                //  Clear output list for this word.
+            for (int j = 0; j < sentenceFromTagger.size(); j++) {
+                // Clear output list for this word.
 
                 outputAdornments.clear();
 
-                                //  Add sentence number to output.
+                // Add sentence number to output.
 
-                if ( morphAdornerSettings.outputSentenceNumber )
-                {
-                    outputAdornments.add( sSentenceNumber );
+                if (morphAdornerSettings.outputSentenceNumber) {
+                    outputAdornments.add(sSentenceNumber);
                 }
-                                //  Add word number to output.
+                // Add word number to output.
 
                 wordNumber++;
 
-                if ( morphAdornerSettings.outputWordNumber )
-                {
+                if (morphAdornerSettings.outputWordNumber) {
                     sWordNumber = wordNumber + "";
-                    outputAdornments.add( sWordNumber );
+                    outputAdornments.add(sWordNumber);
                 }
-                                //  Get the word and its part of speech
-                                //  tag.
+                // Get the word and its part of speech
+                // tag.
 
-                adornedWord = sentenceFromTagger.get( j );
+                adornedWord = sentenceFromTagger.get(j);
 
-                                //  Add original spelling to output.
+                // Add original spelling to output.
 
-                originalToken   = adornedWord.getToken();
+                originalToken = adornedWord.getToken();
 
-                if ( doOutputOriginalToken )
-                {
-                    outputAdornments.add( originalToken );
+                if (doOutputOriginalToken) {
+                    outputAdornments.add(originalToken);
                 }
-                                //  Add corrected spelling to output.
+                // Add corrected spelling to output.
 
-                correctedSpelling       = adornedWord.getSpelling();
+                correctedSpelling = adornedWord.getSpelling();
 
-                standardizedSpelling    =
-                    adornedWord.getStandardSpelling();
+                standardizedSpelling = adornedWord.getStandardSpelling();
 
-                if ( morphAdornerSettings.outputSpelling )
-                {
-                    outputAdornments.add( correctedSpelling );
+                if (morphAdornerSettings.outputSpelling) {
+                    outputAdornments.add(correctedSpelling);
                 }
-                                //  Get part of speech to output.
+                // Get part of speech to output.
 
                 partOfSpeechTag = adornedWord.getPartsOfSpeech();
 
-                                //  Get standardized spelling to output.
+                // Get standardized spelling to output.
 
-                if ( doOutputStandardSpelling )
-                {
-                    standardizedSpelling    =
-                        MorphAdornerUtils.getStandardizedSpelling
-                        (
-                            this ,
-                            correctedSpelling ,
-                            standardizedSpelling ,
-                            partOfSpeechTag
-                        );
+                if (doOutputStandardSpelling) {
+                    standardizedSpelling = MorphAdornerUtils.getStandardizedSpelling(
+                            this,
+                            correctedSpelling,
+                            standardizedSpelling,
+                            partOfSpeechTag);
 
-                    if ( spellingMapper != null )
-                    {
-                        standardizedSpelling    =
-                            spellingMapper.mapSpelling(
-                                standardizedSpelling );
+                    if (spellingMapper != null) {
+                        standardizedSpelling = spellingMapper.mapSpelling(
+                                standardizedSpelling);
                     }
                 }
-                                //  Get lemma to output.
+                // Get lemma to output.
 
-                if ( doOutputLemma )
-                {
-                                //  Try lexicon first unless we're ignoring
-                                //  lemma entries in the lexicon.
+                if (doOutputLemma) {
+                    // Try lexicon first unless we're ignoring
+                    // lemma entries in the lexicon.
 
-                    if ( !morphAdornerSettings.ignoreLexiconEntriesForLemmatization )
-                    {
-                        lemma   =
-                            wordLexicon.getLemma
-                            (
-                                correctedSpelling ,
-                                partOfSpeechTag
-                            );
+                    if (!morphAdornerSettings.ignoreLexiconEntriesForLemmatization) {
+                        lemma = wordLexicon.getLemma(
+                                correctedSpelling,
+                                partOfSpeechTag);
+                    } else {
+                        lemma = "*";
                     }
-                    else
-                    {
-                        lemma   = "*";
-                    }
-                                //  Lemma not found in word lexicon,
-                                //  or the number of lemma parts does
-                                //  not match the number of parts of speech.
-                                //  Use lemmatizer.
+                    // Lemma not found in word lexicon,
+                    // or the number of lemma parts does
+                    // not match the number of parts of speech.
+                    // Use lemmatizer.
 
-                    if ( lemmatizer != null )
-                    {
-                        if  (   lemma.equals( "*" ) ||
-                                ( partOfSpeechTags.countTags( partOfSpeechTag ) !=
-                                  lemmatizer.countLemmata( lemma ) )
-                            )
-                        {
-                            if ( standardizedSpelling.length() > 0 )
-                            {
-                                lemma   =
-                                    MorphAdornerUtils.getLemma
-                                    (
-                                        this ,
-                                        standardizedSpelling ,
-                                        partOfSpeechTag
-                                    );
-                            }
-                            else
-                            {
-                                lemma   =
-                                    MorphAdornerUtils.getLemma
-                                    (
-                                        this ,
-                                        correctedSpelling ,
-                                        partOfSpeechTag
-                                    );
+                    if (lemmatizer != null) {
+                        if (lemma.equals("*") ||
+                                (partOfSpeechTags.countTags(partOfSpeechTag) != lemmatizer.countLemmata(lemma))) {
+                            if (standardizedSpelling.length() > 0) {
+                                lemma = MorphAdornerUtils.getLemma(
+                                        this,
+                                        standardizedSpelling,
+                                        partOfSpeechTag);
+                            } else {
+                                lemma = MorphAdornerUtils.getLemma(
+                                        this,
+                                        correctedSpelling,
+                                        partOfSpeechTag);
                             }
                         }
                     }
-                                //  Force lemma to lowercase except
-                                //  for proper noun tagged word.
+                    // Force lemma to lowercase except
+                    // for proper noun tagged word.
 
-                    if ( lemma.indexOf( lemmaSeparator ) < 0 )
-                    {
-                        if ( !partOfSpeechTags.isProperNounTag(
-                            partOfSpeechTag ) )
-                        {
-                            lemma   = lemma.toLowerCase();
+                    if (lemma.indexOf(lemmaSeparator) < 0) {
+                        if (!partOfSpeechTags.isProperNounTag(
+                                partOfSpeechTag)) {
+                            lemma = lemma.toLowerCase();
                         }
                     }
                 }
-                                //  Rectify # of individual lemmata
-                                //  with # of parts of speech for word.
-                                //  If they don't match, set the
-                                //  parts of speech to undetermined,
-                                //  the standard spelling to the
-                                //  original spelling,
-                                //  and the lemma to the lowercase
-                                //  original spelling.
+                // Rectify # of individual lemmata
+                // with # of parts of speech for word.
+                // If they don't match, set the
+                // parts of speech to undetermined,
+                // the standard spelling to the
+                // original spelling,
+                // and the lemma to the lowercase
+                // original spelling.
 
-                if ( lemmatizer != null && undeterminedPosTag != null)
-                {
-                    if  (   partOfSpeechTags.countTags( partOfSpeechTag ) !=
-                            lemmatizer.countLemmata( lemma )
-                        )
-                    {
+                if (lemmatizer != null && undeterminedPosTag != null) {
+                    if (partOfSpeechTags.countTags(partOfSpeechTag) != lemmatizer.countLemmata(lemma)) {
                         partOfSpeechTag = undeterminedPosTag;
                     }
 
-                    if  (   partOfSpeechTag.equals( undeterminedPosTag ) ||
-                            ( lemma.length() == 0 )
-                        )
-                    {
-                        lemma                   =
-                            correctedSpelling.toLowerCase();
+                    if (partOfSpeechTag.equals(undeterminedPosTag) ||
+                            (lemma.length() == 0)) {
+                        lemma = correctedSpelling.toLowerCase();
 
-                        standardizedSpelling    = correctedSpelling;
-                        partOfSpeechTag         = undeterminedPosTag;
+                        standardizedSpelling = correctedSpelling;
+                        partOfSpeechTag = undeterminedPosTag;
                     }
                 }
-                                //  Output rectified part of speech,
-                                //  lemma, and standard spelling.
+                // Output rectified part of speech,
+                // lemma, and standard spelling.
 
-                if ( morphAdornerSettings.outputPartOfSpeech )
-                {
-                    outputAdornments.add( partOfSpeechTag );
+                if (morphAdornerSettings.outputPartOfSpeech) {
+                    outputAdornments.add(partOfSpeechTag);
                 }
 
-                if ( doOutputStandardSpelling )
-                {
-                    outputAdornments.add( standardizedSpelling );
+                if (doOutputStandardSpelling) {
+                    outputAdornments.add(standardizedSpelling);
                 }
 
-                if ( doOutputLemma )
-                {
-                    outputAdornments.add( lemma );
+                if (doOutputLemma) {
+                    outputAdornments.add(lemma);
                 }
-                                //  Add end of sentence flag.
+                // Add end of sentence flag.
 
-                if  (   morphAdornerSettings.outputEOSFlag ||
-                        morphAdornerSettings.useXMLHandler
-                    )
-                {
-                    if ( morphAdornerSettings.useXMLHandler )
-                    {
+                if (morphAdornerSettings.outputEOSFlag ||
+                        morphAdornerSettings.useXMLHandler) {
+                    if (morphAdornerSettings.useXMLHandler) {
                         eosFlag = "0";
 
-                        if ( j < sentenceSizeM1 )
-                        {
-                            AdornedWord nextAdornedWord =
-                                sentenceFromTagger.get( j + 1 );
+                        if (j < sentenceSizeM1) {
+                            AdornedWord nextAdornedWord = sentenceFromTagger.get(j + 1);
 
-                            if  ( nextAdornedWord.getToken().equals(
-                                    xmlSurroundMarker )
-                                )
-                            {
-                                if  (   originalToken.endsWith( "." ) ||
-                                        originalToken.endsWith( "!" ) ||
-                                        originalToken.endsWith( "?" ) ||
-                                        originalToken.endsWith( "'" ) ||
-                                        originalToken.endsWith( "\"" ) ||
+                            if (nextAdornedWord.getToken().equals(
+                                    xmlSurroundMarker)) {
+                                if (originalToken.endsWith(".") ||
+                                        originalToken.endsWith("!") ||
+                                        originalToken.endsWith("?") ||
+                                        originalToken.endsWith("'") ||
+                                        originalToken.endsWith("\"") ||
                                         originalToken.endsWith(
-                                            CharUtils.RSQUOTE_STRING ) ||
+                                                CharUtils.RSQUOTE_STRING)
+                                        ||
                                         originalToken.endsWith(
-                                            CharUtils.RDQUOTE_STRING  ) ||
-                                        originalToken.endsWith( "}" ) ||
-                                        originalToken.endsWith( "]" ) ||
-                                        originalToken.endsWith( ")" )
-                                    )
-                                {
+                                                CharUtils.RDQUOTE_STRING)
+                                        ||
+                                        originalToken.endsWith("}") ||
+                                        originalToken.endsWith("]") ||
+                                        originalToken.endsWith(")")) {
                                     eosFlag = "1";
                                 }
                             }
-                        }
-                        else
-                        {
+                        } else {
                             eosFlag = "1";
                         }
-                    }
-                    else
-                    {
-                        eosFlag = ( j >= sentenceSizeM1 ) ? "1" : "0";
+                    } else {
+                        eosFlag = (j >= sentenceSizeM1) ? "1" : "0";
                     }
 
-                    outputAdornments.add( eosFlag );
+                    outputAdornments.add(eosFlag);
                 }
-                                //  Add KWIC window to output.
+                // Add KWIC window to output.
 
-                if ( morphAdornerSettings.outputKWIC )
-                {
-                    String[] kwics      =
-                        MorphAdornerUtils.getKWIC
-                        (
-                            (List<AdornedWord>)sentenceFromTagger ,
-                            j ,
-                            morphAdornerSettings.outputKWICWidth
-                        );
+                if (morphAdornerSettings.outputKWIC) {
+                    String[] kwics = MorphAdornerUtils.getKWIC(
+                            (List<AdornedWord>) sentenceFromTagger,
+                            j,
+                            morphAdornerSettings.outputKWICWidth);
 
-                    outputAdornments.add( kwics[ 0 ] );
-                    outputAdornments.add( kwics[ 2 ] );
+                    outputAdornments.add(kwics[0]);
+                    outputAdornments.add(kwics[2]);
                 }
 
-                outputter.outputWordAndAdornments( outputAdornments );
+                outputter.outputWordAndAdornments(outputAdornments);
             }
         }
 
         outputter.close();
 
-        if ( outputURL != null )
-        {
-            morphAdornerLogger.println
-            (
-                "Adornments_written_to" ,
-                new Object[]
-                {
-                    getOutputFileName
-                    (
-                        URLUtils.getFileNameFromURL
-                        (
-                            outputURL ,
-                            morphAdornerSettings.outputDirectoryName
-                        )
-                    ) ,
-                    MorphAdornerUtils.durationString
-                    (
-                        morphAdornerSettings ,
-                        startTime
-                    )
-                }
-            );
-        }
-        else
-        {
-            morphAdornerLogger.println
-            (
-                "Adornments_generated" ,
-                new Object[]
-                {
-                    MorphAdornerUtils.durationString
-                    (
-                        morphAdornerSettings ,
-                        startTime
-                    )
-                }
-            );
+        if (outputURL != null) {
+            morphAdornerLogger.println(
+                    "Adornments_written_to",
+                    new Object[] {
+                            getOutputFileName(
+                                    URLUtils.getFileNameFromURL(
+                                            outputURL,
+                                            morphAdornerSettings.outputDirectoryName)),
+                            MorphAdornerUtils.durationString(
+                                    morphAdornerSettings,
+                                    startTime)
+                    });
+        } else {
+            morphAdornerLogger.println(
+                    "Adornments_generated",
+                    new Object[] {
+                            MorphAdornerUtils.durationString(
+                                    morphAdornerSettings,
+                                    startTime)
+                    });
         }
 
         sentences.clear();
         result.clear();
 
-        sentences   = null;
-        result      = null;
+        sentences = null;
+        result = null;
 
         return outputter;
     }
 
-    /** Readorn adorned XML file.
+    /**
+     * Readorn adorned XML file.
      *
-     *  @param  inputFileName   Input XML file name.
+     * @param inputFileName Input XML file name.
      *
-     *  @throws SAXException, ParserConfigurationException
+     * @throws SAXException, ParserConfigurationException
      */
 
-    public void readorn( String inputFileName )
-        throws SAXException, IOException, FileNotFoundException, ParserConfigurationException
-    {
-        morphAdornerLogger.println( "Loading_previously_adorned" );
+    public void readorn(String inputFileName)
+            throws SAXException, IOException, FileNotFoundException, ParserConfigurationException {
+        morphAdornerLogger.println("Loading_previously_adorned");
 
-        long startTime  = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 
-                                //  Create filter to strip
-                                //  non-essential word attributes
-                                //  from word elements in the adorned
-                                //  file.
+        // Create filter to strip
+        // non-essential word attributes
+        // from word elements in the adorned
+        // file.
 
         SAXParserFactory parserFactory = SAXParserFactory.newInstance();
         parserFactory.setNamespaceAware(true);
         SAXParser parser = parserFactory.newSAXParser();
         XMLReader reader = parser.getXMLReader();
 
-        StripWordAttributesFilter stripFilter   =
-            new StripWordAttributesFilter
-            (
-                reader
-            );
+        StripWordAttributesFilter stripFilter = new StripWordAttributesFilter(
+                reader);
 
-        ExtendedAdornedWordFilter wordInfoFilter    =
-            new ExtendedAdornedWordFilter( stripFilter );
+        ExtendedAdornedWordFilter wordInfoFilter = new ExtendedAdornedWordFilter(stripFilter);
 
-        File file   = File.createTempFile( "mad" , null );
+        File file = File.createTempFile("mad", null);
 
         String tempFileName = file.getAbsolutePath();
 
-                                //  Run the attribute-stripping filter
-                                //  and gather the stripped words
-                                //  into a list of sentences.
-        new FilterAdornedFile
-        (
-            inputFileName ,
-            tempFileName ,
-            wordInfoFilter
-        );
-                                //  Get sentences.
+        // Run the attribute-stripping filter
+        // and gather the stripped words
+        // into a list of sentences.
+        new FilterAdornedFile(
+                inputFileName,
+                tempFileName,
+                wordInfoFilter);
+        // Get sentences.
 
-        List<List<ExtendedAdornedWord>> sentences   =
-            wordInfoFilter.getSentences();
+        List<List<ExtendedAdornedWord>> sentences = wordInfoFilter.getSentences();
 
-                                //  Report words loaded.
+        // Report words loaded.
 
-        morphAdornerLogger.println
-        (
-            "Loaded_existing_words" ,
-            new Object[]
-            {
-                Formatters.formatIntegerWithCommas
-                (
-                    wordInfoFilter.getNumberOfWords()
-                ) ,
-                Formatters.formatIntegerWithCommas
-                (
-                    sentences.size()
-                ) ,
-                MorphAdornerUtils.durationString
-                (
-                    morphAdornerSettings ,
-                    startTime
-                )
-            }
-        );
-                                //  Disable retagger's ability to
-                                //  add or delete words.
+        morphAdornerLogger.println(
+                "Loaded_existing_words",
+                new Object[] {
+                        Formatters.formatIntegerWithCommas(
+                                wordInfoFilter.getNumberOfWords()),
+                        Formatters.formatIntegerWithCommas(
+                                sentences.size()),
+                        MorphAdornerUtils.durationString(
+                                morphAdornerSettings,
+                                startTime)
+                });
+        // Disable retagger's ability to
+        // add or delete words.
 
         boolean savedRetaggerAddOrDelete = retagger.getCanAddOrDeleteWords();
 
-        if ( retagger != null )
-        {
-            retagger.setCanAddOrDeleteWords( false );
+        if (retagger != null) {
+            retagger.setCanAddOrDeleteWords(false);
         }
-                                //  Retag the sentences.
+        // Retag the sentences.
 
-        startTime       = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
 
-        tagger.tagAdornedWordSentences
-        (
-            sentences ,
-            stripFilter.getRegIDSet()
-        );
-                                //  Restore saved retagger add or delete
-                                //  words state.
+        tagger.tagAdornedWordSentences(
+                sentences,
+                stripFilter.getRegIDSet());
+        // Restore saved retagger add or delete
+        // words state.
 
-        if ( retagger != null )
-        {
-            retagger.setCanAddOrDeleteWords( savedRetaggerAddOrDelete );
+        if (retagger != null) {
+            retagger.setCanAddOrDeleteWords(savedRetaggerAddOrDelete);
         }
-                                //  Display tagging rate.
-        double elapsed  =
-            ( System.currentTimeMillis() - startTime );
+        // Display tagging rate.
+        double elapsed = (System.currentTimeMillis() - startTime);
 
-        int taggingRate =
-            (int)( ( wordInfoFilter.getNumberOfWords() / elapsed ) * 1000.0D );
+        int taggingRate = (int) ((wordInfoFilter.getNumberOfWords() / elapsed) * 1000.0D);
 
-        morphAdornerLogger.println
-        (
-            "Tagging_complete" ,
-            new Object[]
-            {
-                MorphAdornerUtils.durationString
-                (
-                    morphAdornerSettings ,
-                    startTime
-                ) ,
-                Formatters.formatIntegerWithCommas( taggingRate )
-            }
-        );
-                                //  Generate other adornments.
+        morphAdornerLogger.println(
+                "Tagging_complete",
+                new Object[] {
+                        MorphAdornerUtils.durationString(
+                                morphAdornerSettings,
+                                startTime),
+                        Formatters.formatIntegerWithCommas(taggingRate)
+                });
+        // Generate other adornments.
 
-        morphAdornerLogger.println( "Generating_other_adornments" );
+        morphAdornerLogger.println("Generating_other_adornments");
 
-        startTime   = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
 
-        updateAdornedSentences( sentences , stripFilter.getRegIDSet() );
+        updateAdornedSentences(sentences, stripFilter.getRegIDSet());
 
-                                //  Copy adornments to all parts of
-                                //  split words.
+        // Copy adornments to all parts of
+        // split words.
 
-        updateSplitWordAdornments( wordInfoFilter );
+        updateSplitWordAdornments(wordInfoFilter);
 
-                                //  Report adornments generated.
+        // Report adornments generated.
 
-        morphAdornerLogger.println
-        (
-            "Adornments_generated" ,
-            new Object[]
-            {
-                MorphAdornerUtils.durationString
-                (
-                    morphAdornerSettings ,
-                    startTime
-                )
-            }
-        );
-                                //  Create filter to add updated
-                                //  word attributes.
+        morphAdornerLogger.println(
+                "Adornments_generated",
+                new Object[] {
+                        MorphAdornerUtils.durationString(
+                                morphAdornerSettings,
+                                startTime)
+                });
+        // Create filter to add updated
+        // word attributes.
 
-        AddWordAttributesFilter addFilter   =
-            new AddWordAttributesFilter
-            (
+        AddWordAttributesFilter addFilter = new AddWordAttributesFilter(
                 reader,
-                wordInfoFilter ,
-                morphAdornerSettings
-            );
+                wordInfoFilter,
+                morphAdornerSettings);
 
-        XMLFilter filter    = addFilter;
+        XMLFilter filter = addFilter;
 
-                                //  If we're adding pseudopages,
-                                //  create a pseudopage adder filter.
+        // If we're adding pseudopages,
+        // create a pseudopage adder filter.
 
-        if ( morphAdornerSettings.outputPseudoPageBoundaryMilestones )
-        {
-            PseudoPageAdderFilter pseudoPageFilter  =
-                new PseudoPageAdderFilter
-                (
-                    addFilter ,
-                    morphAdornerSettings.pseudoPageSize ,
-                    morphAdornerSettings.pseudoPageContainerDivTypes
-                );
+        if (morphAdornerSettings.outputPseudoPageBoundaryMilestones) {
+            PseudoPageAdderFilter pseudoPageFilter = new PseudoPageAdderFilter(
+                    addFilter,
+                    morphAdornerSettings.pseudoPageSize,
+                    morphAdornerSettings.pseudoPageContainerDivTypes);
 
-            filter  = pseudoPageFilter;
+            filter = pseudoPageFilter;
         }
-                                //  Create name of output file to
-                                //  which to write merged adorned XML.
+        // Create name of output file to
+        // which to write merged adorned XML.
 
-        String outputFileName   = getOutputFileName( inputFileName );
+        String outputFileName = getOutputFileName(inputFileName);
 
-        morphAdornerLogger.println
-        (
-            "Writing_merged" ,
-            new Object[]{ outputFileName }
-        );
+        morphAdornerLogger.println(
+                "Writing_merged",
+                new Object[] { outputFileName });
 
-        startTime   = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
 
-        new FilterAdornedFile( tempFileName , outputFileName , filter );
+        new FilterAdornedFile(tempFileName, outputFileName, filter);
 
-        morphAdornerLogger.println
-        (
-            "Adorned_XML_written" ,
-            new Object[]
-            {
-                outputFileName ,
-                MorphAdornerUtils.durationString
-                (
-                    morphAdornerSettings ,
-                    startTime
-                )
-            }
-        );
-                                //  Delete temporary XML file.
-                                //  May not work on some systems,
-                                //  but the file will be deleted when
-                                //  MorphAdorner exits anyway.
+        morphAdornerLogger.println(
+                "Adorned_XML_written",
+                new Object[] {
+                        outputFileName,
+                        MorphAdornerUtils.durationString(
+                                morphAdornerSettings,
+                                startTime)
+                });
+        // Delete temporary XML file.
+        // May not work on some systems,
+        // but the file will be deleted when
+        // MorphAdorner exits anyway.
 
-        FileUtils.deleteFile( tempFileName );
+        FileUtils.deleteFile(tempFileName);
     }
 
-    /** Adorn a list of sentences containing adorned words.
+    /**
+     * Adorn a list of sentences containing adorned words.
      *
-     *  @param  sentences   Previously adorned sentences to readorn.
-     *  @param  regIDSet    Word IDs of words with preset standard spellings.
+     * @param sentences Previously adorned sentences to readorn.
+     * @param regIDSet  Word IDs of words with preset standard spellings.
      */
 
-    public void updateAdornedSentences
-    (
-        List<List<ExtendedAdornedWord>> sentences ,
-        Set<String> regIDSet
-    )
-    {
-                                //  Loop over sentences.
+    public void updateAdornedSentences(
+            List<List<ExtendedAdornedWord>> sentences,
+            Set<String> regIDSet) {
+        // Loop over sentences.
 
-        for ( int i = 0 ; i < sentences.size() ; i++ )
-        {
-                                //  Update adornments in next sentence.
+        for (int i = 0; i < sentences.size(); i++) {
+            // Update adornments in next sentence.
 
-            updateAdornedSentence( sentences.get( i ) , regIDSet );
+            updateAdornedSentence(sentences.get(i), regIDSet);
         }
     }
 
-    /** Update adornments for split words.
+    /**
+     * Update adornments for split words.
      *
-     *  @param  wordFilter  ExtendedAdornedWordFilter with words to update.
+     * @param wordFilter ExtendedAdornedWordFilter with words to update.
      */
 
-    protected void updateSplitWordAdornments
-    (
-        ExtendedAdornedWordFilter wordFilter
-    )
-    {
-                                //  Get word list of all words.
+    protected void updateSplitWordAdornments(
+            ExtendedAdornedWordFilter wordFilter) {
+        // Get word list of all words.
 
-        List<String> wordIDs    = wordFilter.getAdornedWordIDs();
+        List<String> wordIDs = wordFilter.getAdornedWordIDs();
 
-                                //  Loop over all words looking for
-                                //  split words.
+        // Loop over all words looking for
+        // split words.
 
-        for ( int i = 0 ; i < wordIDs.size() ; i++ )
-        {
-                                //  Get next adorned word.
+        for (int i = 0; i < wordIDs.size(); i++) {
+            // Get next adorned word.
 
-            ExtendedAdornedWord adornedWord =
-                wordFilter.getExtendedAdornedWord( wordIDs.get( i ) );
+            ExtendedAdornedWord adornedWord = wordFilter.getExtendedAdornedWord(wordIDs.get(i));
 
-                                //  Check if this is the first part of
-                                //  a split word.
+            // Check if this is the first part of
+            // a split word.
 
-            if ( adornedWord.isSplitWord() && adornedWord.isFirstPart() )
-            {
-                                //  Get adorned word's ID.
+            if (adornedWord.isSplitWord() && adornedWord.isFirstPart()) {
+                // Get adorned word's ID.
 
-                String id   = adornedWord.getID();
+                String id = adornedWord.getID();
 
-                                //  Get the related word IDs.
+                // Get the related word IDs.
 
-                List<String> relatedIDs =
-                    wordFilter.getRelatedSplitWordIDs( id );
+                List<String> relatedIDs = wordFilter.getRelatedSplitWordIDs(id);
 
-                                //  Set adornments in related words
-                                //  to the values in the first word part.
+                // Set adornments in related words
+                // to the values in the first word part.
 
-                for ( int j = 0 ; j < relatedIDs.size() ; j++ )
-                {
-                    ExtendedAdornedWord relatedWord =
-                        wordFilter.getExtendedAdornedWord
-                        (
-                            relatedIDs.get( j )
-                        );
+                for (int j = 0; j < relatedIDs.size(); j++) {
+                    ExtendedAdornedWord relatedWord = wordFilter.getExtendedAdornedWord(
+                            relatedIDs.get(j));
 
-                    relatedWord.setPartsOfSpeech
-                    (
-                        adornedWord.getPartsOfSpeech()
-                    );
+                    relatedWord.setPartsOfSpeech(
+                            adornedWord.getPartsOfSpeech());
 
-                    relatedWord.setLemmata( adornedWord.getLemmata() );
+                    relatedWord.setLemmata(adornedWord.getLemmata());
 
-                    relatedWord.setSpelling
-                    (
-                        adornedWord.getSpelling()
-                    );
+                    relatedWord.setSpelling(
+                            adornedWord.getSpelling());
 
-                    relatedWord.setStandardSpelling
-                    (
-                        adornedWord.getStandardSpelling()
-                    );
+                    relatedWord.setStandardSpelling(
+                            adornedWord.getStandardSpelling());
                 }
             }
         }
     }
 
-    /** Adorn a list of sentences containing adorned words.
+    /**
+     * Adorn a list of sentences containing adorned words.
      *
-     *  @param  sentence    Previously adorned sentence to update.
-     *  @param  regIDSet    Word IDs of words with preset standard spellings.
+     * @param sentence Previously adorned sentence to update.
+     * @param regIDSet Word IDs of words with preset standard spellings.
      */
 
-    public void updateAdornedSentence
-    (
-        List<ExtendedAdornedWord> sentence ,
-        Set<String> regIDSet
-    )
-    {
-        String lemma                = "";
-        String correctedSpelling    = "";
+    public void updateAdornedSentence(
+            List<ExtendedAdornedWord> sentence,
+            Set<String> regIDSet) {
+        String lemma = "";
+        String correctedSpelling = "";
         String standardizedSpelling = "";
         ExtendedAdornedWord adornedWord;
-        String originalToken        = "";
-        String partOfSpeechTag      = "";
-        String id                   = "";
+        String originalToken = "";
+        String partOfSpeechTag = "";
+        String id = "";
 
-                                //  Update adornments for each word
-                                //  in sentence.
+        // Update adornments for each word
+        // in sentence.
 
-        for ( int j = 0 ; j < sentence.size() ; j++ )
-        {
-                                //  Get next word in sentence.
+        for (int j = 0; j < sentence.size(); j++) {
+            // Get next word in sentence.
 
-            adornedWord             = sentence.get( j );
+            adornedWord = sentence.get(j);
 
-                                //  Update standard spelling.
+            // Update standard spelling.
 
-            id                      = adornedWord.getID();
-            originalToken           = adornedWord.getToken();
-            correctedSpelling       = adornedWord.getSpelling();
-            standardizedSpelling    = adornedWord.getStandardSpelling();
-            partOfSpeechTag         = adornedWord.getPartsOfSpeech();
+            id = adornedWord.getID();
+            originalToken = adornedWord.getToken();
+            correctedSpelling = adornedWord.getSpelling();
+            standardizedSpelling = adornedWord.getStandardSpelling();
+            partOfSpeechTag = adornedWord.getPartsOfSpeech();
 
-            standardizedSpelling    =
-                MorphAdornerUtils.getStandardizedSpelling
-                (
-                    this ,
-                    ( regIDSet.contains( id ) ?
-                        standardizedSpelling : correctedSpelling ) ,
-                    standardizedSpelling ,
-                    partOfSpeechTag
-                );
+            standardizedSpelling = MorphAdornerUtils.getStandardizedSpelling(
+                    this,
+                    (regIDSet.contains(id) ? standardizedSpelling : correctedSpelling),
+                    standardizedSpelling,
+                    partOfSpeechTag);
 
-            if ( spellingMapper != null )
-            {
-                standardizedSpelling    =
-                    spellingMapper.mapSpelling
-                    (
-                        standardizedSpelling
-                    );
+            if (spellingMapper != null) {
+                standardizedSpelling = spellingMapper.mapSpelling(
+                        standardizedSpelling);
             }
 
-            adornedWord.setStandardSpelling( standardizedSpelling );
+            adornedWord.setStandardSpelling(standardizedSpelling);
 
-                                //  Update lemma.
+            // Update lemma.
 
-            if ( !morphAdornerSettings.ignoreLexiconEntriesForLemmatization )
-            {
-                lemma   =
-                    wordLexicon.getLemma
-                    (
-                        correctedSpelling ,
-                        partOfSpeechTag
-                    );
+            if (!morphAdornerSettings.ignoreLexiconEntriesForLemmatization) {
+                lemma = wordLexicon.getLemma(
+                        correctedSpelling,
+                        partOfSpeechTag);
+            } else {
+                lemma = "*";
             }
-            else
-            {
-                lemma   = "*";
-            }
-                                //  Lemma not found in word lexicon.
-                                //  Use lemmatizer.
+            // Lemma not found in word lexicon.
+            // Use lemmatizer.
 
-            if  (   lemma.equals( "*" ) && ( lemmatizer != null ) )
-            {
-                if ( standardizedSpelling.length() > 0 )
-                {
-                    lemma   =
-                        MorphAdornerUtils.getLemma
-                        (
-                            this ,
-                            standardizedSpelling ,
-                            partOfSpeechTag
-                        );
-                }
-                else
-                {
-                    lemma   =
-                        MorphAdornerUtils.getLemma
-                        (
-                            this ,
-                            correctedSpelling ,
-                            partOfSpeechTag
-                        );
+            if (lemma.equals("*") && (lemmatizer != null)) {
+                if (standardizedSpelling.length() > 0) {
+                    lemma = MorphAdornerUtils.getLemma(
+                            this,
+                            standardizedSpelling,
+                            partOfSpeechTag);
+                } else {
+                    lemma = MorphAdornerUtils.getLemma(
+                            this,
+                            correctedSpelling,
+                            partOfSpeechTag);
                 }
             }
-                                //  Force lemma to lowercase except
-                                //  for proper noun tagged word.
+            // Force lemma to lowercase except
+            // for proper noun tagged word.
 
-            if ( lemma.indexOf( lemmaSeparator ) < 0 )
-            {
-                if ( !partOfSpeechTags.isProperNounTag(
-                    partOfSpeechTag ) )
-                {
-                    lemma   = lemma.toLowerCase();
+            if (lemma.indexOf(lemmaSeparator) < 0) {
+                if (!partOfSpeechTags.isProperNounTag(
+                        partOfSpeechTag)) {
+                    lemma = lemma.toLowerCase();
                 }
             }
 
-            adornedWord.setLemmata( lemma );
+            adornedWord.setLemmata(lemma);
         }
     }
 
-    /** Add abbreviations.
+    /**
+     * Add abbreviations.
      *
-     *  @param  abbreviationsURL    Abbreviations URL.
-     *  @param  loadedMessage       Message to display when words loaded.
+     * @param abbreviationsURL Abbreviations URL.
+     * @param loadedMessage    Message to display when words loaded.
      */
 
-    public void addAbbreviations
-    (
-        Abbreviations abbreviations ,
-        String abbreviationsURL ,
-        String loadedMessage
-    )
-    {
-        long startTime      = System.currentTimeMillis();
+    public void addAbbreviations(
+            Abbreviations abbreviations,
+            String abbreviationsURL,
+            String loadedMessage) {
+        long startTime = System.currentTimeMillis();
 
-        int currentCount    = abbreviations.getAbbreviationsCount();
+        int currentCount = abbreviations.getAbbreviationsCount();
 
-                                //  Add abbreviations.
+        // Add abbreviations.
 
-        abbreviations.loadAbbreviations( abbreviationsURL );
+        abbreviations.loadAbbreviations(abbreviationsURL);
 
-                                //  Report number added.
+        // Report number added.
 
-        int added   = abbreviations.getAbbreviationsCount() - currentCount;
+        int added = abbreviations.getAbbreviationsCount() - currentCount;
 
-        morphAdornerLogger.println
-        (
-            loadedMessage ,
-            new Object[]
-            {
-                Formatters.formatIntegerWithCommas( added ) ,
-                MorphAdornerUtils.durationString
-                (
-                    morphAdornerSettings ,
-                    startTime
-                )
-            }
-        );
+        morphAdornerLogger.println(
+                loadedMessage,
+                new Object[] {
+                        Formatters.formatIntegerWithCommas(added),
+                        MorphAdornerUtils.durationString(
+                                morphAdornerSettings,
+                                startTime)
+                });
     }
 
-    /** Merge xml fragments into one xml file.
+    /**
+     * Merge xml fragments into one xml file.
      */
 
-    protected static void mergeXML
-    (
-        TextInputter inputter ,
-        String xmlFileName
-    )
-    {
-        try
-        {
-                                //  Open output file.
+    protected static void mergeXML(
+            TextInputter inputter,
+            String xmlFileName) {
+        try {
+            // Open output file.
 
-            FileOutputStream outputStream       =
-                new FileOutputStream( new File( xmlFileName ) , false );
+            FileOutputStream outputStream = new FileOutputStream(new File(xmlFileName), false);
 
-            BufferedOutputStream bufferedStream =
-                new BufferedOutputStream( outputStream );
+            BufferedOutputStream bufferedStream = new BufferedOutputStream(outputStream);
 
-            OutputStreamWriter writer           =
-                new OutputStreamWriter( bufferedStream , "utf-8" );
+            OutputStreamWriter writer = new OutputStreamWriter(bufferedStream, "utf-8");
 
-                                //  Get list of text entries sorted
-                                //  by entry name,
+            // Get list of text entries sorted
+            // by entry name,
 
-            SortedArrayList<String> entryNames  =
-                new SortedArrayList<String>();
+            SortedArrayList<String> entryNames = new SortedArrayList<String>();
 
-            int nEntries    = inputter.getSegmentCount();
+            int nEntries = inputter.getSegmentCount();
 
-            for ( int i = 0 ; i < nEntries ; i++ )
-            {
-                entryNames.add( inputter.getSegmentName( i ) );
+            for (int i = 0; i < nEntries; i++) {
+                entryNames.add(inputter.getSegmentName(i));
             }
-                                //  Write out entries in order.
+            // Write out entries in order.
 
-            String endText  = "";
+            String endText = "";
             String entryName;
             String entryText;
 
-            for ( int i = 0 ; i < entryNames.size() ; i++ )
-            {
-                entryName   = entryNames.get( i ).toString();
-                entryText   = inputter.getSegmentText( entryName );
+            for (int i = 0; i < entryNames.size(); i++) {
+                entryName = entryNames.get(i).toString();
+                entryText = inputter.getSegmentText(entryName);
 
-                                //  Split "head.xml" as needed.
+                // Split "head.xml" as needed.
 
-                if ( entryName.equals( "head" ) )
-                {
-                                //  Look for "</eebo" or "</TEI"
-                                //  and split off
-                                //  ending string at this point.
-                                //  Add it to the end of the output
-                                //  later.
+                if (entryName.equals("head")) {
+                    // Look for "</eebo" or "</TEI"
+                    // and split off
+                    // ending string at this point.
+                    // Add it to the end of the output
+                    // later.
 
-                    int iPos    =
-                        StringUtils.indexOfIgnoreCase(
-                            entryText , "</eebo" );
+                    int iPos = StringUtils.indexOfIgnoreCase(
+                            entryText, "</eebo");
 
-                    if ( iPos < 0 )
-                    {
-                        iPos    = entryText.indexOf( "</TEI" );
+                    if (iPos < 0) {
+                        iPos = entryText.indexOf("</TEI");
                     }
 
-                    if ( iPos < 0 )
-                    {
-                        iPos    = entryText.indexOf( "</tei." );
+                    if (iPos < 0) {
+                        iPos = entryText.indexOf("</tei.");
                     }
 
-                    if ( iPos >= 0 )
-                    {
-                        endText     = entryText.substring( iPos );
-                        entryText   = entryText.substring( 0 , iPos );
+                    if (iPos >= 0) {
+                        endText = entryText.substring(iPos);
+                        entryText = entryText.substring(0, iPos);
                     }
                 }
-                                //  Split "text.xml" as needed.
-                                //  First part output now, rest
-                                //  prepended to ending string and
-                                //  added to the end of the output later.
+                // Split "text.xml" as needed.
+                // First part output now, rest
+                // prepended to ending string and
+                // added to the end of the output later.
 
-                else if ( entryName.equals( "text" ) )
-                {
-                    entryText   = entryText.trim();
+                else if (entryName.equals("text")) {
+                    entryText = entryText.trim();
 
-                    entryText   =
-                        StringUtils.replaceAll( entryText , "/>" , ">" );
+                    entryText = StringUtils.replaceAll(entryText, "/>", ">");
 
-                    if ( entryText.startsWith( "<group" ) )
-                    {
+                    if (entryText.startsWith("<group")) {
                         endText = "</group>" + endText;
-                    }
-                    else if ( entryText.startsWith( "<GROUP" ) )
-                    {
+                    } else if (entryText.startsWith("<GROUP")) {
                         endText = "</GROUP>" + endText;
-                    }
-                    else if ( entryText.startsWith( "<text" ) )
-                    {
+                    } else if (entryText.startsWith("<text")) {
                         endText = "</text>" + endText;
-                    }
-                    else
-                    {
+                    } else {
                         endText = "</TEXT>" + endText;
                     }
 
-                    if  (   entryText.endsWith( "</text>" ) ||
-                            entryText.endsWith( "</TEXT>" )
-                        )
-                    {
-                        entryText   =
-                            entryText.substring
-                            (
-                                0 ,
-                                entryText.length() - 7
-                            );
+                    if (entryText.endsWith("</text>") ||
+                            entryText.endsWith("</TEXT>")) {
+                        entryText = entryText.substring(
+                                0,
+                                entryText.length() - 7);
                     }
                 }
-                                //  Change trailing " >" to ">".
+                // Change trailing " >" to ">".
 
-                while ( entryText.endsWith( " >" ) )
-                {
-                    entryText   =
-                        entryText.substring(
-                            0 , entryText.length() - 2 ) + ">";
+                while (entryText.endsWith(" >")) {
+                    entryText = entryText.substring(
+                            0, entryText.length() - 2) + ">";
                 }
-                                //  Write out XML portion.
-                writer.write
-                (
-                    entryText ,
-                    0 ,
-                    entryText.length()
-                );
+                // Write out XML portion.
+                writer.write(
+                        entryText,
+                        0,
+                        entryText.length());
             }
-                                //  Output accumulated end text.
+            // Output accumulated end text.
 
-            endText = StringUtils.replaceAll( endText , " >" , ">" );
+            endText = StringUtils.replaceAll(endText, " >", ">");
 
-            writer.write( endText , 0 , endText.length() );
+            writer.write(endText, 0, endText.length());
 
-                                //  Close XML output file.
+            // Close XML output file.
             writer.close();
             bufferedStream.close();
             outputStream.close();
 
-            writer          = null;
-            bufferedStream  = null;
-            outputStream    = null;
-            entryNames      = null;
+            writer = null;
+            bufferedStream = null;
+            outputStream = null;
+            entryNames = null;
 
-            endText         = null;
-            entryName       = null;
-            entryText       = null;
-        }
-        catch ( Exception e )
-        {
+            endText = null;
+            entryName = null;
+            entryText = null;
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         System.gc();
     }
 
-    /** Create and run a Morphological Adorner.
+    /**
+     * Create and run a Morphological Adorner.
      *
-     *  @param  args    Program arguments.
+     * @param args Program arguments.
      */
 
-    public static void main( String[] args )
-    {
-                                //  Create the adorner.
+    public static void main(String[] args) {
+        // Create the adorner.
 
-        MorphAdorner adorner    = new MorphAdorner( args );
+        MorphAdorner adorner = new MorphAdorner(args);
 
-                                //  Run adornment processes on specified
-                                //  input files.
+        // Run adornment processes on specified
+        // input files.
 
-        if ( adorner.morphAdornerSettings.fileNames.length > 0 )
-        {
-            adorner.processInputFiles
-            (
-                adorner.morphAdornerSettings.tokenizeOnly
-            );
-        }
-        else
-        {
+        if (adorner.morphAdornerSettings.fileNames.length > 0) {
+            adorner.processInputFiles(
+                    adorner.morphAdornerSettings.tokenizeOnly);
+        } else {
             adorner.morphAdornerLogger.println(
-                "No_files_found_to_process" );
+                    "No_files_found_to_process");
         }
-                                //  Close down logging.
+        // Close down logging.
 
         adorner.morphAdornerLogger.terminate();
     }
 
-    /** Create a Morphological Adorner.
+    /**
+     * Create a Morphological Adorner.
      *
-     *  @param  adornerName             Name for this adorner.
-     *  @param  replaceAdorner          Replace existing adorner.
-     *  @param  adornerArgs             Adorner arguments.
-     *  @param  adornerLogConfig        Adorner log file configuration.
-     *  @param  adornerLogDirectory     Adorner log directory.
+     * @param adornerName         Name for this adorner.
+     * @param replaceAdorner      Replace existing adorner.
+     * @param adornerArgs         Adorner arguments.
+     * @param adornerLogConfig    Adorner log file configuration.
+     * @param adornerLogDirectory Adorner log directory.
      *
-     *  @return     The adorner.
+     * @return The adorner.
      */
 
-    public static MorphAdorner createAdorner
-    (
-        String adornerName ,
-        boolean replaceAdorner ,
-        String[] adornerArgs ,
-        String adornerLogConfig ,
-        String adornerLogDirectory
-    )
-    {
-                                //  Use existing adorner of the given
-                                //  name if found.
+    public static MorphAdorner createAdorner(
+            String adornerName,
+            boolean replaceAdorner,
+            String[] adornerArgs,
+            String adornerLogConfig,
+            String adornerLogDirectory) {
+        // Use existing adorner of the given
+        // name if found.
 
-        MorphAdorner adorner    = storedAdorners.get( adornerName );
+        MorphAdorner adorner = storedAdorners.get(adornerName);
 
-                                //  No existing adorner of the given
-                                //  name.  Create a new one.
+        // No existing adorner of the given
+        // name. Create a new one.
 
-        if ( replaceAdorner || ( adorner == null ) )
-        {
-            adorner =
-                new MorphAdorner
-                (
-                    adornerArgs ,
-                    adornerLogConfig ,
-                    adornerLogDirectory
-                );
+        if (replaceAdorner || (adorner == null)) {
+            adorner = new MorphAdorner(
+                    adornerArgs,
+                    adornerLogConfig,
+                    adornerLogDirectory);
 
-            storedAdorners.put( adornerName , adorner );
-        }
-        else
-        {
-                                //  Recreate the wrapper logger for
-                                //  use by MorphAdorner in case it's
-                                //  closed.
+            storedAdorners.put(adornerName, adorner);
+        } else {
+            // Recreate the wrapper logger for
+            // use by MorphAdorner in case it's
+            // closed.
 
-            if ( !adorner.morphAdornerLogger.getLogger().isLoggerEnabled() )
-            {
-                adorner.morphAdornerLogger.setLogger
-                (
-                    adorner.morphAdornerLogger.createWrappedLogger
-                    (
-                        adornerLogConfig ,
-                        adornerLogDirectory
-                    )
-                );
+            if (!adorner.morphAdornerLogger.getLogger().isLoggerEnabled()) {
+                adorner.morphAdornerLogger.setLogger(
+                        adorner.morphAdornerLogger.createWrappedLogger(
+                                adornerLogConfig,
+                                adornerLogDirectory));
             }
         }
-                                //  Return the adorner.
+        // Return the adorner.
         return adorner;
     }
 
-    /** Run a Morphological Adorner.
+    /**
+     * Run a Morphological Adorner.
      *
-     *  @param  adorner             The adorner to run.
-     *  @param  outputDirectory     Adorned files output directory.
-     *  @param  filesToAdorn        File names to adorn.
-     *  @param  tokenizeOnly        Only tokenize XML files.
+     * @param adorner         The adorner to run.
+     * @param outputDirectory Adorned files output directory.
+     * @param filesToAdorn    File names to adorn.
+     * @param tokenizeOnly    Only tokenize XML files.
      *
-     *  @return                     The adorner used.
+     * @return The adorner used.
      *
-     *  <p>
-     *  If the adorner specified is null, no processing is performed,
-     *  and null is returned as the adorned used.
-     *  </p>
+     *         <p>
+     *         If the adorner specified is null, no processing is performed,
+     *         and null is returned as the adorned used.
+     *         </p>
      */
 
-    public static MorphAdorner runAdorner
-    (
-        MorphAdorner adorner ,
-        String outputDirectory ,
-        String[] filesToAdorn ,
-        boolean tokenizeOnly
-    )
-    {
-                                //  Do nothing if the adorner is null.
+    public static MorphAdorner runAdorner(
+            MorphAdorner adorner,
+            String outputDirectory,
+            String[] filesToAdorn,
+            boolean tokenizeOnly) {
+        // Do nothing if the adorner is null.
 
-        if ( adorner == null )
-        {
+        if (adorner == null) {
             return null;
         }
-                                //  Set output directory.
+        // Set output directory.
 
-        adorner.morphAdornerSettings.outputDirectoryName    =
-            outputDirectory;
-                                //  Set input file names.
+        adorner.morphAdornerSettings.outputDirectoryName = outputDirectory;
+        // Set input file names.
 
-        adorner.morphAdornerSettings.fileNames  =
-            FileNameUtils.expandFileNameWildcards( filesToAdorn );
+        adorner.morphAdornerSettings.fileNames = FileNameUtils.expandFileNameWildcards(filesToAdorn);
 
-                                //  Run adornment processes on specified
-                                //  input files.
+        // Run adornment processes on specified
+        // input files.
 
-        if ( adorner.morphAdornerSettings.fileNames.length > 0 )
-        {
-            adorner.processInputFiles( tokenizeOnly );
-        }
-        else
-        {
+        if (adorner.morphAdornerSettings.fileNames.length > 0) {
+            adorner.processInputFiles(tokenizeOnly);
+        } else {
             adorner.morphAdornerLogger.println(
-                "No_files_found_to_process" );
+                    "No_files_found_to_process");
         }
-                                //  Return the adorner that was used.
+        // Return the adorner that was used.
         return adorner;
     }
 
-    /** Run a Morphological Adorner.
+    /**
+     * Run a Morphological Adorner.
      *
-     *  @param  adornerName         Name for this adorner.
-     *  @param  outputDirectory     Adorned files output directory.
-     *  @param  filesToAdorn        File names to adorn.
-     *  @param  tokenizeOnly        Only tokenize XML files.
+     * @param adornerName     Name for this adorner.
+     * @param outputDirectory Adorned files output directory.
+     * @param filesToAdorn    File names to adorn.
+     * @param tokenizeOnly    Only tokenize XML files.
      *
-     *  @return                     The adorner used.  Null if not found.
+     * @return The adorner used. Null if not found.
      *
-     *  <p>
-     *  If the requested adorner was not found, no processing is performed,
-     *  and null is return as the adorner used.
-     *  </p>
+     *         <p>
+     *         If the requested adorner was not found, no processing is performed,
+     *         and null is return as the adorner used.
+     *         </p>
      */
 
-    public static MorphAdorner runAdorner
-    (
-        String adornerName ,
-        String outputDirectory ,
-        String[] filesToAdorn ,
-        boolean tokenizeOnly
-    )
-    {
-        return
-            runAdorner
-            (
-                storedAdorners.get( adornerName ) ,
-                outputDirectory ,
-                filesToAdorn ,
-                tokenizeOnly
-            );
+    public static MorphAdorner runAdorner(
+            String adornerName,
+            String outputDirectory,
+            String[] filesToAdorn,
+            boolean tokenizeOnly) {
+        return runAdorner(
+                storedAdorners.get(adornerName),
+                outputDirectory,
+                filesToAdorn,
+                tokenizeOnly);
     }
 
-    /** Create and run a Morphological Adorner.
+    /**
+     * Create and run a Morphological Adorner.
      *
-     *  @param  adornerName             Name for this adorner.
-     *  @param  replaceAdorner          Replace existing adorner.
-     *  @param  adornerArgs             Adorner arguments.
-     *  @param  adornerLogConfig        Adorner log file configuration.
-     *  @param  adornerLogDirectory     Adorner log directory.
-     *  @param  outputDirectory         Adorned files output directory.
-     *  @param  filesToAdorn            File names to adorn.
-     *  @param  tokenizeOnly            Only tokenize XML files.
+     * @param adornerName         Name for this adorner.
+     * @param replaceAdorner      Replace existing adorner.
+     * @param adornerArgs         Adorner arguments.
+     * @param adornerLogConfig    Adorner log file configuration.
+     * @param adornerLogDirectory Adorner log directory.
+     * @param outputDirectory     Adorned files output directory.
+     * @param filesToAdorn        File names to adorn.
+     * @param tokenizeOnly        Only tokenize XML files.
      *
-     *  @return     The adorner.
+     * @return The adorner.
      */
 
-    public static MorphAdorner createAndRunAdorner
-    (
-        String adornerName ,
-        boolean replaceAdorner ,
-        String[] adornerArgs ,
-        String adornerLogConfig ,
-        String adornerLogDirectory ,
-        String outputDirectory ,
-        String[] filesToAdorn ,
-        boolean tokenizeOnly
-    )
-    {
-                                //  Create the adorner.
+    public static MorphAdorner createAndRunAdorner(
+            String adornerName,
+            boolean replaceAdorner,
+            String[] adornerArgs,
+            String adornerLogConfig,
+            String adornerLogDirectory,
+            String outputDirectory,
+            String[] filesToAdorn,
+            boolean tokenizeOnly) {
+        // Create the adorner.
 
-        MorphAdorner adorner    =
-            createAdorner
-            (
-                adornerName ,
-                replaceAdorner ,
-                adornerArgs ,
-                adornerLogConfig ,
-                adornerLogDirectory
-            );
-                                //  Run the adorned on the specified
-                                //  files.
-        return
-            runAdorner
-            (
-                storedAdorners.get( adornerName ) ,
-                outputDirectory ,
-                filesToAdorn ,
-                tokenizeOnly
-            );
+        MorphAdorner adorner = createAdorner(
+                adornerName,
+                replaceAdorner,
+                adornerArgs,
+                adornerLogConfig,
+                adornerLogDirectory);
+        // Run the adorned on the specified
+        // files.
+        return runAdorner(
+                storedAdorners.get(adornerName),
+                outputDirectory,
+                filesToAdorn,
+                tokenizeOnly);
     }
 
     /** Finalize. */
 
     public void finalize()
-        throws Throwable
-    {
-                                //  Close down logging.
-        try
-        {
+            throws Throwable {
+        // Close down logging.
+        try {
             morphAdornerLogger.terminate();
-        }
-        catch ( Exception e )
-        {
+        } catch (Exception e) {
         }
 
         super.finalize();
@@ -2845,45 +2280,42 @@ public class MorphAdorner
 }
 
 /*
-Copyright (c) 2008, 2013 by Northwestern University.
-All rights reserved.
-
-Developed by:
-   Academic and Research Technologies
-   Northwestern University
-   http://www.it.northwestern.edu/about/departments/at/
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal with the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or
-sell copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimers.
-
-    * Redistributions in binary form must reproduce the above
-      copyright notice, this list of conditions and the following
-      disclaimers in the documentation and/or other materials provided
-      with the distribution.
-
-    * Neither the names of Academic and Research Technologies,
-      Northwestern University, nor the names of its contributors may be
-      used to endorse or promote products derived from this Software
-      without specific prior written permission.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE CONTRIBUTORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
-*/
-
-
-
+ * Copyright (c) 2008, 2013 by Northwestern University.
+ * All rights reserved.
+ * 
+ * Developed by:
+ * Academic and Research Technologies
+ * Northwestern University
+ * http://www.it.northwestern.edu/about/departments/at/
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal with the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimers.
+ * 
+ * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following
+ * disclaimers in the documentation and/or other materials provided
+ * with the distribution.
+ * 
+ * Neither the names of Academic and Research Technologies,
+ * Northwestern University, nor the names of its contributors may be
+ * used to endorse or promote products derived from this Software
+ * without specific prior written permission.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE CONTRIBUTORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
+ */
