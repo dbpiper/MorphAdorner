@@ -1,0 +1,68 @@
+Version 2.0.1.  September 25, 2013.
+
+    (1)  Correct mishandling of some empty <pb> elements in TEI XML files.
+    
+Version 2.0.0.  September 13, 2013.
+
+    Initial public release.
+
+Version 1.9a28  September 4, 2013.
+
+    Initial semi-public pre-release.
+
+    Main changes since 1.0.1.
+
+    (1)  Created a Mercurial repository to hold the source code
+         and build materials:
+
+         http://bitbucket.org/pibburns/morphadorner/
+
+    (2)  Reorganized the code base to place all the linguistics
+         processing code under the
+         edu.northwestern.at.morphadorner.corpuslinguistics
+         parent package.
+
+    (3)  Replaced the old sample servlets with standalone
+         MorphAdorner server.  This has its own code base
+         and release materials at
+
+         http://bitbucket.org/pibburns/morphadornerserver/
+
+    (4)  Multiple improvments to basic tokenization and
+         sentence-splitting facilities, including addition
+         of basic support for tokenizing and sentence-splitting
+         of texts written in languages other than English.
+
+    (5)  Upgraded language recognition facilities with a more
+         recent algorithm from Nakatani Shuyo.
+
+    (6)  Improved part of speech adornment particularly for
+         Early Modern English.  Among other changes, the suffix
+         analysis used to select candidate parts of speech for
+         unknown words now disallows candidate parts of speech
+         to be assigned from closed word classes.
+
+    (7)  Added a utility for converting the "base" MorphAdorner
+         adorned output to a more TEI P5-like format.
+
+    (8)  Added a number of support utilities for improving the
+         processing of corpora from the Text Creation Partnership.
+
+    (9)  Added some extra fields to the tabular (verticalized) output
+         from adorned files.
+
+    (10) Added support for different abbreviation lists for main and
+         paratext (important for drama texts).
+
+    (11) Added implementation of the PUNKT algorithm of Tibor and
+         Strunk for extracting potential abbreviation lists from a
+         plain-text corpus.
+
+    (12) Added generic utility to apply and XSL transformation to
+         a set of input files.
+
+    (13) Added classes to support basic text summarization,
+         hyphenation, and syllable counting.
+
+    (14) Multiple other minor bug fixes and improvements.
+

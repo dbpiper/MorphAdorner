@@ -1,0 +1,14 @@
+#!/bin/sh
+SCRIPTPATH=$(dirname "$0")
+CLASSPATH="$SCRIPTPATH":"$SCRIPTPATH"/bin/:"$SCRIPTPATH"/dist/\*:"$SCRIPTPATH"/lib/\*
+java -Xmx2048m -Xss1m -cp "$CLASSPATH" \
+	edu.northwestern.at.morphadorner.MorphAdorner \
+	-p "$SCRIPTPATH"/ncfa.properties \
+	-l "$SCRIPTPATH"/data/ncflexicon.lex \
+	-t "$SCRIPTPATH"/data/ncftransmat.mat \
+	-u "$SCRIPTPATH"/data/ncfsuffixlexicon.lex \
+	-a "$SCRIPTPATH"/data/ncfmergedspellingpairs.tab \
+	-s "$SCRIPTPATH"/data/standardspellings.txt \
+	-w "$SCRIPTPATH"/data/spellingsbywordclass.txt \
+	-o "$1" \
+	"$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"

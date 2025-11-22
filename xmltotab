@@ -1,0 +1,5 @@
+#!/bin/sh
+SCRIPTPATH=$(dirname "$0")
+CLASSPATH="$SCRIPTPATH":"$SCRIPTPATH"/bin/:"$SCRIPTPATH"/dist/\*:"$SCRIPTPATH"/lib/\*
+java -Xmx2048m -Xss1m -cp "$CLASSPATH" \
+	edu.northwestern.at.morphadorner.tools.xmltotab.XMLToTab "$1" "$2"
