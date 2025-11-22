@@ -2,18 +2,15 @@ package edu.northwestern.at.utils.math;
 
 /*  Please see the license information at the end of this file. */
 
-/** Interface for a monadic (single argument) function.
- */
-
-public interface MonadicFunction
-{
-    /** Evaluates a monadic scalar function.
-     *
-     *  @param  x   Value at which function is to be evaluated.
-     *  @return     Result of evaluating function at x.
-     */
-
-    public double f( double x );
+/** Interface for a monadic (single argument) function. */
+public interface MonadicFunction {
+  /**
+   * Evaluates a monadic scalar function.
+   *
+   * @param x Value at which function is to be evaluated.
+   * @return Result of evaluating function at x.
+   */
+  public double f(double x);
 }
 
 /*
@@ -56,5 +53,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

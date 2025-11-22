@@ -1,11 +1,7 @@
 package net.sf.jlinkgrammar;
 
-/**
- * TODO add javadoc
- *
- */
+/** TODO add javadoc */
 public class PPLinksetNode {
-    String str;
-    PPLinksetNode next;
-
+  String str;
+  PPLinksetNode next;
 }

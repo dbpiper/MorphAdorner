@@ -2,284 +2,206 @@ package edu.northwestern.at.utils.csv;
 
 /*  Please see the license information in the header below. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-
-/** CSVFileReader reads and parses a delimiter separated text file.
+/**
+ * CSVFileReader reads and parses a delimiter separated text file.
  *
- *  <p>
- *  Adapted from a C++ original that is
- *  Copyright (C) 1999 Lucent Technologies.<br>
- *  Excerpted from 'The Practice of Programming' by Brian Kernighan and
- *  Rob Pike.
- *  </p>
+ * <p>Adapted from a C++ original that is Copyright (C) 1999 Lucent Technologies.<br>
+ * Excerpted from 'The Practice of Programming' by Brian Kernighan and Rob Pike.
  *
- *  <p>
- *  Included by permission of the
- *  <a href="http://tpop.awl.com/">Addison-Wesley</a> web site, which says:
- *  <cite>"You may use this code for any purpose, as long as you leave the
- *  copyright notice and book citation attached"</cite>.
- *  </p>
+ * <p>Included by permission of the <a href="http://tpop.awl.com/">Addison-Wesley</a> web site,
+ * which says: <cite>"You may use this code for any purpose, as long as you leave the copyright
+ * notice and book citation attached"</cite>.
  *
- *  @author Brian Kernighan and Rob Pike (C++ original)
- *  @author Ian F. Darwin (translation into Java and removal of I/O)
- *  @author Ben Ballard (rewrote handleQuotedField to handle double
- *  qualifiers and for readability)
- *  @author Fabrizio Fazzino (added integration with CSVFile, handling of
- *  variable qualifier and ArrayList with explicit String type)
- *  @author Philip R. Burns.  Allow character set encoding for files and
- *  List instead of Vector.
+ * @author Brian Kernighan and Rob Pike (C++ original)
+ * @author Ian F. Darwin (translation into Java and removal of I/O)
+ * @author Ben Ballard (rewrote handleQuotedField to handle double qualifiers and for readability)
+ * @author Fabrizio Fazzino (added integration with CSVFile, handling of variable qualifier and
+ *     ArrayList with explicit String type)
+ * @author Philip R. Burns. Allow character set encoding for files and List instead of Vector.
  */
+public class CSVFileReader extends CSVFile {
+  /** Buffered reader for the CSV file to be read. */
+  protected BufferedReader in;
 
-public class CSVFileReader extends CSVFile
-{
-    /** Buffered reader for the  CSV file to be read.
-     */
+  /**
+   * Create a CSV file reader given a file name and encoding.
+   *
+   * @param inputFileName Name of the CSV formatted input file.
+   * @param encoding The character encoding for the file.
+   * @throws FileNotFoundException If input file does not exist.
+   * @throws IOException If input file cannot be opened.
+   */
+  public CSVFileReader(String inputFileName, String encoding)
+      throws IOException, FileNotFoundException {
+    super();
 
-    protected BufferedReader in;
+    openInputFile(inputFileName, encoding);
+  }
 
-    /** Create a CSV file reader given a file name and encoding.
-     *
-     *  @param  inputFileName   Name of the CSV formatted input file.
-     *  @param  encoding        The character encoding for the file.
-     *
-     *  @throws FileNotFoundException   If input file does not exist.
-     *  @throws IOException             If input file cannot be opened.
-     */
+  /**
+   * Create CSVFileReader with a given field separator.
+   *
+   * @param inputFileName Name of the CSV formatted input file.
+   * @param encoding Character encoding for the file.
+   * @param separator Field separator.
+   * @throws FileNotFoundException If input file does not exist.
+   * @throws IOException If input file cannot be opened.
+   */
+  public CSVFileReader(String inputFileName, String encoding, char separator)
+      throws IOException, FileNotFoundException {
+    super(separator);
 
-    public CSVFileReader( String inputFileName , String encoding )
-        throws IOException, FileNotFoundException
-    {
-        super();
+    openInputFile(inputFileName, encoding);
+  }
 
-        openInputFile( inputFileName , encoding );
+  /**
+   * Create CSVFileReader with given field separator and qualifier character.
+   *
+   * @param inputFileName Name of the CSV formatted input file.
+   * @param encoding Character encoding for the file.
+   * @param separator Field separator.
+   * @param qualifier Qualified character. Ascii 0 means don't use a qualifier.
+   * @throws FileNotFoundException If input file does not exist.
+   * @throws IOException If input file cannot be opened.
+   */
+  public CSVFileReader(String inputFileName, String encoding, char separator, char qualifier)
+      throws FileNotFoundException, IOException {
+    super(separator, qualifier);
+
+    openInputFile(inputFileName, encoding);
+  }
+
+  /**
+   * Open input file.
+   *
+   * @param inputFileName Name of the CSV formatted input file.
+   * @param encoding Character encoding for the file.
+   */
+  protected void openInputFile(String inputFileName, String encoding) throws IOException {
+    UnicodeReader streamReader = null;
+
+    if ((encoding == null) || (encoding.length() == 0)) {
+      streamReader = new UnicodeReader(new FileInputStream(new File(inputFileName)));
+    } else {
+      streamReader = new UnicodeReader(new FileInputStream(new File(inputFileName)), encoding);
     }
 
-    /** Create CSVFileReader with a given field separator.
-     *
-     *  @param  inputFileName   Name of the CSV formatted input file.
-     *  @param  encoding        Character encoding for the file.
-     *  @param  separator       Field separator.
-     *
-     *  @throws FileNotFoundException   If input file does not exist.
-     *  @throws IOException             If input file cannot be opened.
-     */
+    in = new BufferedReader(streamReader);
+  }
 
-    public CSVFileReader
-    (
-        String inputFileName ,
-        String encoding ,
-        char separator
-    )
-        throws IOException , FileNotFoundException
-    {
-        super( separator );
+  /**
+   * Split the next line of the input CSV file into fields.
+   *
+   * @return List of strings containing each field from the next line of the file.
+   * @throws IOException If an error occurs while reading the new line from the file.
+   */
+  public List<String> readFields() throws IOException {
+    List<String> fields = ListFactory.createNewList();
+    StringBuffer sb = new StringBuffer();
+    String line = in.readLine();
 
-        openInputFile( inputFileName , encoding );
+    if (line == null) return null;
+
+    if (line.length() == 0) {
+      fields.add(line);
+      return fields;
     }
 
-    /** Create CSVFileReader with given field separator and qualifier character.
-     *
-     *  @param  inputFileName   Name of the CSV formatted input file.
-     *  @param  encoding        Character encoding for the file.
-     *  @param  separator       Field separator.
-     *  @param  qualifier       Qualified character.
-     *                          Ascii 0 means don't use a qualifier.
-     *
-     *  @throws FileNotFoundException   If input file does not exist.
-     *  @throws IOException             If input file cannot be opened.
-     */
+    int i = 0;
 
-    public CSVFileReader
-    (
-        String inputFileName ,
-        String encoding ,
-        char separator ,
-        char qualifier
-    )
-        throws FileNotFoundException, IOException
-    {
-        super( separator , qualifier );
+    do {
+      sb.setLength(0);
 
-        openInputFile( inputFileName , encoding );
-    }
+      if ((i < line.length()) && (line.charAt(i) == qualifier) && (line.charAt(i) != 0)) {
+        i = handleQuotedField(line, sb, ++i);
+      } else {
+        i = handlePlainField(line, sb, i);
+      }
 
-    /** Open input file.
-     *
-     *  @param  inputFileName   Name of the CSV formatted input file.
-     *  @param  encoding        Character encoding for the file.
-     */
+      fields.add(sb.toString());
+      i++;
+    } while (i < line.length());
 
-    protected void openInputFile
-    (
-        String inputFileName ,
-        String encoding
-    )
-        throws IOException
-    {
-        UnicodeReader streamReader  = null;
+    return fields;
+  }
 
-        if ( ( encoding == null ) || ( encoding.length() == 0 ) )
-        {
-            streamReader    =
-                new UnicodeReader
-                (
-                    new FileInputStream( new File( inputFileName ) )
-                );
+  /**
+   * Close the input CSV file.
+   *
+   * @throws IOException If an error occurs while closing the file.
+   */
+  public void close() throws IOException {
+    in.close();
+  }
+
+  /**
+   * Handles a qualified field.
+   *
+   * @param s Input string.
+   * @param sb Output string buffer.
+   * @param i Current offset in string s.
+   */
+  protected int handleQuotedField(String s, StringBuffer sb, int i) {
+    int j;
+    int len = s.length();
+
+    for (j = i; j < len; j++) {
+      if ((s.charAt(j) == qualifier) && ((j + 1) < len)) {
+        if (s.charAt(j + 1) == qualifier) {
+          //  Skip escape char.
+          j++;
+        } else if (s.charAt(j + 1) == separator) {
+          //  Next delimiter.
+          j++;
+          //  Skip end qualifiers.
+          break;
         }
-        else
-        {
-            streamReader    =
-                new UnicodeReader
-                (
-                    new FileInputStream( new File( inputFileName ) ) ,
-                    encoding
-                );
-        }
+      } else if ((s.charAt(j) == qualifier) && ((j + 1) == len)) {
+        //  End qualifiers at end of line.
+        break;
+      }
+      //  Regular character.
 
-        in  = new BufferedReader( streamReader );
+      sb.append(s.charAt(j));
     }
 
-    /** Split the next line of the input CSV file into fields.
-     *
-     * @return                  List of strings containing each field from
-     *                          the next line of the file.
-     *
-     * @throws IOException      If an error occurs while reading the new
-     *                          line from the file.
-     */
+    return j;
+  }
 
-    public List<String> readFields()
-        throws IOException
-    {
-        List<String> fields = ListFactory.createNewList();
-        StringBuffer sb     = new StringBuffer();
-        String line         = in.readLine();
+  /**
+   * Handles an unqualified field.
+   *
+   * @param s Input string.
+   * @param sb Output string buffer.
+   * @param i Current offset in string s.
+   * @return index of next separator.
+   */
+  protected int handlePlainField(String s, StringBuffer sb, int i) {
+    int result;
+    //  Look for separator.
 
-        if ( line == null ) return null;
+    int j = s.indexOf(separator, i);
 
-        if ( line.length() == 0 )
-        {
-            fields.add( line );
-            return fields;
-        }
-
-        int i   = 0;
-
-        do
-        {
-            sb.setLength( 0 );
-
-            if  (   ( i < line.length() ) &&
-                    ( line.charAt( i ) == qualifier ) &&
-                    ( line.charAt( i ) != 0 )
-                )
-            {
-                i   = handleQuotedField( line , sb , ++i );
-            }
-            else
-            {
-                i   = handlePlainField( line , sb , i );
-            }
-
-            fields.add( sb.toString() );
-            i++;
-        }
-        while ( i < line.length() );
-
-        return fields;
+    //  No separator found.
+    //  Append all remaining text from
+    //  current position to end of input
+    //  string.
+    if (j == -1) {
+      sb.append(s.substring(i));
+      result = s.length();
+    }
+    //  Separator found.
+    //  Append all text from current
+    //  position up to separator.
+    else {
+      sb.append(s.substring(i, j));
+      result = j;
     }
 
-    /** Close the input CSV file.
-     *
-     *  @throws IOException     If an error occurs while closing the file.
-     */
-
-    public void close()
-        throws IOException
-    {
-        in.close();
-    }
-
-    /** Handles a qualified field.
-     *
-     *  @param      s   Input string.
-     *  @param      sb  Output string buffer.
-     *  @param      i   Current offset in string s.
-     */
-
-    protected int handleQuotedField( String s , StringBuffer sb , int i )
-    {
-        int j;
-        int len = s.length();
-
-        for ( j = i ; j < len ; j++ )
-        {
-            if ( ( s.charAt( j ) == qualifier ) && ( ( j + 1 ) < len ) )
-            {
-                if ( s.charAt( j + 1 ) == qualifier )
-                {
-                                //  Skip escape char.
-                    j++;
-                }
-                else if ( s.charAt( j + 1 ) == separator )
-                {
-                                //  Next delimiter.
-                    j++;
-                                //  Skip end qualifiers.
-                    break;
-                }
-            }
-            else if ( ( s.charAt( j ) == qualifier ) && ( ( j + 1 ) == len ) )
-            {
-                                //  End qualifiers at end of line.
-                break;
-            }
-                                //  Regular character.
-
-            sb.append( s.charAt( j ) );
-        }
-
-        return j;
-    }
-
-    /** Handles an unqualified field.
-     *
-     *  @param      s   Input string.
-     *  @param      sb  Output string buffer.
-     *  @param      i   Current offset in string s.
-     *
-     *  @return     index of next separator.
-     */
-
-    protected int handlePlainField( String s , StringBuffer sb , int i )
-    {
-        int result;
-                                //  Look for separator.
-
-        int j   = s.indexOf( separator , i );
-
-                                //  No separator found.
-                                //  Append all remaining text from
-                                //  current position to end of input
-                                //  string.
-        if ( j == -1 )
-        {
-            sb.append( s.substring( i ) );
-            result  = s.length();
-        }
-                                //  Separator found.
-                                //  Append all text from current
-                                //  position up to separator.
-        else
-        {
-            sb.append( s.substring( i , j ) );
-            result  = j;
-        }
-
-        return result;
-    }
+    return result;
+  }
 }
-

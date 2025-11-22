@@ -6,33 +6,15 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-/** NUPOSPartOfSpeechTags: NUPOS part of speech tags.
- */
+/** NUPOSPartOfSpeechTags: NUPOS part of speech tags. */
+public class NUPOSPartOfSpeechTags extends AbstractPartOfSpeechTags implements PartOfSpeechTags {
+  /** Path to NUPOS tag definitions. */
+  protected static final String nuposResourcePath = "resources/nupostags.properties";
 
-public class NUPOSPartOfSpeechTags
-    extends AbstractPartOfSpeechTags
-    implements PartOfSpeechTags
-{
-    /** Path to NUPOS tag definitions. */
-
-    protected final static String nuposResourcePath =
-        "resources/nupostags.properties";
-
-    /** Create NUPOS part of speech tags.
-     */
-
-    public NUPOSPartOfSpeechTags()
-        throws IOException
-    {
-        loadTags
-        (
-            NUPOSPartOfSpeechTags.class.getResourceAsStream
-            (
-                nuposResourcePath
-            ) ,
-            "utf-8"
-        );
-    }
+  /** Create NUPOS part of speech tags. */
+  public NUPOSPartOfSpeechTags() throws IOException {
+    loadTags(NUPOSPartOfSpeechTags.class.getResourceAsStream(nuposResourcePath), "utf-8");
+  }
 }
 
 /*
@@ -75,6 +57,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

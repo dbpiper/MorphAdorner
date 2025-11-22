@@ -6,123 +6,102 @@ import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
 /** Holds an XML element whose output is pending. */
+public class PendingElement {
+  /** Element URI. */
+  protected String uri;
 
-public class PendingElement
-{
-    /** Element URI. */
+  /** Element local name. */
+  protected String localName;
 
-    protected String uri;
+  /** Element qname. */
+  protected String qName;
 
-    /** Element local name. */
+  /** Element attributes. */
+  protected AttributesImpl atts;
 
-    protected String localName;
+  /** Element text. */
+  protected String text;
 
-    /** Element qname. */
+  /**
+   * Create element.
+   *
+   * @param uri URI.
+   * @param localName Local name.
+   * @param qName Qname.
+   * @param atts Attributes.
+   */
+  public PendingElement(String uri, String localName, String qName, AttributesImpl atts) {
+    this.uri = uri;
+    this.localName = localName;
+    this.qName = qName;
+    this.atts = atts;
+    this.text = "";
+  }
 
-    protected String qName;
+  /**
+   * Append characters to text.
+   *
+   * @param ch Array of characters.
+   * @param start The starting position in the array.
+   * @param length The number of characters.
+   */
+  public void appendText(char ch[], int start, int length) {
+    text = text + new String(ch, start, length);
+  }
 
-    /** Element attributes. */
+  /**
+   * Get URI.
+   *
+   * @return Element URI.
+   */
+  public String getURI() {
+    return uri;
+  }
 
-    protected AttributesImpl atts;
+  /**
+   * Get Qname.
+   *
+   * @return Element qname.
+   */
+  public String getQName() {
+    return qName;
+  }
 
-    /** Element text. */
+  /**
+   * Get local name.
+   *
+   * @return Element local name.
+   */
+  public String getLocalName() {
+    return localName;
+  }
 
-    protected String text;
+  /**
+   * Get attributes.
+   *
+   * @return Element attributes.
+   */
+  public AttributesImpl getAttributes() {
+    return atts;
+  }
 
-    /** Create element.
-     *
-     *  @param  uri         URI.
-     *  @param  localName   Local name.
-     *  @param  qName       Qname.
-     *  @param  atts        Attributes.
-     */
+  /**
+   * Get text.
+   *
+   * @return Element text.
+   */
+  public String getText() {
+    return text;
+  }
 
-    public PendingElement
-    (
-        String uri ,
-        String localName ,
-        String qName ,
-        AttributesImpl atts
-    )
-    {
-        this.uri        = uri;
-        this.localName  = localName;
-        this.qName      = qName;
-        this.atts       = atts;
-        this.text       = "";
-    }
-
-    /** Append characters to text.
-     *
-     *  @param  ch      Array of characters.
-     *  @param  start   The starting position in the array.
-     *  @param  length  The number of characters.
-     */
-
-    public void appendText( char ch[] , int start , int length )
-    {
-        text    = text + new String( ch , start , length );
-    }
-
-    /** Get URI.
-     *
-     *  @return Element URI.
-     */
-
-    public String getURI()
-    {
-        return uri;
-    }
-
-    /** Get Qname.
-     *
-     *  @return Element qname.
-     */
-
-    public String getQName()
-    {
-        return qName;
-    }
-
-    /** Get local name.
-     *
-     *  @return Element local name.
-     */
-
-    public String getLocalName()
-    {
-        return localName;
-    }
-
-    /** Get attributes.
-     *
-     *  @return Element attributes.
-     */
-
-    public AttributesImpl getAttributes()
-    {
-        return atts;
-    }
-
-    /** Get text.
-     *
-     *  @return Element text.
-     */
-
-    public String getText()
-    {
-        return text;
-    }
-
-    /** Return text.
-     *
-     *  @return Element text.
-     */
-
-    public String toString()
-    {
-        return text;
-    }
+  /**
+   * Return text.
+   *
+   * @return Element text.
+   */
+  public String toString() {
+    return text;
+  }
 }
 
 /*
@@ -165,6 +144,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

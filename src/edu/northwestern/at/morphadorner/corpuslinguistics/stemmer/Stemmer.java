@@ -2,19 +2,15 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.stemmer;
 
 /*  Please see the license information at the end of this file. */
 
-/** Defines an interface for retrieving the stem of a word.
- */
-
-public interface Stemmer
-{
-    /** Find stem of a single word.
-     *
-     *  @param  word    The word whose stem is desired.
-     *
-     *  @return         The word stem.
-     */
-
-    public String stem( String word );
+/** Defines an interface for retrieving the stem of a word. */
+public interface Stemmer {
+  /**
+   * Find stem of a single word.
+   *
+   * @param word The word whose stem is desired.
+   * @return The word stem.
+   */
+  public String stem(String word);
 }
 
 /*
@@ -57,5 +53,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

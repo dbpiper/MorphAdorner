@@ -6,105 +6,68 @@ import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
 /** Extended XMLFilterImpl with some utility methods. */
+public class ExtendedXMLFilterImpl extends XMLFilterImpl {
+  /**
+   * Create filter.
+   *
+   * @param reader The XML reader to filter.
+   */
+  public ExtendedXMLFilterImpl(XMLReader reader) {
+    super(reader);
+  }
 
-public class ExtendedXMLFilterImpl extends XMLFilterImpl
-{
-    /** Create filter.
-     *
-     *  @param  reader  The XML reader to filter.
-     */
+  /**
+   * Set attribute value.
+   *
+   * @param attributes attributes
+   * @param name attribute name
+   * @param value attribute value
+   */
+  public void setAttributeValue(AttributesImpl attributes, String name, String value) {
+    int attrIndex = attributes.getIndex(name);
 
-    public ExtendedXMLFilterImpl( XMLReader reader )
-    {
-        super( reader );
+    if (attrIndex >= 0) {
+      attributes.setValue(attrIndex, value);
+    } else {
+      attributes.addAttribute("", name, name, "CDATA", value);
     }
+  }
 
-    /** Set attribute value.
-     *
-     *  @param  attributes  attributes
-     *  @param  name        attribute name
-     *  @param  value       attribute value
-     */
+  /**
+   * Set boolean attribute value.
+   *
+   * @param attributes attributes
+   * @param name attribute name
+   * @param value attribute value
+   */
+  public void setAttributeValue(AttributesImpl attributes, String name, boolean value) {
+    setAttributeValue(attributes, name, value ? "1" : "0");
+  }
 
-    public void setAttributeValue
-    (
-        AttributesImpl attributes ,
-        String name ,
-        String value
-    )
-    {
-        int attrIndex   = attributes.getIndex( name );
+  /**
+   * Set integer attribute value.
+   *
+   * @param attributes attributes
+   * @param name attribute name
+   * @param value attribute value
+   */
+  public void setAttributeValue(AttributesImpl attributes, String name, int value) {
+    setAttributeValue(attributes, name, value + "");
+  }
 
-        if ( attrIndex >= 0 )
-        {
-            attributes.setValue( attrIndex , value );
-        }
-        else
-        {
-            attributes.addAttribute
-            (
-                "" ,
-                name ,
-                name ,
-                "CDATA" ,
-                value
-            );
-        }
+  /**
+   * Remove attribute.
+   *
+   * @param attributes attributes
+   * @param name attribute name
+   */
+  public void removeAttribute(AttributesImpl attributes, String name) {
+    int attrIndex = attributes.getIndex(name);
+
+    if (attrIndex >= 0) {
+      attributes.removeAttribute(attrIndex);
     }
-
-    /** Set boolean attribute value.
-     *
-     *  @param  attributes  attributes
-     *  @param  name        attribute name
-     *  @param  value       attribute value
-     */
-
-    public void setAttributeValue
-    (
-        AttributesImpl attributes ,
-        String name ,
-        boolean value
-    )
-    {
-        setAttributeValue( attributes , name , value ? "1" : "0" );
-    }
-
-    /** Set integer attribute value.
-     *
-     *  @param  attributes  attributes
-     *  @param  name        attribute name
-     *  @param  value       attribute value
-     */
-
-    public void setAttributeValue
-    (
-        AttributesImpl attributes ,
-        String name ,
-        int value
-    )
-    {
-        setAttributeValue( attributes , name , value + "" );
-    }
-
-    /** Remove attribute.
-     *
-     *  @param  attributes  attributes
-     *  @param  name        attribute name
-     */
-
-    public void removeAttribute
-    (
-        AttributesImpl attributes ,
-        String name
-    )
-    {
-        int attrIndex   = attributes.getIndex( name );
-
-        if ( attrIndex >= 0 )
-        {
-            attributes.removeAttribute( attrIndex );
-        }
-    }
+  }
 }
 
 /*
@@ -147,6 +110,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

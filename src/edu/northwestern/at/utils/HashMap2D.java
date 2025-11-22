@@ -4,391 +4,309 @@ package edu.northwestern.at.utils;
 
 import java.util.*;
 
-/** Two dimensional HashMap.
+/**
+ * Two dimensional HashMap.
  *
- *  <p>
- *  The two dimensional hash map is implemented as a hash map of
- *  hash maps.  Each "row" key points to a "column" hash map.
- *  </p>
+ * <p>The two dimensional hash map is implemented as a hash map of hash maps. Each "row" key points
+ * to a "column" hash map.
  *
- *  <p>
- *  Example of use:
- *  </p>
+ * <p>Example of use:
  *
- *  <blockquote>
- *  <p>
- *  <code>
+ * <blockquote>
+ *
+ * <p><code>
  *  Map2D map   = new HashMap2D();
  *  map.put( "a" , "b" , "my value" );
  *  String s    = map.get( "a" , "b" );
  *  </code>
- *  </p>
- *  </blockquote>
  *
- *  <p>
- *  Note: HashMap2D does not implement the Map interface.
- *  </p>
+ * </blockquote>
+ *
+ * <p>Note: HashMap2D does not implement the Map interface.
  */
-
 public class HashMap2D<K1 extends Comparable, K2 extends Comparable, V>
-    implements Map2D<K1, K2, V>
-{
-    /** Local map.
-     */
+    implements Map2D<K1, K2, V> {
+  /** Local map. */
+  protected Map<K1, Map<K2, V>> localMap;
 
-    protected Map<K1 , Map<K2,V>> localMap;
+  /** Initial capacity for child hash maps. */
+  protected int capacity = 100;
 
-    /** Initial capacity for child hash maps.
-     */
+  /** Create two dimensional hash map. */
+  public HashMap2D() {
+    localMap = MapFactory.createNewMap(capacity);
+  }
 
-    protected int capacity  = 100;
+  /**
+   * Create two dimensional hash map with specified initial row capacity.
+   *
+   * @param initialCapacity
+   */
+  public HashMap2D(int initialCapacity) {
+    localMap = MapFactory.createNewMap(initialCapacity);
+    this.capacity = initialCapacity;
+  }
 
-    /** Create two dimensional hash map.
-     */
+  /** Clear all entries from this map and its child maps. */
+  public void clear() {
+    Iterator<K1> iterator = localMap.keySet().iterator();
 
-    public HashMap2D()
-    {
-        localMap    = MapFactory.createNewMap( capacity );
+    while (iterator.hasNext()) {
+      Map<K2, V> columnMap = localMap.get(iterator.next());
+
+      if (columnMap != null) {
+        columnMap.clear();
+      }
     }
 
-    /** Create two dimensional hash map with specified initial row capacity.
-     *
-     *  @param  initialCapacity
-     */
+    localMap.clear();
+  }
 
-    public HashMap2D( int initialCapacity )
-    {
-        localMap        = MapFactory.createNewMap( initialCapacity );
-        this.capacity   = initialCapacity;
+  /**
+   * Return number of entries.
+   *
+   * @return Number of entries in map.
+   *     <p>The number of entries is given by the sum of the number of entries for each submap.
+   */
+  public int size() {
+    int result = 0;
+
+    Iterator<K1> iterator = localMap.keySet().iterator();
+
+    while (iterator.hasNext()) {
+      Map<K2, V> columnMap = localMap.get(iterator.next());
+
+      if (columnMap != null) {
+        result += columnMap.size();
+      }
     }
 
-    /** Clear all entries from this map and its child maps.
-     */
+    return result;
+  }
 
-    public void clear()
-    {
-        Iterator<K1> iterator   = localMap.keySet().iterator();
+  /**
+   * Determine if map contains a key pair.
+   *
+   * @param rowKey Row key.
+   * @param columnKey Column key.
+   * @return true if entry exists, false otherwise.
+   */
+  public boolean containsKeys(Object rowKey, Object columnKey) {
+    boolean result = false;
 
-        while ( iterator.hasNext() )
-        {
-            Map<K2,V> columnMap = localMap.get( iterator.next() );
+    Map<K2, V> map = localMap.get(rowKey);
 
-            if ( columnMap != null )
-            {
-                columnMap.clear();
-            }
+    if (map != null) {
+      result = map.containsKey(columnKey);
+    }
+
+    return result;
+  }
+
+  /**
+   * Determine if map contains a compound key.
+   *
+   * @param key Compound key.
+   * @return true if entry exists, false otherwise.
+   */
+  public boolean containsKey(CompoundKey key) {
+    boolean result = false;
+
+    if (key != null) {
+      Comparable[] keyValues = key.getKeyValues();
+
+      Map<K2, V> map = localMap.get(keyValues[0]);
+
+      if (map != null) {
+        result = map.containsKey(keyValues[1]);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Get value at specified (rowKey, columnKey) position.
+   *
+   * @param rowKey Row key.
+   * @param columnKey Column key.
+   * @return The value at the specified (rowKey, columnKey) position.
+   */
+  public V get(Object rowKey, Object columnKey) {
+    V result = null;
+
+    Map<K2, V> map = localMap.get(rowKey);
+
+    if (map != null) {
+      result = map.get(columnKey);
+    }
+
+    return result;
+  }
+
+  /**
+   * Get value at specified CompoundKey position.
+   *
+   * @param key Compound key.
+   * @return The value at the specified compound key position.
+   */
+  public V get(CompoundKey key) {
+    V result = null;
+
+    if (key != null) {
+      Comparable[] keyValues = key.getKeyValues();
+
+      Map<K2, V> map = localMap.get(keyValues[0]);
+
+      if (map != null) {
+        result = map.get(keyValues[1]);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Add value for specified (rowKey, columnKey) .
+   *
+   * @param rowKey Row key.
+   * @param columnKey Column key.
+   * @param value Value to store.
+   * @return Previous value for (rowKey, columnKey). May be null.
+   */
+  public V put(K1 rowKey, K2 columnKey, V value) {
+    V previousValue = null;
+
+    Map<K2, V> map = localMap.get(rowKey);
+
+    if (map != null) {
+      previousValue = map.get(columnKey);
+    } else {
+      map = MapFactory.createNewMap();
+    }
+
+    map.put(columnKey, value);
+
+    //  Add or update value in column map
+    //  for specified column key.
+
+    localMap.put(rowKey, map);
+
+    //  Return previous value.
+
+    return previousValue;
+  }
+
+  /**
+   * Remove entry at (rowKey, columnKey).
+   *
+   * @param rowKey Row key.
+   * @param columnKey Column key.
+   * @return Previous value for (rowKey, columnKey). May be null.
+   */
+  public V remove(Object rowKey, Object columnKey) {
+    V result = null;
+
+    Map<K2, V> map = localMap.get(rowKey);
+
+    if (map != null) {
+      result = map.get(columnKey);
+
+      if (result != null) {
+        map.remove(columnKey);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Get the compound key set.
+   *
+   * @return The compound key set.
+   */
+  public Set<CompoundKey> keySet() {
+    Set<CompoundKey> result = SetFactory.createNewSet();
+
+    for (K1 rowKey : localMap.keySet()) {
+      Map<K2, V> colMap = localMap.get(rowKey);
+
+      if (colMap != null) {
+        for (K2 columnKey : colMap.keySet()) {
+          CompoundKey key = new CompoundKey((Comparable) rowKey, (Comparable) columnKey);
+
+          result.add(key);
         }
-
-        localMap.clear();
+      }
     }
 
-    /** Return number of entries.
-     *
-     *  @return     Number of entries in map.
-     *
-     *  <p>
-     *  The number of entries is given by the sum of the number of
-     *  entries for each submap.
-     *  </p>
-     */
+    return result;
+  }
 
-    public int size()
-    {
-        int result  = 0;
+  /**
+   * Get row key set.
+   *
+   * @return rows key set.
+   */
+  public Set<K1> rowKeySet() {
+    return localMap.keySet();
+  }
 
-        Iterator<K1> iterator   = localMap.keySet().iterator();
+  /**
+   * Get column key set.
+   *
+   * @return column key set.
+   */
+  public Set<K2> columnKeySet() {
+    Set<K2> result = SetFactory.createNewSet();
 
-        while ( iterator.hasNext() )
-        {
-            Map<K2,V> columnMap = localMap.get( iterator.next() );
+    for (K1 rowKey : localMap.keySet()) {
+      Map<K2, V> colMap = localMap.get(rowKey);
 
-            if ( columnMap != null )
-            {
-                result  += columnMap.size();
-            }
-        }
-
-        return result;
+      if (colMap != null) {
+        result.addAll(colMap.keySet());
+      }
     }
 
-    /** Determine if map contains a key pair.
-     *
-     *  @param  rowKey      Row key.
-     *  @param  columnKey   Column key.
-     *
-     *  @return             true if entry exists, false otherwise.
-     */
+    return result;
+  }
 
-    public boolean containsKeys
-    (
-        Object rowKey ,
-        Object columnKey
-    )
-    {
-        boolean result  = false;
+  public Set<K2> columnKeySet(Object rowKey) {
+    Set<K2> result = SetFactory.createNewSet();
 
-        Map<K2,V> map   = localMap.get( rowKey );
+    Map<K2, V> colMap = localMap.get(rowKey);
 
-        if ( map != null )
-        {
-            result  = map.containsKey( columnKey ) ;
-        }
-
-        return result;
+    if (colMap != null) {
+      result = colMap.keySet();
     }
 
-    /** Determine if map contains a compound key.
-     *
-     *  @param  key     Compound key.
-     *
-     *  @return         true if entry exists, false otherwise.
-     */
+    return result;
+  }
 
-    public boolean containsKey
-    (
-        CompoundKey key
-    )
-    {
-        boolean result  = false;
+  /**
+   * Return formatted string displaying all entries.
+   *
+   * @return Formatted string displaying all entries.
+   */
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
 
-        if ( key != null )
-        {
-            Comparable[] keyValues  = key.getKeyValues();
+    Iterator<CompoundKey> iterator = keySet().iterator();
 
-            Map<K2,V> map   = localMap.get( keyValues[ 0 ] );
+    while (iterator.hasNext()) {
+      CompoundKey key = iterator.next();
 
-            if ( map != null )
-            {
-                result  = map.containsKey( keyValues[ 1 ] );
-            }
-        }
+      if (sb.length() > 0) {
+        sb.append("; ");
+      }
 
-        return result;
+      sb.append(key.toString());
+      sb.append("=");
+      sb.append(get(key));
     }
 
-    /** Get value at specified (rowKey, columnKey) position.
-     *
-     *  @param      rowKey      Row key.
-     *  @param      columnKey   Column key.
-     *
-     *  @return     The value at the specified (rowKey, columnKey) position.
-     */
-
-    public V get( Object rowKey , Object columnKey )
-    {
-        V result    = null;
-
-        Map<K2,V> map   = localMap.get( rowKey );
-
-        if ( map != null )
-        {
-            result  = map.get( columnKey );
-        }
-
-        return result;
-    }
-
-    /** Get value at specified CompoundKey position.
-     *
-     *  @param      key     Compound key.
-     *
-     *  @return     The value at the specified compound key position.
-     */
-
-    public V get( CompoundKey key )
-    {
-        V result    = null;
-
-        if ( key != null )
-        {
-            Comparable[] keyValues  = key.getKeyValues();
-
-            Map<K2,V> map   = localMap.get( keyValues[ 0 ] );
-
-            if ( map != null )
-            {
-                result  = map.get( keyValues[ 1 ] );
-            }
-        }
-
-        return result;
-    }
-
-    /** Add value for specified (rowKey, columnKey) .
-     *
-     *  @param      rowKey      Row key.
-     *  @param      columnKey   Column key.
-     *  @param      value       Value to store.
-     *
-     *  @return     Previous value for (rowKey, columnKey).
-     *              May be null.
-     */
-
-    public V put
-    (
-        K1 rowKey ,
-        K2 columnKey ,
-        V value
-    )
-    {
-        V previousValue = null;
-
-        Map<K2,V> map   = localMap.get( rowKey );
-
-        if ( map != null )
-        {
-            previousValue   = map.get( columnKey );
-        }
-        else
-        {
-            map = MapFactory.createNewMap();
-        }
-
-        map.put( columnKey , value );
-
-                                //  Add or update value in column map
-                                //  for specified column key.
-
-        localMap.put( rowKey , map );
-
-                                //  Return previous value.
-
-        return previousValue;
-    }
-
-    /** Remove entry at (rowKey, columnKey).
-     *
-     *  @param      rowKey      Row key.
-     *  @param      columnKey   Column key.
-     *
-     *  @return     Previous value for (rowKey, columnKey).
-     *              May be null.
-     */
-
-    public V remove( Object rowKey , Object columnKey )
-    {
-        V result    = null;
-
-        Map<K2,V> map   = localMap.get( rowKey );
-
-        if ( map != null )
-        {
-            result  = map.get( columnKey );
-
-            if ( result != null )
-            {
-                map.remove( columnKey );
-            }
-        }
-
-        return result;
-    }
-
-    /** Get the compound key set.
-     *
-     *  @return     The compound key set.
-     */
-
-    public Set<CompoundKey> keySet()
-    {
-        Set<CompoundKey> result = SetFactory.createNewSet();
-
-        for ( K1 rowKey : localMap.keySet() )
-        {
-            Map<K2,V> colMap    = localMap.get( rowKey );
-
-            if ( colMap != null )
-            {
-                for ( K2 columnKey : colMap.keySet() )
-                {
-                    CompoundKey key =
-                        new CompoundKey
-                        (
-                            (Comparable)rowKey ,
-                            (Comparable)columnKey
-                        );
-
-                    result.add( key );
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /** Get row key set.
-     *
-     *      @return     rows key set.
-     */
-
-    public Set<K1> rowKeySet()
-    {
-        return localMap.keySet();
-    }
-
-    /** Get column  key set.
-     *
-     *      @return     column key set.
-     */
-
-    public Set<K2> columnKeySet()
-    {
-        Set<K2> result  = SetFactory.createNewSet();
-
-        for ( K1 rowKey : localMap.keySet() )
-        {
-            Map<K2,V> colMap    = localMap.get( rowKey );
-
-            if ( colMap != null )
-            {
-                result.addAll( colMap.keySet() );
-            }
-        }
-
-        return result;
-    }
-
-    public Set<K2> columnKeySet( Object rowKey )
-    {
-        Set<K2> result      = SetFactory.createNewSet();
-
-        Map<K2,V> colMap    = localMap.get( rowKey );
-
-        if ( colMap != null )
-        {
-            result  = colMap.keySet();
-        }
-
-        return result;
-    }
-
-    /** Return formatted string displaying all entries.
-     *
-     *  @return     Formatted string displaying all entries.
-     */
-
-    public String toString()
-    {
-        StringBuffer sb = new StringBuffer();
-
-        Iterator<CompoundKey> iterator  = keySet().iterator();
-
-        while ( iterator.hasNext() )
-        {
-            CompoundKey key = iterator.next();
-
-            if ( sb.length() > 0 )
-            {
-                sb.append( "; " );
-            }
-
-            sb.append( key.toString() );
-            sb.append( "=" );
-            sb.append( get( key ) );
-        }
-
-        return "[" + sb.toString() + "]";
-    }
+    return "[" + sb.toString() + "]";
+  }
 }
 
 /*
@@ -431,6 +349,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

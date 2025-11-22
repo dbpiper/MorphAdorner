@@ -5,104 +5,72 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.outputter;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** AdornedWordOutputter factory.
- */
+/** AdornedWordOutputter factory. */
+public class AdornedWordOutputterFactory {
+  /**
+   * Get an adornedWordOutputter.
+   *
+   * @return The adornedWordOutputter.
+   */
+  public static AdornedWordOutputter newAdornedWordOutputter() {
+    String className = System.getProperty("adornedwordoutputter.class");
 
-public class AdornedWordOutputterFactory
-{
-    /** Get an adornedWordOutputter.
-     *
-     *  @return     The adornedWordOutputter.
-     */
-
-    public static AdornedWordOutputter newAdornedWordOutputter()
-    {
-        String className    =
-            System.getProperty( "adornedwordoutputter.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultAdornedWordOutputter";
-        }
-
-        return newAdornedWordOutputter( className );
+    if (className == null) {
+      className = "DefaultAdornedWordOutputter";
     }
 
-    /** Get an adornedWordOutputter.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The adornedWordOutputter.
-     */
+    return newAdornedWordOutputter(className);
+  }
 
-    public static AdornedWordOutputter newAdornedWordOutputter
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get an adornedWordOutputter.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The adornedWordOutputter.
+   */
+  public static AdornedWordOutputter newAdornedWordOutputter(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "adornedwordoutputter.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultAdornedWordOutputter";
-        }
-
-        return newAdornedWordOutputter( className );
+    if (properties != null) {
+      className = properties.getProperty("adornedwordoutputter.class");
     }
 
-    /** Get an adornedWordOutputter of a specified class name.
-     *
-     *  @param  className   Class name for the adornedWordOutputter.
-     *
-     *  @return             The adornedWordOutputter.
-     */
-
-    public static AdornedWordOutputter newAdornedWordOutputter
-    (
-        String className
-    )
-    {
-        AdornedWordOutputter adornedWordOutputter   = null;
-
-        try
-        {
-            adornedWordOutputter    =
-                (AdornedWordOutputter)Class.forName(
-                    className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    AdornedWordOutputterFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                adornedWordOutputter    =
-                    (AdornedWordOutputter)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create adorned word outputter of class " +
-                    fixedClassName + ", using default." );
-
-                adornedWordOutputter    = new DefaultAdornedWordOutputter();
-            }
-        }
-
-        return adornedWordOutputter;
+    if (className == null) {
+      className = "DefaultAdornedWordOutputter";
     }
+
+    return newAdornedWordOutputter(className);
+  }
+
+  /**
+   * Get an adornedWordOutputter of a specified class name.
+   *
+   * @param className Class name for the adornedWordOutputter.
+   * @return The adornedWordOutputter.
+   */
+  public static AdornedWordOutputter newAdornedWordOutputter(String className) {
+    AdornedWordOutputter adornedWordOutputter = null;
+
+    try {
+      adornedWordOutputter = (AdornedWordOutputter) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(AdornedWordOutputterFactory.class.getName()) + "." + className;
+
+      try {
+        adornedWordOutputter = (AdornedWordOutputter) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create adorned word outputter of class "
+                + fixedClassName
+                + ", using default.");
+
+        adornedWordOutputter = new DefaultAdornedWordOutputter();
+      }
+    }
+
+    return adornedWordOutputter;
+  }
 }
 
 /*
@@ -145,6 +113,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

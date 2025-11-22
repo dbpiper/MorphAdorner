@@ -2,23 +2,16 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.hyphenator;
 
 /*  Please see the license information at the end of this file. */
 
-/** DefaultHyphenator: The default MorphAdorner hyphenator.
+/**
+ * DefaultHyphenator: The default MorphAdorner hyphenator.
  *
- *  <p>
- *  This British English hyphenator is the default MorphAdorner hyphenator.
- *  </p>
+ * <p>This British English hyphenator is the default MorphAdorner hyphenator.
  */
-
-public class DefaultHyphenator extends BritishHyphenator
-    implements Hyphenator
-{
-    /** Create the default hyphenator.
-     */
-
-    public DefaultHyphenator()
-    {
-        super();
-    }
+public class DefaultHyphenator extends BritishHyphenator implements Hyphenator {
+  /** Create the default hyphenator. */
+  public DefaultHyphenator() {
+    super();
+  }
 }
 
 /*
@@ -61,6 +54,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

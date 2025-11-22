@@ -2,81 +2,57 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.spellcheck.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.spellcheck.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+/** NoopSpellingStandardizer returns original spelling unchanged. */
+public class NoopSpellingStandardizer extends AbstractSpellingStandardizer
+    implements SpellingStandardizer {
+  /** Create noop spelling standardizer. */
+  public NoopSpellingStandardizer() {}
 
-/** NoopSpellingStandardizer returns original spelling unchanged.
- */
+  /**
+   * Loads alternative spellings from a reader.
+   *
+   * @param reader The reader.
+   * @param delimChars Delimiter characters separating spelling pairs.
+   *     <p>Unused in this standardizer.
+   */
+  public void loadAlternativeSpellings(Reader reader, String delimChars) throws IOException {}
 
-public class NoopSpellingStandardizer
-    extends AbstractSpellingStandardizer
-    implements SpellingStandardizer
-{
-    /** Create noop spelling standardizer.
-     */
+  /**
+   * Returns standard spellings given a spelling.
+   *
+   * @param spelling The spelling.
+   * @return The standard spellings as an array of String.
+   */
+  public String[] standardizeSpelling(String spelling) {
+    return new String[] {spelling};
+  }
 
-    public NoopSpellingStandardizer()
-    {
-    }
+  /**
+   * Returns a standard spelling given a standard or alternate spelling.
+   *
+   * @param spelling The spelling.
+   * @param wordClass The word class.
+   * @return The standard spelling.
+   */
+  public String standardizeSpelling(String spelling, String wordClass) {
+    return spelling;
+  }
 
-    /** Loads alternative spellings from a reader.
-     *
-     *  @param  reader      The reader.
-     *  @param  delimChars  Delimiter characters separating spelling pairs.
-     *
-     *  <p>
-     *  Unused in this standardizer.
-     *  </p>
-     */
-
-    public void loadAlternativeSpellings
-    (
-        Reader reader ,
-        String delimChars
-    )
-        throws IOException
-    {
-    }
-
-    /** Returns standard spellings given a spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The standard spellings as an array of String.
-     */
-
-     public String[] standardizeSpelling( String spelling )
-     {
-        return new String[]{ spelling };
-     }
-
-    /** Returns a standard spelling given a standard or alternate spelling.
-     *
-     *  @param  spelling    The spelling.
-     *  @param  wordClass   The word class.
-     *
-     *  @return             The standard spelling.
-     */
-
-    public String standardizeSpelling( String spelling , String wordClass )
-    {
-        return spelling;
-    }
-
-    /** Return standardizer description.
-     *
-     *  @return     Standardizer description.
-     */
-
-    public String toString()
-    {
-        return "Noop Spelling Standardizer";
-    }
+  /**
+   * Return standardizer description.
+   *
+   * @return Standardizer description.
+   */
+  public String toString() {
+    return "Noop Spelling Standardizer";
+  }
 }
 
 /*
@@ -119,5 +95,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

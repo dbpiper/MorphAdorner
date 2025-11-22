@@ -2,46 +2,37 @@ package edu.northwestern.at.utils.math;
 
 /*  Please see the license information at the end of this file. */
 
-public class Convolution
-{
-    /** Convolute data values with a mask.
-     *
-     *  @param  v   Data values.
-     *  @param  m   Convolution mask.
-     *
-     *  @return     Convoluted values.
-     */
+public class Convolution {
+  /**
+   * Convolute data values with a mask.
+   *
+   * @param v Data values.
+   * @param m Convolution mask.
+   * @return Convoluted values.
+   */
+  public static double[] convolute(double[] v, double[] m) {
+    final int mid = m.length / 2;
+    double[] r = new double[v.length];
+    double sum;
 
-    public static double[] convolute( double[] v , double[] m )
-    {
-        final int mid = m.length / 2;
-        double[] r = new double[v.length];
-        double sum;
-
-        for (int i=0, ie=v.length; i<ie; i++)
-        {
-            sum = 0;
-            for (int jv=i-mid, j=0, je=m.length; j<je; j++, jv++)
-            {
-                if (jv >= 0 && jv < v.length)
-                {
-                    sum += m[j];
-                    r[i] += v[jv] * m[j];
-                }
-            }
-
-            r[i] /= sum;
+    for (int i = 0, ie = v.length; i < ie; i++) {
+      sum = 0;
+      for (int jv = i - mid, j = 0, je = m.length; j < je; j++, jv++) {
+        if (jv >= 0 && jv < v.length) {
+          sum += m[j];
+          r[i] += v[jv] * m[j];
         }
+      }
 
-        return r;
+      r[i] /= sum;
     }
 
-    /* Don't allow instantiation but allow overrides. */
+    return r;
+  }
 
-    protected Convolution()
-    {
-    }
+  /* Don't allow instantiation but allow overrides. */
 
+  protected Convolution() {}
 }
 
 /*
@@ -84,6 +75,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

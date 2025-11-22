@@ -4,128 +4,99 @@ package edu.northwestern.at.morphadorner.tei;
 
 import java.util.*;
 
-/** Holds selected "TEIHeader" author information from an adorned TEI XML file.
- */
+/** Holds selected "TEIHeader" author information from an adorned TEI XML file. */
+public class TEIHeaderAuthor implements Comparable {
+  /** Author map. */
+  protected Map<String, String> authorMap = null;
 
-public class TEIHeaderAuthor implements Comparable
-{
-    /** Author map. */
+  /**
+   * Create author map.
+   *
+   * @param authorMap The author map.
+   */
+  public TEIHeaderAuthor(Map<String, String> authorMap) {
+    this.authorMap = authorMap;
+  }
 
-    protected Map<String, String> authorMap = null;
+  /**
+   * Get author name.
+   *
+   * @return The name of the work's author.
+   */
+  public String getName() {
+    return safeString(authorMap.get("name"));
+  }
 
-    /** Create author map.
-     *
-     *  @param  authorMap   The author map.
-     */
+  /**
+   * Return string ensuring null is set to empty string.
+   *
+   * @param s String to check.
+   * @return Original value of "s" if s is not null, or empty string if "s" is null.
+   */
+  protected String safeString(String s) {
+    return (s == null) ? "" : s;
+  }
 
-    public TEIHeaderAuthor
-    (
-        Map<String, String> authorMap
-    )
-    {
-        this.authorMap  = authorMap;
+  /**
+   * Return author name as string.
+   *
+   * @return Author name.
+   */
+  public String toString() {
+    return getName();
+  }
+
+  /**
+   * Compare this object with another.
+   *
+   * @param object The other object.
+   * @return < 0 if the other object is less than this one, = 0 if the two objects are equal, > 0 if
+   *     the other object is greater than this one.
+   */
+  public int compareTo(Object object) {
+    int result = 0;
+
+    if ((object == null) || !(object instanceof TEIHeaderAuthor)) {
+      result = Integer.MIN_VALUE;
+    } else {
+      result = compare(this, (TEIHeaderAuthor) object);
     }
 
-    /** Get author name.
-     *
-     *  @return     The name of the work's author.
-     */
+    return result;
+  }
 
-    public String getName()
-    {
-        return safeString( authorMap.get( "name" ) );
+  /**
+   * Compare two authors for order.
+   *
+   * @param a1 First author.
+   * @param a2 Second author.
+   * @return < 0 if the other object is less than this one, = 0 if the two objects are equal, > 0 if
+   *     the other object is greater than this one.
+   */
+  public int compare(TEIHeaderAuthor a1, TEIHeaderAuthor a2) {
+    int result = a1.getName().compareTo(a2.getName());
+
+    return result;
+  }
+
+  /**
+   * Two authors are the same if all their details agree.
+   *
+   * @param obj Object to compare for equality to this one,
+   * @return True if the two authors are the same.
+   *     <p>Two authors are assumed to be the same if all their details agree.
+   */
+  public boolean equals(Object obj) {
+    boolean result = false;
+
+    if (obj instanceof TEIHeaderAuthor) {
+      TEIHeaderAuthor otherAuthor = (TEIHeaderAuthor) obj;
+
+      result = result && getName().equals(otherAuthor.getName());
     }
 
-    /** Return string ensuring null is set to empty string.
-     *
-     *  @param  s   String to check.
-     *
-     *  @return     Original value of "s" if s is not null,
-     *              or empty string if "s" is null.
-     */
-
-    protected String safeString( String s )
-    {
-        return ( s == null ) ? "" : s;
-    }
-
-    /** Return author name as string.
-     *
-     *  @return     Author name.
-     */
-
-    public String toString()
-    {
-        return getName();
-    }
-
-    /** Compare this object with another.
-     *
-     *  @param  object  The other object.
-     *
-     *  @return         < 0 if the other object is less than this one,
-     *                  = 0 if the two objects are equal,
-     *                  > 0 if the other object is greater than this one.
-     */
-
-    public int compareTo( Object object )
-    {
-        int result  = 0;
-
-        if ( ( object == null ) ||
-            !( object instanceof TEIHeaderAuthor ) )
-        {
-            result  = Integer.MIN_VALUE;
-        }
-        else
-        {
-            result  = compare( this , (TEIHeaderAuthor)object );
-        }
-
-        return result;
-    }
-
-    /** Compare two authors for order.
-     *
-     *  @param  a1  First author.
-     *  @param  a2  Second author.
-     *
-     *  @return     < 0 if the other object is less than this one,
-     *              = 0 if the two objects are equal,
-     *              > 0 if the other object is greater than this one.
-     */
-
-    public int compare( TEIHeaderAuthor a1 , TEIHeaderAuthor a2 )
-    {
-        int result  = a1.getName().compareTo( a2.getName() );
-
-        return result;
-    }
-
-    /** Two authors are the same if all their details agree.
-     *
-     *  @param  obj     Object to compare for equality to this one,
-     *
-     *  @return         True if the two authors are the same.
-     *
-     *  <p>Two authors are assumed to be the same if all their
-     *  details agree.</p>
-     */
-
-    public boolean equals( Object obj )
-    {
-        boolean result  = false;
-
-        if ( obj instanceof TEIHeaderAuthor )
-        {
-            TEIHeaderAuthor otherAuthor = (TEIHeaderAuthor)obj;
-
-            result  =
-                result && getName().equals( otherAuthor.getName() );
-        }
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -168,6 +139,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

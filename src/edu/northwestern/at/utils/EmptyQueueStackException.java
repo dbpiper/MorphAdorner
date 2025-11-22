@@ -4,20 +4,15 @@ package edu.northwestern.at.utils;
 
 import java.util.NoSuchElementException;
 
-/** Stack overflow error.
- */
+/** Stack overflow error. */
+public class EmptyQueueStackException extends NoSuchElementException {
+  public EmptyQueueStackException() {
+    super("Empty stack");
+  }
 
-public class EmptyQueueStackException extends NoSuchElementException
-{
-    public EmptyQueueStackException()
-    {
-        super( "Empty stack" );
-    }
-
-    public EmptyQueueStackException( String errorMessage )
-    {
-        super( errorMessage );
-    }
+  public EmptyQueueStackException(String errorMessage) {
+    super(errorMessage);
+  }
 }
 
 /*
@@ -60,6 +55,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

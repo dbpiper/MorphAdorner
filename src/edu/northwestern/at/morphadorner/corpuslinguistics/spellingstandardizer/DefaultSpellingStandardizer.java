@@ -2,27 +2,20 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.spellcheck.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.spellcheck.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
-
-/** DefaultSpellingStandardizer: Default spelling standardizer.
+/**
+ * DefaultSpellingStandardizer: Default spelling standardizer.
  *
- *  <p>
- *  The default spelling standardizer is an extended simple
- *  spelling standardizer.
- *  </p>
+ * <p>The default spelling standardizer is an extended simple spelling standardizer.
  */
-
-public class DefaultSpellingStandardizer
-    extends ExtendedSimpleSpellingStandardizer
-    implements SpellingStandardizer
-{
-}
+public class DefaultSpellingStandardizer extends ExtendedSimpleSpellingStandardizer
+    implements SpellingStandardizer {}
 
 /*
 Copyright (c) 2008, 2013 by Northwestern University.
@@ -64,6 +57,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

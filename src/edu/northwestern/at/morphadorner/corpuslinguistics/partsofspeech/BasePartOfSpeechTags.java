@@ -6,20 +6,10 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-/** BasePartOfSpeechTags: Base non-abstract class for part of speech tags.
- */
-
-public class BasePartOfSpeechTags
-    extends AbstractPartOfSpeechTags
-    implements PartOfSpeechTags
-{
-    /** Create empty part of speech tags.
-     */
-
-    public BasePartOfSpeechTags()
-        throws IOException
-    {
-    }
+/** BasePartOfSpeechTags: Base non-abstract class for part of speech tags. */
+public class BasePartOfSpeechTags extends AbstractPartOfSpeechTags implements PartOfSpeechTags {
+  /** Create empty part of speech tags. */
+  public BasePartOfSpeechTags() throws IOException {}
 }
 
 /*
@@ -62,6 +52,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

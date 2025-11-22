@@ -2,29 +2,26 @@ package edu.northwestern.at.utils.logger;
 
 /*  Please see the license information at the end of this file. */
 
-/** Interface for using a logger.
+/**
+ * Interface for using a logger.
  *
- *  <p>
- *  A class which uses a logger can implement this interface to
- *  standardize on the methods for getting and setting a logger.
- *  </p>
+ * <p>A class which uses a logger can implement this interface to standardize on the methods for
+ * getting and setting a logger.
  */
+public interface UsesLogger {
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger();
 
-public interface UsesLogger
-{
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
-
-    public Logger getLogger();
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger );
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger);
 }
 
 /*
@@ -67,5 +64,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

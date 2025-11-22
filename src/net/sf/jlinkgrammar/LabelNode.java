@@ -1,11 +1,7 @@
 package net.sf.jlinkgrammar;
 
-/**
- * TODO add javadoc
- *
- */
+/** TODO add javadoc */
 public class LabelNode {
-    int label;
-    LabelNode next;
-
+  int label;
+  LabelNode next;
 }

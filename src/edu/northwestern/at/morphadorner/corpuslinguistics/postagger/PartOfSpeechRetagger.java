@@ -2,50 +2,40 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import java.util.*;
 
-/** Interface for a Part of Speech retagger.
+/**
+ * Interface for a Part of Speech retagger.
  *
- *  <p>
- *  A retagger takes the output of another tagger and retags the words.
- *  Normally this is used to apply fixup rules to the output of a
- *  statistical tagger.
- *  </p>
+ * <p>A retagger takes the output of another tagger and retags the words. Normally this is used to
+ * apply fixup rules to the output of a statistical tagger.
  */
+public interface PartOfSpeechRetagger extends PartOfSpeechTagger {
+  /**
+   * Retag a sentence.
+   *
+   * @param sentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
+   * @return The sentence with words retagged.
+   */
+  public <T extends AdornedWord> List<T> retagSentence(List<T> sentence);
 
-public interface PartOfSpeechRetagger extends PartOfSpeechTagger
-{
-    /** Retag a sentence.
-     *
-     *  @param  sentence    The sentence as an
-     *                      {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
-     *
-     *  @return             The sentence with words retagged.
-     */
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @return true if retagger can add or delete words.
+   */
+  public boolean getCanAddOrDeleteWords();
 
-    public<T extends AdornedWord> List<T> retagSentence
-    (
-        List<T> sentence
-    );
-
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @return     true if retagger can add or delete words.
-     */
-
-    public boolean getCanAddOrDeleteWords();
-
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @param  canAddOrDeleteWords     true if retagger can add or
-     *                                  delete words.
-     */
-
-    public void setCanAddOrDeleteWords( boolean canAddOrDeleteWords );
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @param canAddOrDeleteWords true if retagger can add or delete words.
+   */
+  public void setCanAddOrDeleteWords(boolean canAddOrDeleteWords);
 }
 
 /*
@@ -88,6 +78,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -72,6 +72,11 @@
                                         rev="2.21.1"
                                         conf="main->default"
                                         />
+                <dependency org="com.google.googlejavaformat"
+                                        name="google-java-format"
+                                        rev="1.32.0"
+                                        conf="main->default"
+                                        />
                 <dependency org="nekohtml"
                                         name="nekohtml"
                                         rev="0.9.5"

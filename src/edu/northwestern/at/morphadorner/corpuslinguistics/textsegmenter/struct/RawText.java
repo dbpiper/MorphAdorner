@@ -2,59 +2,49 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsegmenter.struct;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import java.io.*;
-
 import edu.northwestern.at.utils.ListFactory;
+import java.io.*;
+import java.util.*;
 
-/** A text collection for linear segmentation.
+/**
+ * A text collection for linear segmentation.
  *
- *  @author Philip R. Burns.  Modified for integration in MorphAdorner
- *          from a class written by Freddie Choi.
+ * @author Philip R. Burns. Modified for integration in MorphAdorner from a class written by Freddie
+ *     Choi.
  */
+public class RawText {
+  /** The tokens in the text. */
+  public List<String> text = ListFactory.createNewList();
 
-public class RawText
-{
-    /** The tokens in the text. */
+  /** The sentence boundaries. */
+  public List<Integer> boundaries = ListFactory.createNewList();
 
-    public List<String> text = ListFactory.createNewList();
+  /** Create an empty text collection. */
+  public RawText() {
+    super();
+  }
 
-    /** The sentence boundaries. */
+  /**
+   * Create a text collection from a list of sentences.
+   *
+   * @param sentences List of list of stringable objects.
+   */
+  public <T> RawText(List<List<T>> sentences) {
+    int word = 0;
 
-    public List<Integer> boundaries = ListFactory.createNewList();
+    boundaries.add(word);
 
-    /** Create an empty text collection.
-     */
+    for (int i = 0; i < sentences.size(); i++) {
+      List<?> sentence = sentences.get(i);
 
-    public RawText()
-    {
-        super();
+      for (int j = 0; j < sentence.size(); j++) {
+        text.add(sentence.get(j).toString());
+        word++;
+      }
+
+      boundaries.add(word);
     }
-
-    /** Create a text collection from a list of sentences.
-     *
-     *  @param  sentences   List of list of stringable objects.
-     */
-
-    public <T> RawText( List<List<T>> sentences )
-    {
-        int word    = 0;
-
-        boundaries.add( word );
-
-        for ( int i = 0 ; i < sentences.size() ; i++ )
-        {
-            List<?> sentence    = sentences.get( i );
-
-            for ( int j = 0 ; j < sentence.size() ; j++ )
-            {
-                text.add( sentence.get( j ).toString() );
-                word++;
-            }
-
-            boundaries.add( word );
-        }
-    }
+  }
 }
 
 /*
@@ -97,7 +87,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-
-

@@ -2,178 +2,135 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.l
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.logger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.logger.*;
 import edu.northwestern.at.utils.math.*;
+import java.util.*;
 
-/** Abstract lexical smoother.
+/**
+ * Abstract lexical smoother.
  *
- *  <p>
- *  An abstract lexical smoother which provides implementations of
- *  common service methods such as setting the lexicon and the
- *  transition proability matrix.  Extend this class and override
- *  the abstract method "lexicalProbability" to produce a new
- *  lexical smoother.
- *  </p>
+ * <p>An abstract lexical smoother which provides implementations of common service methods such as
+ * setting the lexicon and the transition proability matrix. Extend this class and override the
+ * abstract method "lexicalProbability" to produce a new lexical smoother.
  */
+public abstract class AbstractLexicalSmoother extends IsCloseableObject
+    implements LexicalSmoother, UsesLogger {
+  /**
+   * The part of speech tagger for which this smoother provides amoother contextual probabilities.
+   */
+  protected PartOfSpeechTagger partOfSpeechTagger;
 
-abstract public class AbstractLexicalSmoother
-    extends IsCloseableObject
-    implements LexicalSmoother, UsesLogger
-{
-    /** The part of speech tagger for which this smoother provides
-     *  amoother contextual probabilities.
-     */
+  /** Cached lexical probabilities for words. */
+  protected Map2D<String, String, Probability> cachedLexicalProbabilities;
 
-    protected PartOfSpeechTagger partOfSpeechTagger;
+  /** Logger used for output. */
+  protected Logger logger;
 
-    /** Cached lexical probabilities for words.
-     */
+  /** Create an abstract lexical smoother. */
+  public AbstractLexicalSmoother() {
+    //  Create cache for lexical
+    //  probabilities.
 
-    protected Map2D<String, String, Probability> cachedLexicalProbabilities;
+    cachedLexicalProbabilities = Map2DFactory.createNewMap2D(3000);
 
-    /** Logger used for output. */
+    //  Create dummy logger.
 
-    protected Logger logger;
+    logger = new DummyLogger();
+  }
 
-    /** Create an abstract lexical smoother.
-     */
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    public AbstractLexicalSmoother()
-    {
-                                //  Create cache for lexical
-                                //  probabilities.
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-        cachedLexicalProbabilities  =
-            Map2DFactory.createNewMap2D( 3000 );
+  /**
+   * Set the part of speech tagger for this smoother.
+   *
+   * @param partOfSpeechTagger Part of speech tagger for which this smoother provides probabilities.
+   */
+  public void setPartOfSpeechTagger(PartOfSpeechTagger partOfSpeechTagger) {
+    this.partOfSpeechTagger = partOfSpeechTagger;
+  }
 
-                                //  Create dummy logger.
+  /**
+   * Get the number of cached lexical probabilities.
+   *
+   * @return The number of cached lexical probabilities.
+   */
+  public int cachedProbabilitiesCount() {
+    int result = 0;
 
-        logger                      = new DummyLogger();
+    if (cachedLexicalProbabilities != null) {
+      result = cachedLexicalProbabilities.size();
     }
 
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
+    return result;
+  }
 
-    public Logger getLogger()
-    {
-        return logger;
-    }
+  /** Clear cached probabilities.. */
+  public void clearCachedProbabilities() {
+    cachedLexicalProbabilities.clear();
+  }
 
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
-
-    /** Set the part of speech tagger for this smoother.
-     *
-     *  @param  partOfSpeechTagger  Part of speech tagger for which
-     *                              this smoother provides probabilities.
-     */
-
-    public void setPartOfSpeechTagger
-    (
-        PartOfSpeechTagger partOfSpeechTagger
-    )
-    {
-        this.partOfSpeechTagger = partOfSpeechTagger;
-    }
-
-    /** Get the number of cached lexical probabilities.
-     *
-     *  @return     The number of cached lexical probabilities.
-     */
-
-    public int cachedProbabilitiesCount()
-    {
-        int result  = 0;
-
-        if ( cachedLexicalProbabilities != null )
-        {
-            result  = cachedLexicalProbabilities.size();
-        }
-
-        return result;
-    }
-
-    /** Clear cached probabilities..
-     */
-
-    public void clearCachedProbabilities()
-    {
-        cachedLexicalProbabilities.clear();
-    }
-
-    /** Get lexically smoothed probability of a word given a tag.
-     *
-     *  @param  word    The word.
-     *  @param  tag     The part of speech tag.
-     *
-     *  @return         Lexically smoothed probability of word given tag,
-     *                  e.g., p( word | tag ).
-     *
-     *  <p>
-     *  To avoid redoing potentially expensive probability calculations,
-     *  you can use the "cachedLexicalProbabilities" HashMap2D to store
-     *  probabilities once they are calculated.  Your lexicalProbability
-     *  method should look to see if the cache contains the needed
-     *  lexical probability.  If so, just retrieve it without recomputing it.
-     *  If the cache does not contain the probability, compute it, and
-     *  store it in the cache for future use.
-     *  </p>
-     *
-     *  <p>
-     *  Here is what a lexicalProbability method should look like, using
-     *  the cache.
-     *  <p>
-     *
-     *  <p>
-     *  <pre>
-     *  protected Probability lexicalProbability( String word , String tag )
-     *  {
-     *                              //  See if the lexical probability
-     *                              //  p( word | tag ) is in the cache.
-     *
-     *      Probability result  =
-     *          (Probability)cachedLexicalProbabilities.get( word , tag );
-     *
-     *                              //  If the probability isn't in the
-     *                              //  cache, compute it.
-     *
-     *      if ( result == null )
-     *      {
-     *          double prob     = <em>compute smoothed probability value</em>
-     *
-     *                              //  Store computed probability in
-     *                              //  the cache.
-     *
-     *          result  = new Probability( prob );
-     *
-     *          cachedLexicalProbabilities.put( word , tag , result );
-     *      }
-     *
-     *      return result;
-     *  }
-     *  </pre>
-     *  </p>
-     */
-
-     public abstract Probability lexicalProbability
-     (
-        String word ,
-        String tag
-     );
+  /**
+   * Get lexically smoothed probability of a word given a tag.
+   *
+   * @param word The word.
+   * @param tag The part of speech tag.
+   * @return Lexically smoothed probability of word given tag, e.g., p( word | tag ).
+   *     <p>To avoid redoing potentially expensive probability calculations, you can use the
+   *     "cachedLexicalProbabilities" HashMap2D to store probabilities once they are calculated.
+   *     Your lexicalProbability method should look to see if the cache contains the needed lexical
+   *     probability. If so, just retrieve it without recomputing it. If the cache does not contain
+   *     the probability, compute it, and store it in the cache for future use.
+   *     <p>Here is what a lexicalProbability method should look like, using the cache.
+   *     <p>
+   *     <p>
+   *     <pre>
+   *  protected Probability lexicalProbability( String word , String tag )
+   *  {
+   *                              //  See if the lexical probability
+   *                              //  p( word | tag ) is in the cache.
+   *
+   *      Probability result  =
+   *          (Probability)cachedLexicalProbabilities.get( word , tag );
+   *
+   *                              //  If the probability isn't in the
+   *                              //  cache, compute it.
+   *
+   *      if ( result == null )
+   *      {
+   *          double prob     = <em>compute smoothed probability value</em>
+   *
+   *                              //  Store computed probability in
+   *                              //  the cache.
+   *
+   *          result  = new Probability( prob );
+   *
+   *          cachedLexicalProbabilities.put( word , tag , result );
+   *      }
+   *
+   *      return result;
+   *  }
+   *  </pre>
+   */
+  public abstract Probability lexicalProbability(String word, String tag);
 }
 
 /*
@@ -216,6 +173,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

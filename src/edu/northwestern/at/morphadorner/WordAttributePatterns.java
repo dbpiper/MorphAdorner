@@ -2,67 +2,48 @@ package edu.northwestern.at.morphadorner;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.regex.*;
 import edu.northwestern.at.utils.PatternReplacer;
+import java.util.regex.*;
 
-/** MorphAdorner word attribute patterns.
+/**
+ * MorphAdorner word attribute patterns.
  *
- *  <p>
- *  This class provides patterns for matching some of the
- *  MorphAdorner word attributes.
- *  </p>
+ * <p>This class provides patterns for matching some of the MorphAdorner word attributes.
  */
+public class WordAttributePatterns {
+  /** <w> tag pattern. */
+  public static String wPattern = "^(.*)<w (.*)>(.*)</w>(.*)$";
 
-public class WordAttributePatterns
-{
-    /** <w> tag pattern. */
+  /** <w> tag replacement. */
+  public static PatternReplacer wReplacer = new PatternReplacer(wPattern, "");
 
-    public static String wPattern   =
-        "^(.*)<w (.*)>(.*)</w>(.*)$";
+  /** Matcher groups for w. */
+  public static final int LEFT = 1;
 
-    /** <w> tag replacement. */
+  public static final int ATTRS = 2;
+  public static final int WORD = 3;
+  public static final int RIGHT = 4;
 
-    public static PatternReplacer wReplacer =
-        new PatternReplacer( wPattern , "" );
+  /** ID pattern. */
+  public static String idPattern =
+      "^(.*)" + WordAttributeNames.id + "=\\\"([a-z,A-Z,0-9,\\-\\._]*)\\\"(.*)$";
 
-    /** Matcher groups for w. */
+  public static final int IDLEFT = 1;
+  public static final int IDVALUE = 2;
+  public static final int IDRIGHT = 3;
 
-    public final static int LEFT    = 1;
-    public final static int ATTRS   = 2;
-    public final static int WORD    = 3;
-    public final static int RIGHT   = 4;
+  /** ID replacement. */
+  public static PatternReplacer idReplacer = new PatternReplacer(idPattern, "");
 
-    /** ID pattern. */
+  /** path pattern. */
+  public static String pathPattern = "^(.*) " + WordAttributeNames.p + "=\\\"(.*)\\\" (.*)$";
 
-    public static String idPattern  =
-        "^(.*)" +
-        WordAttributeNames.id +
-        "=\\\"([a-z,A-Z,0-9,\\-\\._]*)\\\"(.*)$";
+  public static final int PATHLEFT = 1;
+  public static final int PATHVALUE = 2;
+  public static final int PATHRIGHT = 3;
 
-    public final static int IDLEFT  = 1;
-    public final static int IDVALUE = 2;
-    public final static int IDRIGHT = 3;
-
-    /** ID replacement. */
-
-    public static PatternReplacer idReplacer    =
-        new PatternReplacer( idPattern , "" );
-
-    /** path pattern. */
-
-    public static String pathPattern    =
-        "^(.*) " +
-        WordAttributeNames.p +
-        "=\\\"(.*)\\\" (.*)$";
-
-    public final static int PATHLEFT        = 1;
-    public final static int PATHVALUE   = 2;
-    public final static int PATHRIGHT   = 3;
-
-    /** path replacement. */
-
-    public static PatternReplacer pathReplacer  =
-        new PatternReplacer( pathPattern , "" );
+  /** path replacement. */
+  public static PatternReplacer pathReplacer = new PatternReplacer(pathPattern, "");
 }
 
 /*
@@ -105,6 +86,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

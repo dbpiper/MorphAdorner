@@ -2,15 +2,10 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-/** IsCloseable -- interface for objects which can be closed.
- */
-
-public interface IsCloseable
-{
-    /** Close an object.
-     */
-
-    public void close();
+/** IsCloseable -- interface for objects which can be closed. */
+public interface IsCloseable {
+  /** Close an object. */
+  public void close();
 }
 
 /*
@@ -53,6 +48,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

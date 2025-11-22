@@ -4,125 +4,104 @@ package edu.northwestern.at.utils;
 
 import java.util.*;
 
-import edu.northwestern.at.utils.TaggedStrings;
+/** Wraps a map as a TaggedStrings object. */
+public class TaggedStringsMap implements TaggedStrings {
+  /** Map being wrapped. */
+  protected Map<String, String> wrappedMap;
 
-/** Wraps a map as a TaggedStrings object.
- */
+  /** Create a tagged strings map. */
+  public TaggedStringsMap() {
+    this.wrappedMap = MapFactory.createNewMap();
+  }
 
-public class TaggedStringsMap implements TaggedStrings
-{
-    /** Map being wrapped. */
+  /**
+   * Create a tagged strings map.
+   *
+   * @param map The map to wrap.
+   */
+  public TaggedStringsMap(Map<String, String> map) {
+    this.wrappedMap = map;
+  }
 
-    protected Map<String, String> wrappedMap;
+  /**
+   * See if specified string exists.
+   *
+   * @param string The string.
+   * @return True if specified string exists.
+   */
+  public boolean containsString(String string) {
+    return wrappedMap.containsKey(string);
+  }
 
-    /** Create a tagged strings map.
-     */
+  /**
+   * Get the tag value associated with a string.
+   *
+   * @param string The string.
+   * @return The tag value associated with the string. May be null.
+   */
+  public String getTag(String string) {
+    String result = null;
 
-    public TaggedStringsMap()
-    {
-        this.wrappedMap = MapFactory.createNewMap();
+    if (wrappedMap.containsKey(string)) {
+      result = wrappedMap.get(string);
     }
 
-    /** Create a tagged strings map.
-     *
-     *  @param  map     The map to wrap.
-     */
+    return result;
+  }
 
-    public TaggedStringsMap( Map<String, String> map )
-    {
-        this.wrappedMap = map;
-    }
+  /**
+   * Set the tag value associated with a string.
+   *
+   * @param string The string.
+   * @param tag The tag.
+   */
+  public void putTag(String string, String tag) {
+    wrappedMap.put(string, tag);
+  }
 
-    /** See if specified string exists.
-     *
-     *  @param  string  The string.
-     *
-     *  @return         True if specified string exists.
-     */
+  /**
+   * Get number of strings.
+   *
+   * @return Number of strings.
+   */
+  public int getStringCount() {
+    return wrappedMap.size();
+  }
 
-    public boolean containsString( String string )
-    {
-        return wrappedMap.containsKey( string );
-    }
+  /**
+   * Get set of all unique tag values.
+   *
+   * @return Set of all unique tag values.
+   */
+  public Set<String> getAllTags() {
+    Set<String> result = SetFactory.createNewSet();
 
-    /** Get the tag value associated with a string.
-     *
-     *  @param  string  The string.
-     *
-     *  @return         The tag value associated with the string.
-     *                  May be null.
-     */
+    result.addAll(wrappedMap.values());
 
-    public String getTag( String string )
-    {
-        String result   = null;
+    return result;
+  }
 
-        if ( wrappedMap.containsKey( string ) )
-        {
-            result  = wrappedMap.get( string );
-        }
+  /**
+   * Get set of all unique string values.
+   *
+   * @return Set of all unique string values.
+   */
+  public Set<String> getAllStrings() {
+    Set<String> result = SetFactory.createNewSet();
 
-        return result;
-    }
+    result.addAll(wrappedMap.keySet());
 
-    /** Set the tag value associated with a string.
-     *
-     *  @param  string  The string.
-     *  @param  tag     The tag.
-     */
+    return result;
+  }
 
-    public void putTag( String string , String tag )
-    {
-        wrappedMap.put( string , tag );
-    }
-
-    /** Get number of strings.
-     *
-     *  @return     Number of strings.
-     */
-
-    public int getStringCount()
-    {
-        return wrappedMap.size();
-    }
-
-    /** Get set of all unique tag values.
-     *
-     *  @return     Set of all unique tag values.
-     */
-
-    public Set<String> getAllTags()
-    {
-        Set<String> result  = SetFactory.createNewSet();
-
-        result.addAll( wrappedMap.values() );
-
-        return result;
-    }
-
-    /** Get set of all unique string values.
-     *
-     *  @return     Set of all unique string values.
-     */
-
-    public Set<String> getAllStrings()
-    {
-        Set<String> result  = SetFactory.createNewSet();
-
-        result.addAll( wrappedMap.keySet() );
-
-        return result;
-    }
-
-    /** Return the wrapped map.
-     *
-     *  @return     The wrapped map.
-     */
-
-    public Map<String, String> getMap()
-    {
-        return wrappedMap;
-    }
+  /**
+   * Return the wrapped map.
+   *
+   * @return The wrapped map.
+   */
+  public Map<String, String> getMap() {
+    return wrappedMap;
+  }
 }
 
 /*
@@ -165,6 +144,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

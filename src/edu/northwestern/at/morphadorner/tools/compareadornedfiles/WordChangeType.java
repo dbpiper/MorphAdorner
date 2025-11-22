@@ -2,30 +2,25 @@ package edu.northwestern.at.morphadorner.tools.compareadornedfiles;
 
 /*  Please see the license information at the end of this file. */
 
-/** Type of change for word element.
+/**
+ * Type of change for word element.
  *
- *  <p>
- *  Words may be added, deleted, or modified.
- *  </p>
+ * <p>Words may be added, deleted, or modified.
  */
+public enum WordChangeType {
+  addition("addition"),
+  deletion("deletion"),
+  modification("modification");
 
-public enum WordChangeType
-{
-    addition ( "addition" ) ,
-    deletion ( "deletion" ) ,
-    modification ( "modification" ) ;
+  protected final String toStringValue;
 
-    protected final String toStringValue;
+  WordChangeType(String toStringValue) {
+    this.toStringValue = toStringValue;
+  }
 
-    WordChangeType( String toStringValue )
-    {
-        this.toStringValue  = toStringValue;
-    }
-
-    public String toString()
-    {
-        return toStringValue;
-    }
+  public String toString() {
+    return toStringValue;
+  }
 }
 
 /*
@@ -68,6 +63,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

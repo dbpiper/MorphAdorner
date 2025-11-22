@@ -7,114 +7,80 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.XMLOutputter;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-/** Parse an XML fragment for use with a JDOM document.
+/**
+ * Parse an XML fragment for use with a JDOM document.
  *
- *  @author Per Norrman.
- *
- *  <p>
- *  Minor modifications by Pib.
- *  </p>
+ * @author Per Norrman.
+ *     <p>Minor modifications by Pib.
  */
+public class JDOMFragmentParser {
+  protected String _xml;
+  protected SAXBuilder _builder;
+  protected String _fragment = null;
 
-public class JDOMFragmentParser
-{
-    protected String _xml;
-    protected SAXBuilder _builder;
-    protected String _fragment = null;
+  public JDOMFragmentParser(Namespace[] namespaces) {
+    StringBuffer buf = new StringBuffer();
 
-    public JDOMFragmentParser( Namespace[] namespaces )
-    {
-        StringBuffer buf = new StringBuffer();
+    buf.append("<!DOCTYPE root [<!ENTITY fragment  SYSTEM 'file:fragment.xml' >]><root ");
 
-        buf.append
-        (
-            "<!DOCTYPE root [<!ENTITY fragment  SYSTEM 'file:fragment.xml' >]><root "
-        );
-
-        for ( int i = 0 ; i < namespaces.length ; i++ )
-        {
-            buf.append( "xmlns:" );
-            buf.append( namespaces[ i ].getPrefix() );
-            buf.append( "=\"" );
-            buf.append( namespaces[ i ].getURI() );
-            buf.append( "\" " );
-        }
-
-        buf.append( ">&fragment;</root>" );
-
-        _xml = buf.toString();
-
-        _builder = new SAXBuilder();
-
-        _builder.setEntityResolver
-        (
-            new EntityResolver()
-            {
-                public InputSource resolveEntity
-                (
-                    String publicId ,
-                    String systemId
-                )
-                    throws SAXException, IOException
-                {
-                    if ( _fragment != null )
-                    {
-                        return
-                            new InputSource( new StringReader( _fragment ) );
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-            }
-        );
+    for (int i = 0; i < namespaces.length; i++) {
+      buf.append("xmlns:");
+      buf.append(namespaces[i].getPrefix());
+      buf.append("=\"");
+      buf.append(namespaces[i].getURI());
+      buf.append("\" ");
     }
 
-    public List<Element> parseFragment( String fragment )
-        throws Exception
-    {
-        try
-        {
-            _fragment = fragment;
+    buf.append(">&fragment;</root>");
 
-            Document doc = _builder.build( new StringReader(_xml) );
+    _xml = buf.toString();
 
-            @SuppressWarnings("unchecked")
-            List<Element> list =
-                new ArrayList<Element>
-                (
-                    ((List<Element>)doc.getRootElement().getChildren())
-                );
+    _builder = new SAXBuilder();
 
-            for ( Iterator<Element> i = list.iterator(); i.hasNext(); )
-            {
-                i.next().detach();
+    _builder.setEntityResolver(
+        new EntityResolver() {
+          public InputSource resolveEntity(String publicId, String systemId)
+              throws SAXException, IOException {
+            if (_fragment != null) {
+              return new InputSource(new StringReader(_fragment));
+            } else {
+              return null;
             }
+          }
+        });
+  }
 
-            _fragment = null;
+  public List<Element> parseFragment(String fragment) throws Exception {
+    try {
+      _fragment = fragment;
 
-            return list;
-        }
-        catch ( Exception e )
-        {
-            throw e;
-        }
-        finally
-        {
-            _fragment = null;
-        }
+      Document doc = _builder.build(new StringReader(_xml));
+
+      @SuppressWarnings("unchecked")
+      List<Element> list =
+          new ArrayList<Element>(((List<Element>) doc.getRootElement().getChildren()));
+
+      for (Iterator<Element> i = list.iterator(); i.hasNext(); ) {
+        i.next().detach();
+      }
+
+      _fragment = null;
+
+      return list;
+    } catch (Exception e) {
+      throw e;
+    } finally {
+      _fragment = null;
     }
+  }
 }
 
 /*
@@ -157,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

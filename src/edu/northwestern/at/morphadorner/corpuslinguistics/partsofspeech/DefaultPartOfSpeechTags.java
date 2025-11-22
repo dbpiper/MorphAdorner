@@ -6,25 +6,12 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.MapFactory;
-import edu.northwestern.at.utils.SortedArrayList;
-import edu.northwestern.at.utils.UTF8Properties;
-
-/** DefaultPartOfSpeechTags: default is NUPOS tag set.
- */
-
-public class DefaultPartOfSpeechTags
-    extends NUPOSPartOfSpeechTags
-    implements PartOfSpeechTags
-{
-    /** Create default part of speech tags.
-     */
-
-    public DefaultPartOfSpeechTags()
-        throws IOException
-    {
-        super();
-    }
+/** DefaultPartOfSpeechTags: default is NUPOS tag set. */
+public class DefaultPartOfSpeechTags extends NUPOSPartOfSpeechTags implements PartOfSpeechTags {
+  /** Create default part of speech tags. */
+  public DefaultPartOfSpeechTags() throws IOException {
+    super();
+  }
 }
 
 /*
@@ -67,6 +54,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

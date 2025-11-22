@@ -5,103 +5,70 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.c
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** ContextualSmoother factory.
- */
+/** ContextualSmoother factory. */
+public class ContextualSmootherFactory {
+  /**
+   * Get a contextual smoother.
+   *
+   * @return The contextualSmoother.
+   */
+  public static ContextualSmoother newContextualSmoother() {
+    String className = System.getProperty("contextualsmoother.class");
 
-public class ContextualSmootherFactory
-{
-    /** Get a contextual smoother.
-     *
-     *  @return     The contextualSmoother.
-     */
-
-    public static ContextualSmoother newContextualSmoother()
-    {
-        String className    =
-            System.getProperty( "contextualsmoother.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultContextualSmoother";
-        }
-
-        return newContextualSmoother( className );
+    if (className == null) {
+      className = "DefaultContextualSmoother";
     }
 
-    /** Get a contextual smoother.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The contextualSmoother.
-     */
+    return newContextualSmoother(className);
+  }
 
-    public static ContextualSmoother newContextualSmoother
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a contextual smoother.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The contextualSmoother.
+   */
+  public static ContextualSmoother newContextualSmoother(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "contextualsmoother.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultContextualSmoother";
-        }
-
-        return newContextualSmoother( className );
+    if (properties != null) {
+      className = properties.getProperty("contextualsmoother.class");
     }
 
-    /** Get a contextualSmoother of a specified class name.
-     *
-     *  @param  className   Class name for the contextualSmoother.
-     *
-     *  @return             The contextualSmoother.
-     */
-
-    public static ContextualSmoother newContextualSmoother
-    (
-        String className
-    )
-    {
-        ContextualSmoother contextualSmoother   = null;
-
-        try
-        {
-            contextualSmoother  =
-                (ContextualSmoother)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    ContextualSmoother.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                contextualSmoother  =
-                    (ContextualSmoother)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create contextual smoother of class " +
-                    fixedClassName + ", using default." );
-
-                contextualSmoother  = new DefaultContextualSmoother();
-            }
-        }
-
-        return contextualSmoother;
+    if (className == null) {
+      className = "DefaultContextualSmoother";
     }
+
+    return newContextualSmoother(className);
+  }
+
+  /**
+   * Get a contextualSmoother of a specified class name.
+   *
+   * @param className Class name for the contextualSmoother.
+   * @return The contextualSmoother.
+   */
+  public static ContextualSmoother newContextualSmoother(String className) {
+    ContextualSmoother contextualSmoother = null;
+
+    try {
+      contextualSmoother = (ContextualSmoother) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(ContextualSmoother.class.getName()) + "." + className;
+
+      try {
+        contextualSmoother = (ContextualSmoother) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create contextual smoother of class " + fixedClassName + ", using default.");
+
+        contextualSmoother = new DefaultContextualSmoother();
+      }
+    }
+
+    return contextualSmoother;
+  }
 }
 
 /*
@@ -144,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

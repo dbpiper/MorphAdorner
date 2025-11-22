@@ -2,26 +2,20 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lexicon;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
+import edu.northwestern.at.utils.*;
+import java.io.*;
+import java.util.*;
 
-/** BaseLexicon: Concrete lexicon implementation.
+/**
+ * BaseLexicon: Concrete lexicon implementation.
  *
- *  <p>
- *  Uses a PartOfSpeechTags list.
- *  </p>
+ * <p>Uses a PartOfSpeechTags list.
  */
-
-public class BaseLexicon extends AbstractLexicon implements Lexicon
-{
-}
+public class BaseLexicon extends AbstractLexicon implements Lexicon {}
 
 /*
 Copyright (c) 2008, 2013 by Northwestern University.
@@ -63,6 +57,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

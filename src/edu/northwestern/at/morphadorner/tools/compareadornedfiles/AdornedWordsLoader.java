@@ -2,324 +2,251 @@ package edu.northwestern.at.morphadorner.tools.compareadornedfiles;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
+import edu.northwestern.at.utils.xml.jdom.*;
 import java.io.*;
 import java.util.*;
-
 import org.jdom2.*;
 import org.jdom2.filter.*;
 import org.jdom2.input.*;
 import org.jdom2.output.*;
 import org.jdom2.xpath.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
-import edu.northwestern.at.utils.xml.jdom.*;
+/** Loads word elements in an adorned XML file. */
+public class AdornedWordsLoader {
+  /** Map from word ID to adorned word data. */
+  protected Map<String, AdornedWordData> adornedWordDataMap = MapFactory.createNewLinkedMap(10000);
 
-/** Loads word elements in an adorned XML file.
- */
+  /** List of word IDs. */
+  protected List<String> wordIDs = ListFactory.createNewList(10000);
 
-public class AdornedWordsLoader
-{
-    /** Map from word ID to adorned word data. */
+  /** Set of word tags (typically "w" and "pc"). */
+  protected Set<String> wordTagsSet = SetFactory.createNewSet();
 
-    protected Map<String, AdornedWordData> adornedWordDataMap   =
-        MapFactory.createNewLinkedMap( 10000 );
+  /** Adorned XML file as JDOM document. */
+  protected Document adornedXMLDocument = null;
 
-    /** List of word IDs. */
+  /**
+   * Create adorned words loader.
+   *
+   * @param adornedFileName The adorned file from which to load word data.
+   * @param wordTags String array of word tag element names, typically "w" and "pc".
+   * @throws Exception in case of error.
+   */
+  public AdornedWordsLoader(String adornedFileName, String[] wordTags) throws Exception {
+    //  Create set from word tags.
 
-    protected List<String> wordIDs  = ListFactory.createNewList( 10000 );
+    wordTagsSet.addAll(Arrays.asList(wordTags));
 
-    /** Set of word tags (typically "w" and "pc"). */
+    //  Load adorned file to JDOM document.
 
-    protected Set<String> wordTagsSet   = SetFactory.createNewSet();
+    adornedXMLDocument = JDOMUtils.parse(new File(adornedFileName));
 
-    /** Adorned XML file as JDOM document. */
+    //  Create filter to pull out word elements,
+    //  usually <w> and <pc>.
 
-    protected Document adornedXMLDocument   = null;
+    Filter<Element> filter = new ElementsFilter(wordTags);
 
-    /** Create adorned words loader.
-     *
-     *  @param  adornedFileName     The adorned file from which to load
-     *                              word data.
-     *
-     *  @param  wordTags            String array of word tag element
-     *                              names, typically "w" and "pc".
-     *
-     *  @throws Exception           in case of error.
-     */
+    //  Get root element of adorned file.
 
-    public AdornedWordsLoader( String adornedFileName , String[] wordTags )
-        throws Exception
-    {
-                                //  Create set from word tags.
+    Element root = adornedXMLDocument.getRootElement();
 
-        wordTagsSet.addAll( Arrays.asList( wordTags ) );
+    //  Create iterator over word elements
+    //  using filter.
 
-                                //  Load adorned file to JDOM document.
+    Iterator<Element> iterator = root.getDescendants(filter);
 
-        adornedXMLDocument  = JDOMUtils.parse( new File( adornedFileName ) );
+    //  For each adorned word element,
+    //  pull out the xml:id, word text,
+    //  and element attributes.
 
-                                //  Create filter to pull out word elements,
-                                //  usually <w> and <pc>.
+    while (iterator.hasNext()) {
+      //  Get next word element.
 
-        Filter<Element> filter  = new ElementsFilter( wordTags );
+      Element wordElement = iterator.next();
 
-                                //  Get root element of adorned file.
+      //  Get word text.
 
-        Element root    = adornedXMLDocument.getRootElement();
+      String wordText = wordElement.getText();
 
-                                //  Create iterator over word elements
-                                //  using filter.
+      //  Get word ID.
+      String id = JDOMUtils.getAttributeValue(wordElement, "xml:id", false);
+      //  Add this ID to list of word IDs.
 
-        Iterator<Element> iterator  = root.getDescendants( filter );
+      wordIDs.add(id);
 
-                                //  For each adorned word element,
-                                //  pull out the xml:id, word text,
-                                //  and element attributes.
+      //  Get attributes list.
 
-        while ( iterator.hasNext() )
-        {
-                                //  Get next word element.
+      List<Attribute> attributeList = wordElement.getAttributes();
 
-            Element wordElement = iterator.next();
+      //  Create attributes map from list.
 
-                                //  Get word text.
+      Map<String, String> attributeMap = MapFactory.createNewSortedMap();
 
-            String wordText     = wordElement.getText();
+      for (int i = 0; i < attributeList.size(); i++) {
+        Attribute attribute = attributeList.get(i);
 
-                                //  Get word ID.
-            String id   =
-                JDOMUtils.getAttributeValue
-                (
-                    wordElement ,
-                    "xml:id" ,
-                    false
-                );
-                                //  Add this ID to list of word IDs.
+        attributeMap.put(attribute.getQualifiedName(), attribute.getValue());
+      }
+      //  Get word ID of sibling word with
+      //  the same parent.
 
-            wordIDs.add( id );
+      String siblingID = findSiblingID(wordElement, id);
 
-                                //  Get attributes list.
+      //  Note if blank (<c>) precedes this word.
 
-            List<Attribute> attributeList   = wordElement.getAttributes();
+      boolean blankPrecedes = ifBlankPrecedes(wordElement);
 
-                                //  Create attributes map from list.
+      //  Add word data to map.
 
-            Map<String, String> attributeMap    =
-                MapFactory.createNewSortedMap();
+      AdornedWordData adornedWordData =
+          new AdornedWordData(wordText, attributeMap, siblingID, blankPrecedes);
 
-            for ( int i = 0 ; i < attributeList.size() ; i++ )
-            {
-                Attribute attribute = attributeList.get( i );
+      adornedWordDataMap.put(id, adornedWordData);
+    }
+  }
 
-                attributeMap.put
-                (
-                    attribute.getQualifiedName() ,
-                    attribute.getValue()
-                );
-            }
-                                //  Get word ID of sibling word with
-                                //  the same parent.
+  /**
+   * Create adorned words loader.
+   *
+   * @param adornedFileName The adorned file from which to load word data.
+   * @throws Exception in case of error.
+   *     <p>The word elements are assumed to be tagged as <w> and <pc>.
+   */
+  public AdornedWordsLoader(String adornedFileName) throws Exception {
+    this(adornedFileName, new String[] {"w", "pc"});
+  }
 
-            String siblingID    = findSiblingID( wordElement , id );
+  /**
+   * Return list of words IDs.
+   *
+   * @return list of word IDs.
+   */
+  public List<String> getAdornedWordIDs() {
+    return wordIDs;
+  }
 
-                                //  Note if blank (<c>) precedes this word.
+  /**
+   * Get data for a specified word ID.
+   *
+   * @param id Word ID.
+   * @return The word data, or null if the word ID does not exist.
+   */
+  public AdornedWordData getAdornedWordData(String id) {
+    return adornedWordDataMap.get(id);
+  }
 
-            boolean blankPrecedes   = ifBlankPrecedes( wordElement );
+  /**
+   * Get sibling ID for a given word ID.
+   *
+   * @param wordElement The word element.
+   * @param id The word ID.
+   * @return Word ID of either the nearest previous sibling, if the given element is not the first
+   *     child of its parent, or else the nearest following sibling. Returns null if a sibling
+   *     cannot be found.
+   */
+  public String findSiblingID(Element wordElement, String id) {
+    String result = null;
 
-                                //  Add word data to map.
+    if (wordElement != null) {
+      Element parent = wordElement.getParentElement();
 
-            AdornedWordData adornedWordData =
-                new AdornedWordData(
-                    wordText , attributeMap , siblingID , blankPrecedes );
+      List<Element> children = parent.getChildren();
 
-            adornedWordDataMap.put( id , adornedWordData );
+      int index = children.indexOf(wordElement);
+
+      //  Get previous sibling if available.
+      int i = index - 1;
+
+      while (i >= 0) {
+        Element prevElement = children.get(i);
+
+        if (wordTagsSet.contains(prevElement.getName())) {
+          result = JDOMUtils.getAttributeValue(prevElement, "xml:id", false);
+
+          break;
+        } else {
+          i--;
         }
-    }
+      }
+      //  Otherwise get following sibling.
 
-    /** Create adorned words loader.
-     *
-     *  @param  adornedFileName     The adorned file from which to load
-     *                              word data.
-     *
-     *  @throws Exception           in case of error.
-     *
-     *  <p>
-     *  The word elements are assumed to be tagged as <w> and <pc>.
-     *  </p>
-     */
+      if (result == null) {
+        i = index + 1;
 
-    public AdornedWordsLoader( String adornedFileName )
-        throws Exception
-    {
-        this( adornedFileName , new String[]{ "w" , "pc" } );
-    }
+        while (i < children.size()) {
+          Element nextElement = children.get(i);
 
-    /** Return list of words IDs.
-     *
-     *  @return     list of word IDs.
-     */
+          if (wordTagsSet.contains(nextElement.getName())) {
+            result = JDOMUtils.getAttributeValue(nextElement, "xml:id", false);
 
-    public List<String> getAdornedWordIDs()
-    {
-        return wordIDs;
-    }
-
-    /** Get data for a specified word ID.
-     *
-     *  @param  id  Word ID.
-     *
-     *  @return     The word data, or null if the word ID does not exist.
-     */
-
-    public AdornedWordData getAdornedWordData( String id )
-    {
-        return adornedWordDataMap.get( id );
-    }
-
-    /** Get sibling ID for a given word ID.
-     *
-     *  @param  wordElement     The word element.
-     *  @param  id              The word ID.
-     *
-     *  @return     Word ID of either the nearest previous sibling,
-     *              if the given element is not the first child of
-     *              its parent, or else the nearest following sibling.
-     *              Returns null if a sibling cannot be found.
-     */
-
-    public String findSiblingID( Element wordElement , String id )
-    {
-        String result   = null;
-
-        if ( wordElement != null )
-        {
-            Element parent = wordElement.getParentElement();
-
-            List<Element> children = parent.getChildren();
-
-            int index = children.indexOf( wordElement );
-
-                                //  Get previous sibling if available.
-            int i = index - 1;
-
-            while ( i >= 0 )
-            {
-                Element prevElement = children.get( i );
-
-                if ( wordTagsSet.contains( prevElement.getName() ) )
-                {
-                    result  =
-                        JDOMUtils.getAttributeValue
-                        (
-                            prevElement ,
-                            "xml:id" ,
-                            false
-                        );
-
-                    break;
-                }
-                else
-                {
-                    i--;
-                }
-            }
-                                //  Otherwise get following sibling.
-
-            if ( result == null )
-            {
-                i   = index + 1;
-
-                while ( i < children.size() )
-                {
-                    Element nextElement = children.get( i );
-
-                    if ( wordTagsSet.contains( nextElement.getName() ) )
-                    {
-                        result  =
-                            JDOMUtils.getAttributeValue
-                            (
-                                nextElement ,
-                                "xml:id" ,
-                                false
-                            );
-
-                        break;
-                    }
-                    else
-                    {
-                        i++;
-                    }
-                }
-            }
+            break;
+          } else {
+            i++;
+          }
         }
-
-        return result;
+      }
     }
 
-    /** Determine if blank marker element (<c> </c>) precedes a word.
-     *
-     *  @param  wordElement     The word element.
-     *
-     *  @return     true if word is preceded by a blank marker element.
-     */
+    return result;
+  }
 
-    public boolean ifBlankPrecedes( Element wordElement )
-    {
-                                //  Assume there isn't a preceding
-                                //  blank element.
+  /**
+   * Determine if blank marker element (<c> </c>) precedes a word.
+   *
+   * @param wordElement The word element.
+   * @return true if word is preceded by a blank marker element.
+   */
+  public boolean ifBlankPrecedes(Element wordElement) {
+    //  Assume there isn't a preceding
+    //  blank element.
 
-        boolean result  = false;
+    boolean result = false;
 
-                                //  If the word element is not null ...
+    //  If the word element is not null ...
 
-        if ( wordElement != null )
-        {
-                                //  Get parent element of word element.
+    if (wordElement != null) {
+      //  Get parent element of word element.
 
-            Element parent = wordElement.getParentElement();
+      Element parent = wordElement.getParentElement();
 
-                                //  Get children of the parent element.
+      //  Get children of the parent element.
 
-            List<Element> children = parent.getChildren();
+      List<Element> children = parent.getChildren();
 
-                                //  Find the index of the parent element.
+      //  Find the index of the parent element.
 
-            int index = children.indexOf( wordElement );
+      int index = children.indexOf(wordElement);
 
-                                //  See if previous sibling is a
-                                //  "<c>" element.
+      //  See if previous sibling is a
+      //  "<c>" element.
 
-            if ( index > 0 )
-            {
-                Element prevElement = children.get( index - 1 );
+      if (index > 0) {
+        Element prevElement = children.get(index - 1);
 
-                result  = prevElement.getName().equals( "c" );
-            }
-        }
-
-        return result;
+        result = prevElement.getName().equals("c");
+      }
     }
 
-    /** Get adorned XML document.
-     *
-     *  @return     Adorned XML document.
-     */
+    return result;
+  }
 
-    public Document getDocument()
-    {
-        return adornedXMLDocument;
-    }
+  /**
+   * Get adorned XML document.
+   *
+   * @return Adorned XML document.
+   */
+  public Document getDocument() {
+    return adornedXMLDocument;
+  }
 
-    /** Release adorned XML document.
-     */
+  /** Release adorned XML document. */
+  public void releaseDocument() {
+    adornedXMLDocument = null;
 
-    public void releaseDocument()
-    {
-        adornedXMLDocument  = null;
-
-        System.gc();
-    }
+    System.gc();
+  }
 }
 
 /*
@@ -362,6 +289,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

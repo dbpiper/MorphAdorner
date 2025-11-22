@@ -2,118 +2,89 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namestandardizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+/** EEBOSimpleNameStandardizer -- simple name standardizer. */
+public class EEBOSimpleNameStandardizer implements NameStandardizer {
+  //  Maps name to standard form.
 
-/** EEBOSimpleNameStandardizer -- simple name standardizer.
- */
+  protected static Map<String, String> properNamesMap = MapFactory.createNewMap();
 
-public class EEBOSimpleNameStandardizer
-    implements NameStandardizer
-{
-                                //  Maps name to standard form.
+  /**
+   * Load spelling data.
+   *
+   * @param properNamesFileName File containing proper names data.
+   *     <p>Does nothing here.
+   */
+  public void loadNames(String properNamesFileName) throws IOException {}
 
-    protected static Map<String, String> properNamesMap =
-        MapFactory.createNewMap();
+  /**
+   * Load names from a collection of names.
+   *
+   * @param properNamesCollection Collection containing proper names.
+   */
+  public void loadNames(Collection<String> properNamesCollection) {}
 
-    /** Load spelling data.
-     *
-     *  @param  properNamesFileName     File containing proper names data.
-     *
-     *  <p>
-     *  Does nothing here.
-     *  </p>
-     */
+  /**
+   * Load names from a lexicon.
+   *
+   * @param lexicon The lexicon from which to load names.
+   *     <p>Does nothing here.
+   */
+  public void loadNamesFromLexicon(Lexicon lexicon) throws IOException {}
 
-    public void loadNames( String properNamesFileName )
-        throws IOException
-    {
+  /**
+   * Return number of names.
+   *
+   * @return Always returns 0.
+   */
+  public int getNumberOfNames() {
+    return properNamesMap.size();
+  }
+
+  /**
+   * Check if we should not standardize a name.
+   *
+   * @param properName Name to check.
+   * @return Always true to avoid standardizing name.
+   */
+  public boolean dontStandardize(String properName) {
+    return false;
+  }
+
+  /**
+   * Preprocess proper name.
+   *
+   * @param properName Proper name to preprocess before standardization.
+   * @return Proper name untouched.
+   */
+  public String preprocessProperName(String properName) {
+    return properName;
+  }
+
+  /**
+   * Returns standard proper name given a proper name.
+   *
+   * @param properName The proper name.
+   * @return The proper name untouched.
+   */
+  public String standardizeProperName(String properName) {
+    String result = properName;
+
+    if (properNamesMap.containsKey(properName)) {
+      properName = properNamesMap.get(properName);
     }
 
-    /** Load names from a collection of names.
-     *
-     *  @param  properNamesCollection   Collection containing proper names.
-     */
+    return properName;
+  }
 
-    public void loadNames( Collection<String> properNamesCollection )
-    {
-    }
-
-    /** Load names from a lexicon.
-     *
-     *  @param  lexicon     The lexicon from which to load names.
-     *
-     *  <p>
-     *  Does nothing here.
-     *  </p>
-     */
-
-    public void loadNamesFromLexicon( Lexicon lexicon )
-        throws IOException
-    {
-    }
-
-    /** Return number of names.
-     *
-     *  @return     Always returns 0.
-     */
-
-    public int getNumberOfNames()
-    {
-        return properNamesMap.size();
-    }
-
-    /** Check if we should not standardize a name.
-     *
-     *  @param  properName  Name to check.
-     *
-     *  @return             Always true to avoid standardizing name.
-     */
-
-    public boolean dontStandardize( String properName )
-    {
-        return false;
-    }
-
-    /** Preprocess proper name.
-     *
-     *  @param  properName  Proper name to preprocess before standardization.
-     *
-     *  @return             Proper name untouched.
-     */
-
-    public String preprocessProperName( String properName )
-    {
-        return properName;
-    }
-
-    /** Returns standard proper name given a proper name.
-     *
-     *  @param  properName  The proper name.
-     *
-     *  @return             The proper name untouched.
-     */
-
-    public String standardizeProperName( String properName )
-    {
-        String result   = properName;
-
-        if ( properNamesMap.containsKey( properName ) )
-        {
-            properName  = properNamesMap.get( properName );
-        }
-
-        return properName;
-    }
-
-    static
-    {
-        properNamesMap.put( "jewe" , "Jew" );
-        properNamesMap.put( "jewes" , "Jews" );
-    }
+  static {
+    properNamesMap.put("jewe", "Jew");
+    properNamesMap.put("jewes", "Jews");
+  }
 }
 
 /*
@@ -156,6 +127,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

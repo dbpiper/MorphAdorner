@@ -5,99 +5,70 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** WordTokenizer factory.
- */
+/** WordTokenizer factory. */
+public class WordTokenizerFactory {
+  /**
+   * Get a wordTokenizer.
+   *
+   * @return The wordTokenizer.
+   */
+  public static WordTokenizer newWordTokenizer() {
+    String className = System.getProperty("wordtokenizer.class");
 
-public class WordTokenizerFactory
-{
-    /** Get a wordTokenizer.
-     *
-     *  @return     The wordTokenizer.
-     */
-
-    public static WordTokenizer newWordTokenizer()
-    {
-        String className    =
-            System.getProperty( "wordtokenizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultWordTokenizer";
-        }
-
-        return newWordTokenizer( className );
+    if (className == null) {
+      className = "DefaultWordTokenizer";
     }
 
-    /** Get a wordTokenizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The wordTokenizer.
-     */
+    return newWordTokenizer(className);
+  }
 
-    public static WordTokenizer newWordTokenizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a wordTokenizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The wordTokenizer.
+   */
+  public static WordTokenizer newWordTokenizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "wordtokenizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultWordTokenizer";
-        }
-
-        return newWordTokenizer( className );
+    if (properties != null) {
+      className = properties.getProperty("wordtokenizer.class");
     }
 
-    /** Get a wordTokenizer of a specified class name.
-     *
-     *  @param  className   Class name for the wordTokenizer.
-     *
-     *  @return             The wordTokenizer.
-     */
-
-    public static WordTokenizer newWordTokenizer( String className )
-    {
-        WordTokenizer wordTokenizer = null;
-
-        try
-        {
-            wordTokenizer   =
-                (WordTokenizer)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    WordTokenizerFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                wordTokenizer   =
-                    (WordTokenizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create word tokenizer of class " +
-                    fixedClassName + ", using default." );
-
-                wordTokenizer   = new DefaultWordTokenizer();
-            }
-        }
-
-        return wordTokenizer;
+    if (className == null) {
+      className = "DefaultWordTokenizer";
     }
+
+    return newWordTokenizer(className);
+  }
+
+  /**
+   * Get a wordTokenizer of a specified class name.
+   *
+   * @param className Class name for the wordTokenizer.
+   * @return The wordTokenizer.
+   */
+  public static WordTokenizer newWordTokenizer(String className) {
+    WordTokenizer wordTokenizer = null;
+
+    try {
+      wordTokenizer = (WordTokenizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(WordTokenizerFactory.class.getName()) + "." + className;
+
+      try {
+        wordTokenizer = (WordTokenizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create word tokenizer of class " + fixedClassName + ", using default.");
+
+        wordTokenizer = new DefaultWordTokenizer();
+      }
+    }
+
+    return wordTokenizer;
+  }
 }
 
 /*
@@ -140,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

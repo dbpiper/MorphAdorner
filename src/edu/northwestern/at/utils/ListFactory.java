@@ -4,64 +4,51 @@ package edu.northwestern.at.utils;
 
 import java.util.*;
 
-/** Factory for creating ArrayLists.
- */
+/** Factory for creating ArrayLists. */
+public class ListFactory {
+  /** Create a new ArrayList. */
+  public static <E> List<E> createNewList() {
+    return new ArrayList<E>();
+  }
 
-public class ListFactory
-{
-    /** Create a new ArrayList.
-     */
+  /**
+   * Create a new ArrayList of a specified size.
+   *
+   * @param nSize Size of array list to create.
+   */
+  public static <E> List<E> createNewList(int nSize) {
+    return new ArrayList<E>(nSize);
+  }
 
-    public static<E> List<E> createNewList()
-    {
-        return new ArrayList<E>();
-    }
+  /**
+   * Create a new ArrayList from a collection.
+   *
+   * @param collection Collection from which to create list.
+   */
+  public static <E> List<E> createNewList(Collection<E> collection) {
+    return new ArrayList<E>(collection);
+  }
 
-    /** Create a new ArrayList of a specified size.
-     *
-     *  @param  nSize   Size of array list to create.
-     */
+  /**
+   * Create a new sorted list of a specified size.
+   *
+   * @param nSize Size of array list to create.
+   */
+  public static <E> List<E> createNewSortedList(int nSize) {
+    return new SortedArrayList<E>(nSize);
+  }
 
-    public static<E> List<E> createNewList( int nSize )
-    {
-        return new ArrayList<E>( nSize );
-    }
+  /**
+   * Create a new sorted list from a collection.
+   *
+   * @param collection Collection from which to create list.
+   */
+  public static <E> List<E> createNewSortedList(Collection<E> collection) {
+    return new SortedArrayList<E>(collection);
+  }
 
-    /** Create a new ArrayList from a collection.
-     *
-     *  @param  collection  Collection from which to create list.
-     */
-
-    public static<E> List<E> createNewList( Collection<E> collection )
-    {
-        return new ArrayList<E>( collection );
-    }
-
-    /** Create a new sorted list of a specified size.
-     *
-     *  @param  nSize   Size of array list to create.
-     */
-
-    public static<E> List<E> createNewSortedList( int nSize )
-    {
-        return new SortedArrayList<E>( nSize );
-    }
-
-    /** Create a new sorted list from a collection.
-     *
-     *  @param  collection  Collection from which to create list.
-     */
-
-    public static<E> List<E> createNewSortedList( Collection<E> collection )
-    {
-        return new SortedArrayList<E>( collection );
-    }
-
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected ListFactory()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected ListFactory() {}
 }
 
 /*
@@ -104,6 +91,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

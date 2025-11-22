@@ -2,178 +2,134 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.c
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
+import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.logger.*;
 import edu.northwestern.at.utils.math.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
+import java.util.*;
 
-/** Abstract contextual smoother.
+/**
+ * Abstract contextual smoother.
  *
- *  <p>
- *  An abstract contextual smoother which provides implementations of
- *  common service methods such as setting the lexicon and the
- *  transition probability matrix.  Extend this class and override
- *  the abstract method "contextualProbability" to produce a new
- *  contextual smoother.
- *  </p>
+ * <p>An abstract contextual smoother which provides implementations of common service methods such
+ * as setting the lexicon and the transition probability matrix. Extend this class and override the
+ * abstract method "contextualProbability" to produce a new contextual smoother.
  */
+public abstract class AbstractContextualSmoother extends IsCloseableObject
+    implements ContextualSmoother, UsesLogger {
+  /**
+   * The part of speech tagger for which this smoother provides amoother contextual probabilities.
+   */
+  protected PartOfSpeechTagger partOfSpeechTagger;
 
-abstract public class AbstractContextualSmoother
-    extends IsCloseableObject
-    implements ContextualSmoother, UsesLogger
-{
-    /** The part of speech tagger for which this smoother provides
-     *  amoother contextual probabilities.
-     */
+  /** Cached contextual probabilities. */
+  protected Map3D<String, String, String, Probability> cachedContextualProbabilities;
 
-    protected PartOfSpeechTagger partOfSpeechTagger;
+  /** Logger used for output. */
+  protected Logger logger;
 
-    /** Cached contextual probabilities.
-     */
+  /** Create an abstract contextual smoother. */
+  public AbstractContextualSmoother() {
+    //  Create cache for contextual
+    //  probabilities.
 
-    protected Map3D<String, String, String, Probability>
-        cachedContextualProbabilities;
+    cachedContextualProbabilities = Map3DFactory.createNewMap3D(1000);
 
-    /** Logger used for output. */
+    //  Create logger.
 
-    protected Logger logger;
+    logger = new DummyLogger();
+  }
 
-    /** Create an abstract contextual smoother.
-     */
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    public AbstractContextualSmoother()
-    {
-                                //  Create cache for contextual
-                                //  probabilities.
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-        cachedContextualProbabilities   =
-            Map3DFactory.createNewMap3D( 1000 );
+  /**
+   * Set the part of speech tagger for this smoother.
+   *
+   * @param partOfSpeechTagger Part of speech tagger for which this smoother provides probabilities.
+   */
+  public void setPartOfSpeechTagger(PartOfSpeechTagger partOfSpeechTagger) {
+    this.partOfSpeechTagger = partOfSpeechTagger;
+  }
 
-                                //  Create logger.
+  /**
+   * Get the number of cached contextual probabilities.
+   *
+   * @return The number of cached contextual probabilities.
+   */
+  public int cachedProbabilitiesCount() {
+    int result = 0;
 
-        logger  = new DummyLogger();
+    if (cachedContextualProbabilities != null) {
+      result = cachedContextualProbabilities.size();
     }
 
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
+    return result;
+  }
 
-    public Logger getLogger()
-    {
-        return logger;
-    }
+  /** Clear cached probabilities.. */
+  public void clearCachedProbabilities() {
+    cachedContextualProbabilities.clear();
+  }
 
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
-
-    /** Set the part of speech tagger for this smoother.
-     *
-     *  @param  partOfSpeechTagger  Part of speech tagger for which
-     *                              this smoother provides probabilities.
-     */
-
-    public void setPartOfSpeechTagger
-    (
-        PartOfSpeechTagger partOfSpeechTagger
-    )
-    {
-        this.partOfSpeechTagger = partOfSpeechTagger;
-    }
-
-    /** Get the number of cached contextual probabilities.
-     *
-     *  @return     The number of cached contextual probabilities.
-     */
-
-    public int cachedProbabilitiesCount()
-    {
-        int result  = 0;
-
-        if ( cachedContextualProbabilities != null )
-        {
-            result  = cachedContextualProbabilities.size();
-        }
-
-        return result;
-    }
-
-    /** Clear cached probabilities..
-     */
-
-    public void clearCachedProbabilities()
-    {
-        cachedContextualProbabilities.clear();
-    }
-
-    /** Get contextually smoothed probability of a word given a tag.
-     *
-     *  @param  word    The word.
-     *  @param  tag     The part of speech tag.
-     *
-     *  @return         Contextually smoothed probability of word given tag,
-     *                  e.g., p( word | tag ).
-     *
-     *  <p>
-     *  To avoid redoing potentially expensive probability calculations,
-     *  you can use the "cachedContextualProbabilities" HashMap2D to store
-     *  probabilities once they are calculated.  Your contextualProbability
-     *  method should look to see if the cache contains the needed
-     *  contextual probability.  If so, just retrieve it without recomputing it.
-     *  If the cache does not contain the probability, compute it, and
-     *  store it in the cache for future use.
-     *  </p>
-     *
-     *  <p>
-     *  Here is what a contextualProbability method should look like, using
-     *  the cache.
-     *  <p>
-     *
-     *  <p>
-     *  <pre>
-     *  protected Probability contextualProbability( String word , String tag )
-     *  {
-     *                              //  See if the contextual probability
-     *                              //  p( word | tag ) is in the cache.
-     *
-     *      Probability result  =
-     *          (Probability)cachedContextualProbabilities.get( word , tag );
-     *
-     *                              //  If the probability isn't in the
-     *                              //  cache, compute it.
-     *
-     *      if ( result == null )
-     *      {
-     *          double prob     = <em>compute smoothed probability value</em>
-     *
-     *                              //  Store computed probability in
-     *                              //  the cache.
-     *
-     *          result  = new Probability( prob );
-     *
-     *          cachedContextualProbabilities.put( word , tag , result );
-     *      }
-     *
-     *      return result;
-     *  }
-     *  </pre>
-     *  </p>
-     */
-
-     public abstract Probability contextualProbability
-     (
-        String word ,
-        String tag
-     );
+  /**
+   * Get contextually smoothed probability of a word given a tag.
+   *
+   * @param word The word.
+   * @param tag The part of speech tag.
+   * @return Contextually smoothed probability of word given tag, e.g., p( word | tag ).
+   *     <p>To avoid redoing potentially expensive probability calculations, you can use the
+   *     "cachedContextualProbabilities" HashMap2D to store probabilities once they are calculated.
+   *     Your contextualProbability method should look to see if the cache contains the needed
+   *     contextual probability. If so, just retrieve it without recomputing it. If the cache does
+   *     not contain the probability, compute it, and store it in the cache for future use.
+   *     <p>Here is what a contextualProbability method should look like, using the cache.
+   *     <p>
+   *     <p>
+   *     <pre>
+   *  protected Probability contextualProbability( String word , String tag )
+   *  {
+   *                              //  See if the contextual probability
+   *                              //  p( word | tag ) is in the cache.
+   *
+   *      Probability result  =
+   *          (Probability)cachedContextualProbabilities.get( word , tag );
+   *
+   *                              //  If the probability isn't in the
+   *                              //  cache, compute it.
+   *
+   *      if ( result == null )
+   *      {
+   *          double prob     = <em>compute smoothed probability value</em>
+   *
+   *                              //  Store computed probability in
+   *                              //  the cache.
+   *
+   *          result  = new Probability( prob );
+   *
+   *          cachedContextualProbabilities.put( word , tag , result );
+   *      }
+   *
+   *      return result;
+   *  }
+   *  </pre>
+   */
+  public abstract Probability contextualProbability(String word, String tag);
 }
 
 /*
@@ -216,6 +172,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

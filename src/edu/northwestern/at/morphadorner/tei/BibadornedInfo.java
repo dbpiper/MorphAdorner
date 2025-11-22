@@ -2,314 +2,248 @@ package edu.northwestern.at.morphadorner.tei;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.MapFactory;
 import java.util.*;
-
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import edu.northwestern.at.utils.MapFactory;
-
-/** Extract selected "monkHeader" information from a MorphAdorned file.
+/**
+ * Extract selected "monkHeader" information from a MorphAdorned file.
  *
- *  <p>
- *  The "monkHeader" was a custom extension to the TEI XML format
- *  used by the Monk project.
- *  </p>
+ * <p>The "monkHeader" was a custom extension to the TEI XML format used by the Monk project.
  */
+public class BibadornedInfo {
+  /* File name. */
 
-public class BibadornedInfo
-{
-    /* File name. */
+  protected String fileName;
 
-    protected String fileName;
+  /* Title. */
 
-    /* Title. */
+  protected String title;
 
-    protected String title;
+  /* Author name. */
 
-    /* Author name. */
+  protected String name;
 
-    protected String name;
+  /** Circulation year. */
+  protected String circulationYear;
 
-    /** Circulation year. */
+  /** Genre. */
+  protected String genre;
 
-    protected String circulationYear;
+  /** Subgenre. */
+  protected String subgenre;
 
-    /** Genre. */
+  /** Availability. */
+  protected String availability;
 
-    protected String genre;
+  /** True if in Monk header. */
+  protected boolean inMonkHeader;
 
-    /** Subgenre. */
+  /** True if Monk header found. */
+  protected boolean monkHeaderFound = false;
 
-    protected String subgenre;
+  /** List of authors. */
+  protected List<TEIHeaderAuthor> authorList = new ArrayList<TEIHeaderAuthor>();
 
-    /** Availability. */
+  /** Current author map. */
+  protected Map<String, String> authorMap = null;
 
-    protected String availability;
+  /**
+   * Get Bibadorned bibliographic information.
+   *
+   * @param bibadornedXMLFile The bibadorned XML file.
+   */
+  public BibadornedInfo(String bibadornedXMLFile) {
+    parseXML(bibadornedXMLFile);
+  }
 
-    /** True if in Monk header. */
+  /**
+   * Get file name.
+   *
+   * @return The work's file name.
+   */
+  public String getFileName() {
+    return fileName;
+  }
 
-    protected boolean inMonkHeader;
+  /**
+   * Get title.
+   *
+   * @return The work's title.
+   */
+  public String getTitle() {
+    return title;
+  }
 
-    /** True if Monk header found. */
+  /**
+   * Return author list.
+   *
+   * @return authorList List of author maps.
+   */
+  public List<TEIHeaderAuthor> getAuthors() {
+    return authorList;
+  }
 
-    protected boolean monkHeaderFound   = false;
+  /**
+   * Get genre.
+   *
+   * @return Genre of work.
+   */
+  public String getGenre() {
+    return genre;
+  }
 
-    /** List of authors. */
+  /**
+   * Get subgenre.
+   *
+   * @return Subgenre of work.
+   */
+  public String getSubgenre() {
+    return subgenre;
+  }
 
-    protected List<TEIHeaderAuthor> authorList  =
-        new ArrayList<TEIHeaderAuthor>();
+  /**
+   * Get circulation yeaar.
+   *
+   * @return Circulation year.
+   */
+  public String getCirculationYear() {
+    return circulationYear;
+  }
 
-    /** Current author map. */
+  /**
+   * Get availability.
+   *
+   * @return Availability of work.
+   */
+  public String getAvailability() {
+    return availability;
+  }
 
-    protected Map<String, String> authorMap = null;
+  /**
+   * Check if Monk header found.
+   *
+   * @return true if Monk header seen, false otherwise.
+   */
+  public boolean getMonkHeaderFound() {
+    return monkHeaderFound;
+  }
 
-    /** Get Bibadorned bibliographic information.
-     *
-     *  @param  bibadornedXMLFile   The bibadorned XML file.
-     */
+  /**
+   * Parse input file looking for Monk header.
+   *
+   * @param xmlFile The XML file name to parse.
+   */
+  public void parseXML(String xmlFile) {
+    DefaultHandler handler =
+        new DefaultHandler() {
+          boolean inAuthor = false;
+          boolean isName = false;
+          boolean isFileName = false;
+          boolean isTitle = false;
+          boolean isGenre = false;
+          boolean isSubgenre = false;
+          boolean isCircYear = false;
 
-    public BibadornedInfo( String bibadornedXMLFile )
-    {
-        parseXML( bibadornedXMLFile );
+          boolean inMonkHeader = false;
+
+          public void startElement(
+              String uri, String localName, String qName, Attributes attributes)
+              throws SAXException {
+            //  If we hit the text element,
+            //  quit, as the Monk header should
+            //  already have been seen.
+
+            if (qName.equals("text")) {
+              throw new SAXException("monkHeader not found");
+            }
+
+            if (qName.equals("monkHeader")) {
+              inMonkHeader = true;
+              monkHeaderFound = true;
+            }
+
+            if (inMonkHeader) {
+              isFileName = qName.equals("fileName");
+              isTitle = qName.equals("title");
+              isGenre = qName.equals("genre");
+              isSubgenre = qName.equals("subgenre");
+              isCircYear = qName.equals("circulationYear");
+
+              if (qName.equals("author")) {
+                inAuthor = true;
+              }
+
+              if (inAuthor) {
+                isName = qName.equals("name");
+              }
+            }
+          }
+
+          public void endElement(String uri, String localName, String qName) throws SAXException {
+            if (qName.equals("monkHeader")) {
+              inMonkHeader = false;
+
+              throw new SAXException("monkHeader done");
+            } else if (qName.equals("author")) {
+              inAuthor = false;
+            }
+          }
+
+          public void characters(char ch[], int start, int length) throws SAXException {
+            if (isName) {
+              name = new String(ch, start, length);
+              isName = false;
+
+              Map<String, String> nameMap = MapFactory.createNewMap();
+
+              nameMap.put("name", name);
+
+              authorList.add(new TEIHeaderAuthor(nameMap));
+            }
+
+            if (isFileName) {
+              fileName = new String(ch, start, length);
+              isFileName = false;
+            }
+
+            if (isTitle) {
+              title = new String(ch, start, length);
+              isTitle = false;
+            }
+
+            if (isCircYear) {
+              circulationYear = new String(ch, start, length);
+              isCircYear = false;
+            }
+
+            if (isGenre) {
+              genre = new String(ch, start, length);
+              isGenre = false;
+            }
+
+            if (isSubgenre) {
+              subgenre = new String(ch, start, length);
+              isSubgenre = false;
+            }
+          }
+        };
+
+    try {
+      SAXParserFactory factory = SAXParserFactory.newInstance();
+
+      SAXParser saxParser = factory.newSAXParser();
+
+      monkHeaderFound = false;
+
+      saxParser.parse(xmlFile, handler);
+    } catch (Exception e) {
     }
-
-    /** Get file name.
-     *
-     *  @return     The work's file name.
-     */
-
-    public String getFileName()
-    {
-        return fileName;
-    }
-
-    /** Get title.
-     *
-     *  @return     The work's title.
-     */
-
-    public String getTitle()
-    {
-        return title;
-    }
-
-    /** Return author list.
-     *
-     *  @return     authorList      List of author maps.
-     */
-
-    public List<TEIHeaderAuthor> getAuthors()
-    {
-        return authorList;
-    }
-
-    /** Get genre.
-     *
-     *  @return     Genre of work.
-     */
-
-    public String getGenre()
-    {
-        return genre;
-    }
-
-    /** Get subgenre.
-     *
-     *  @return     Subgenre of work.
-     */
-
-    public String getSubgenre()
-    {
-        return subgenre;
-    }
-
-    /** Get circulation yeaar.
-     *
-     *  @return     Circulation year.
-     */
-
-    public String getCirculationYear()
-    {
-        return circulationYear;
-    }
-
-    /** Get availability.
-     *
-     *  @return     Availability of work.
-     */
-
-    public String getAvailability()
-    {
-        return availability;
-    }
-
-    /** Check if Monk header found.
-     *
-     *  @return     true if Monk header seen, false otherwise.
-     */
-
-    public boolean getMonkHeaderFound()
-    {
-        return monkHeaderFound;
-    }
-
-    /** Parse input file looking for Monk header.
-     *
-     *  @param  xmlFile     The XML file name to parse.
-     */
-
-    public void parseXML( String xmlFile )
-    {
-        DefaultHandler handler =
-            new DefaultHandler()
-            {
-                boolean inAuthor    = false;
-                boolean isName      = false;
-                boolean isFileName  = false;
-                boolean isTitle     = false;
-                boolean isGenre     = false;
-                boolean isSubgenre  = false;
-                boolean isCircYear  = false;
-
-                boolean inMonkHeader        = false;
-
-                public void startElement
-                (
-                    String uri ,
-                    String localName ,
-                    String qName ,
-                    Attributes attributes
-                )
-                    throws SAXException
-                {
-                                //  If we hit the text element,
-                                //  quit, as the Monk header should
-                                //  already have been seen.
-
-                    if ( qName.equals( "text" ) )
-                    {
-                        throw new SAXException( "monkHeader not found" );
-                    }
-
-                    if ( qName.equals( "monkHeader" ) )
-                    {
-                        inMonkHeader    = true;
-                        monkHeaderFound = true;
-                    }
-
-                    if ( inMonkHeader )
-                    {
-                        isFileName  = qName.equals( "fileName" );
-                        isTitle     = qName.equals( "title" );
-                        isGenre     = qName.equals( "genre" );
-                        isSubgenre  = qName.equals( "subgenre" );
-                        isCircYear  = qName.equals( "circulationYear" );
-
-                        if ( qName.equals( "author" ) )
-                        {
-                            inAuthor    = true;
-                        }
-
-                        if ( inAuthor )
-                        {
-                            isName  = qName.equals( "name" );
-                        }
-                    }
-                }
-
-                public void endElement
-                (
-                    String uri ,
-                    String localName ,
-                    String qName
-                )
-                    throws SAXException
-                {
-                    if ( qName.equals( "monkHeader" ) )
-                    {
-                        inMonkHeader    = false;
-
-                        throw new SAXException( "monkHeader done" );
-                    }
-                    else if ( qName.equals( "author" ) )
-                    {
-                        inAuthor    = false;
-                    }
-                }
-
-                public void characters
-                (
-                    char ch[] ,
-                    int start ,
-                    int length
-                )
-                    throws SAXException
-                {
-                    if ( isName )
-                    {
-                        name    = new String( ch , start , length );
-                        isName  = false;
-
-                        Map<String, String> nameMap =
-                            MapFactory.createNewMap();
-
-                        nameMap.put( "name" , name );
-
-                        authorList.add( new TEIHeaderAuthor( nameMap ) );
-                    }
-
-                    if ( isFileName )
-                    {
-                        fileName    = new String( ch , start , length );
-                        isFileName  = false;
-                    }
-
-                    if ( isTitle )
-                    {
-                        title   = new String( ch , start , length );
-                        isTitle = false;
-                    }
-
-                    if ( isCircYear )
-                    {
-                        circulationYear = new String( ch , start , length );
-                        isCircYear      = false;
-                    }
-
-                    if ( isGenre )
-                    {
-                        genre   = new String( ch , start , length );
-                        isGenre = false;
-                    }
-
-                    if ( isSubgenre )
-                    {
-                        subgenre    = new String( ch , start , length );
-                        isSubgenre  = false;
-                    }
-                }
-            };
-
-        try
-        {
-            SAXParserFactory factory    =
-                SAXParserFactory.newInstance();
-
-            SAXParser saxParser = factory.newSAXParser();
-
-            monkHeaderFound = false;
-
-            saxParser.parse( xmlFile , handler );
-        }
-        catch ( Exception e )
-        {
-        }
-    }
+  }
 }
 
 /*
@@ -352,6 +286,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

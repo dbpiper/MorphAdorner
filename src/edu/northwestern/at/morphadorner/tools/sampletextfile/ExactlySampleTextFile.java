@@ -2,202 +2,151 @@ package edu.northwestern.at.morphadorner.tools.sampletextfile;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.math.randomnumbers.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.math.randomnumbers.*;
-
-/** Exactly sample a text file.
+/**
+ * Exactly sample a text file.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  java edu.northwestern.at.morphadorner.tools.sampletextfile.ExactlySampleTextFile input.txt output.txt samplecount<br />
- *  <br />
- *  input.txt -- input text file to be sampled.<br />
- *  output.txt -- output text file.<br />
- *  samplecount -- Size of random sample to extract. Must be positive integer.
- *  </p>
+ * <p>java edu.northwestern.at.morphadorner.tools.sampletextfile.ExactlySampleTextFile input.txt
+ * output.txt samplecount<br>
+ * <br>
+ * input.txt -- input text file to be sampled.<br>
+ * output.txt -- output text file.<br>
+ * samplecount -- Size of random sample to extract. Must be positive integer.
  *
- *  <p>
- *  The output file is a text file containing the sampled text lines
- *  from the input file.  Both the input and the output must be utf-8 encoded.
- *  The output lines are appended to any existing lines in the output file.
- *  </p>
+ * <p>The output file is a text file containing the sampled text lines from the input file. Both the
+ * input and the output must be utf-8 encoded. The output lines are appended to any existing lines
+ * in the output file.
  */
+public class ExactlySampleTextFile extends SampleTextFile {
+  /** Count of lines left in input file. */
+  protected int totalCount = 0;
 
-public class ExactlySampleTextFile extends SampleTextFile
-{
-    /** Count of lines left in input file. */
+  /** Count of lines left to sample. */
+  protected int sampleCount = 0;
 
-    protected int totalCount    = 0;
+  /**
+   * Main program.
+   *
+   * @param args Program parameters.
+   */
+  public static void main(String[] args) {
+    try {
+      if (args.length < 3) {
+        System.err.println("Too few arguments.");
 
-    /** Count of lines left to sample. */
+        help();
 
-    protected int sampleCount   = 0;
+        System.exit(1);
+      }
 
-    /** Main program.
-     *
-     *  @param  args    Program parameters.
-     */
+      int sampleCount = Integer.parseInt(args[2]);
 
-    public static void main( String[] args )
-    {
-        try
-        {
-            if ( args.length < 3 )
-            {
-                System.err.println( "Too few arguments." );
+      if (sampleCount < 0) {
+        System.err.println("Bad sample count -- must be an integer greater than zero.");
 
-                help();
+        System.exit(1);
+      }
+      //  Sample the input file to the output file.
 
-                System.exit( 1 );
-            }
+      new ExactlySampleTextFile(args[0], args[1], sampleCount).sample();
+    } catch (Exception e) {
+      e.printStackTrace();
 
-            int sampleCount = Integer.parseInt( args[ 2 ] );
+      System.exit(1);
+    }
+  }
 
-            if ( sampleCount < 0 )
-            {
-                System.err.println(
-                    "Bad sample count -- must be an integer greater than zero." );
+  /** Help text. */
+  public static void help() {
+    System.out.println();
+    System.out.println(
+        "java edu.northwestern.at.morphadorner.tools."
+            + "sampletextfile.ExactlySampleTextFile input.txt "
+            + "output.txt samplecount");
+    System.out.println();
+    System.out.println("   input.txt -- input text file to be sampled.");
+    System.out.println("   output.txt -- output text file.");
+    System.out.println("   samplecount -- count of lines to sample from input.");
+  }
 
-                System.exit( 1 );
-            }
-                                //  Sample the input file to the output file.
+  /**
+   * Copy a text file to another while sampling the input lines.
+   *
+   * @param inputFileName Input file name.
+   * @param outputFileName Output file name.
+   * @param sample Sample count, percentage, etc.
+   */
+  public ExactlySampleTextFile(String inputFileName, String outputFileName, int sample) {
+    super(inputFileName, outputFileName, (double) sample);
+  }
 
-            new ExactlySampleTextFile
-            (
-                args[ 0 ] , args[ 1 ] , sampleCount
-            ).sample();
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
+  /** Setup sampling. */
+  protected void setupSampling() {
+    this.sampleCount = (int) sample;
+  }
 
-            System.exit( 1 );
-        }
+  /** Perform the sampling. */
+  public void sample() {
+    try {
+      //  Count lines in input file.
+      totalCount = 0;
+
+      UnicodeReader streamReader =
+          new UnicodeReader(new FileInputStream(new File(inputFileName)), "utf-8");
+
+      BufferedReader in = new BufferedReader(streamReader);
+
+      String inputLine = in.readLine();
+
+      while (inputLine != null) {
+        //  Update line count.
+        totalCount++;
+        //  Read next input line.
+
+        inputLine = in.readLine();
+      }
+      //  Rewind the input file.
+      in.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("   *** Failed");
+    }
+  }
+
+  /**
+   * Check if line should be selected.
+   *
+   * @param inputLine The input line.
+   * @return true to select line.
+   *     <p>Subclasses must override this method.
+   */
+  protected boolean lineSelected(String inputLine) {
+    double samp = (double) sampleCount / (double) totalCount;
+    boolean result = (RandomVariable.rand() < samp);
+
+    if (result) {
+      sampleCount--;
     }
 
-    /** Help text. */
+    totalCount--;
 
-    public static void help()
-    {
-        System.out.println();
-        System.out.println(
-            "java edu.northwestern.at.morphadorner.tools." +
-            "sampletextfile.ExactlySampleTextFile input.txt " +
-            "output.txt samplecount" );
-        System.out.println();
-        System.out.println(
-            "   input.txt -- input text file to be sampled." );
-        System.out.println(
-            "   output.txt -- output text file." );
-        System.out.println(
-            "   samplecount -- count of lines to sample from input." );
-    }
+    return result;
+  }
 
-    /** Copy a text file to another while sampling the input lines.
-     *
-     *  @param  inputFileName       Input file name.
-     *  @param  outputFileName      Output file name.
-     *  @param  sample              Sample count, percentage, etc.
-     */
-
-    public ExactlySampleTextFile
-    (
-        String inputFileName ,
-        String outputFileName ,
-        int sample
-    )
-    {
-        super( inputFileName , outputFileName , (double)sample );
-    }
-
-    /** Setup sampling.
-     */
-
-    protected void setupSampling()
-    {
-        this.sampleCount    = (int)sample;
-    }
-
-    /** Perform the sampling.
-     */
-
-    public void sample()
-    {
-        try
-        {
-                                //  Count lines in input file.
-            totalCount  = 0;
-
-            UnicodeReader streamReader  =
-                new UnicodeReader
-                (
-                    new FileInputStream( new File( inputFileName ) ) ,
-                    "utf-8"
-                );
-
-            BufferedReader in   = new BufferedReader( streamReader );
-
-            String inputLine    = in.readLine();
-
-            while ( inputLine != null )
-            {
-                                //  Update line count.
-                totalCount++;
-                                //  Read next input line.
-
-                inputLine   = in.readLine();
-            }
-                                //  Rewind the input file.
-            in.close();
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-            System.out.println( "   *** Failed" );
-        }
-    }
-
-    /** Check if line should be selected.
-     *
-     *  @param  inputLine       The input line.
-     *
-     *  @return true to select line.
-     *
-     *  <p>
-     *  Subclasses must override this method.
-     *  </p>
-     */
-
-    protected boolean lineSelected( String inputLine )
-    {
-        double samp     = (double)sampleCount / (double)totalCount;
-        boolean result  = ( RandomVariable.rand() < samp );
-
-        if ( result )
-        {
-            sampleCount--;
-        }
-
-        totalCount--;
-
-        return result;
-    }
-
-    /** Determine if sampling done.
-     *
-     *  @return true if sampling done.
-     */
-
-    public boolean samplingDone()
-    {
-        return ( sampleCount <= 0 );
-    }
+  /**
+   * Determine if sampling done.
+   *
+   * @return true if sampling done.
+   */
+  public boolean samplingDone() {
+    return (sampleCount <= 0);
+  }
 }
 
 /*
@@ -240,6 +189,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

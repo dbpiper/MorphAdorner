@@ -4,28 +4,18 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.mapper;
 
 import java.util.*;
 
-/** PartOfSpeechTagsMapper: Maps a part of speech tag from one tag set to another.
- */
-
-public interface PartOfSpeechTagsMapper
-{
-    /** Get destination part of speech tag for a source part of speech tag.
-     *
-     *  @param  spelling        Spelling.
-     *  @param  sourceTag       Source tag name.
-     *
-     *  @return                 Destination tag name.
-     *                          Returns unknown tag value if source unrecognized.
-     *
-     *  <p>
-     *  If the source tag contains one or more tag separators,
-     *  the result will contain the respective mapped destination tags
-     *  separated by tag separators.
-     *  </p>
-     *
-     */
-
-    public String getTag( String spelling , String sourceTag );
+/** PartOfSpeechTagsMapper: Maps a part of speech tag from one tag set to another. */
+public interface PartOfSpeechTagsMapper {
+  /**
+   * Get destination part of speech tag for a source part of speech tag.
+   *
+   * @param spelling Spelling.
+   * @param sourceTag Source tag name.
+   * @return Destination tag name. Returns unknown tag value if source unrecognized.
+   *     <p>If the source tag contains one or more tag separators, the result will contain the
+   *     respective mapped destination tags separated by tag separators.
+   */
+  public String getTag(String spelling, String sourceTag);
 }
 
 /*
@@ -68,6 +58,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

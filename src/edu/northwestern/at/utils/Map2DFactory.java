@@ -2,45 +2,31 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-/** Factory for creating a HashMap2D.
- */
+/** Factory for creating a HashMap2D. */
+public class Map2DFactory {
+  /** Create a new HashMap2D. */
+  public static <R extends Comparable, C extends Comparable, V> Map2D<R, C, V> createNewMap2D() {
+    return new HashMap2D<R, C, V>();
+  }
 
-public class Map2DFactory
-{
-    /** Create a new HashMap2D.
-     */
+  /**
+   * Create a new HashMap2D.
+   *
+   * @param capacity Initial capacity.
+   */
+  public static <R extends Comparable, C extends Comparable, V> Map2D<R, C, V> createNewMap2D(
+      int capacity) {
+    return new HashMap2D<R, C, V>(capacity);
+  }
 
-    public static<R extends Comparable, C extends Comparable, V>
-        Map2D<R, C, V> createNewMap2D()
-    {
-        return new HashMap2D<R, C, V>();
-    }
+  /** Create a new SortedMap2D. */
+  public static <R extends Comparable, C extends Comparable, V>
+      Map2D<R, C, V> createNewSortedMap2D() {
+    return new TreeMap2D<R, C, V>();
+  }
 
-    /** Create a new HashMap2D.
-     *
-     *  @param  capacity    Initial capacity.
-     */
-
-    public static<R extends Comparable, C extends Comparable, V>
-        Map2D<R, C, V> createNewMap2D( int capacity )
-    {
-        return new HashMap2D<R, C, V>( capacity );
-    }
-
-    /** Create a new SortedMap2D.
-     */
-
-    public static<R extends Comparable, C extends Comparable, V>
-        Map2D<R, C, V> createNewSortedMap2D()
-    {
-        return new TreeMap2D<R, C, V>();
-    }
-
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected Map2DFactory()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected Map2DFactory() {}
 }
 
 /*
@@ -83,6 +69,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

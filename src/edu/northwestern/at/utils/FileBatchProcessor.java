@@ -5,256 +5,185 @@ package edu.northwestern.at.utils;
 import java.io.*;
 import java.text.*;
 import java.util.*;
-
 import org.jdom2.*;
-import org.jdom2.input.*;
 import org.jdom2.filter.*;
+import org.jdom2.input.*;
 import org.jdom2.output.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-/** Process batch of files.
- */
+/** Process batch of files. */
+public abstract class FileBatchProcessor {
+  /** # params before input file specs. */
+  protected int initParams = 1;
 
-abstract public class FileBatchProcessor
-{
-    /** # params before input file specs. */
+  /** Number of documents to process. */
+  protected int filesToProcess = 0;
 
-    protected int initParams    = 1;
+  /** Current document. */
+  protected int currentFileNumber = 0;
 
-    /** Number of documents to process. */
+  /** Output directory name. */
+  protected String outputDirectoryName = "";
 
-    protected int filesToProcess        = 0;
+  /** Input file names. May contain wildcards. */
+  protected String[] fileNames = null;
 
-    /** Current document. */
+  /** Wrapper for printStream to allow utf-8 output. */
+  protected PrintStream printStream;
 
-    protected int currentFileNumber = 0;
+  /** Create file batch processor. */
+  public FileBatchProcessor() throws Exception {
+    initialize();
+  }
 
-    /** Output directory name. */
+  /** Run file batch processor. */
+  public void run() {
+    //  Initialize.
+    try {
+      //  Process all files.
 
-    protected String outputDirectoryName    = "";
+      long startTime = System.currentTimeMillis();
 
-    /** Input file names.  May contain wildcards. */
+      int filesProcessed = processFiles();
 
-    protected String[] fileNames    = null;
+      long processingTime = (System.currentTimeMillis() - startTime + 999) / 1000;
 
-    /** Wrapper for printStream to allow utf-8 output. */
+      //  Terminate.
 
-    protected PrintStream printStream;
+      terminate(filesProcessed, processingTime);
+    } catch (Exception e) {
+      printStream.println(e.getMessage());
+    }
+  }
 
-    /** Create file batch processor.
-     */
+  /** Initialize. */
+  public boolean initialize() throws Exception {
+    //  Allow utf-8 output to printStream .
+    printStream = new PrintStream(new BufferedOutputStream(System.out), true, "utf-8");
 
-    public FileBatchProcessor()
-        throws Exception
-    {
-        initialize();
+    return true;
+  }
+
+  /**
+   * Process one input file.
+   *
+   * @param inputFileName Input file name.
+   */
+  public abstract void processOneFile(String inputFileName) throws Exception;
+
+  /** Process files. */
+  public int processFiles() throws Exception {
+    int result = 0;
+    //  If file names not set, do nothing.
+
+    if (fileNames != null) {
+      //  Number of files to process.
+
+      filesToProcess = fileNames.length;
+
+      //  Process each file.
+
+      for (int i = 0; i < fileNames.length; i++) {
+        processOneFile(fileNames[i]);
+      }
     }
 
-    /** Run file batch processor.
-     */
+    return fileNames.length;
+  }
 
-    public void run()
-    {
-                                //  Initialize.
-        try
-        {
-                                //  Process all files.
+  /**
+   * Terminate.
+   *
+   * @param filesProcessed Number of files processed.
+   * @param processingTime Processing time in seconds.
+   */
+  public void terminate(int filesProcessed, long processingTime) {
+    printStream.println(
+        "Processed "
+            + Formatters.formatIntegerWithCommas(filesProcessed)
+            + " files in "
+            + Formatters.formatLongWithCommas(processingTime)
+            + " seconds.");
+  }
 
-            long startTime      = System.currentTimeMillis();
+  /**
+   * Set output directory name.
+   *
+   * @param outputDirectoryName Output directory name.
+   */
+  public void setOutputDirectoryName(String outputDirectoryName) {
+    this.outputDirectoryName = outputDirectoryName;
+  }
 
-            int filesProcessed  = processFiles();
+  /**
+   * Get output directory name.
+   *
+   * @return Output directory name.
+   */
+  public String getOutputDirectoryName() {
+    return outputDirectoryName;
+  }
 
-            long processingTime =
-                ( System.currentTimeMillis() - startTime + 999 ) / 1000;
+  /**
+   * Set input file names.
+   *
+   * @param inputFileNames String array of input file names. May contain wildcards.
+   * @param startIndex Position in inputFileNames at which file names start.
+   */
+  public void setInputFileNames(String[] inputFileNames, int startIndex) {
+    //  Get file name/file wildcard specs.
 
-                                //  Terminate.
+    String[] wildcards = new String[inputFileNames.length - startIndex];
 
-            terminate( filesProcessed , processingTime );
-        }
-        catch ( Exception e )
-        {
-            printStream.println( e.getMessage() );
-        }
+    for (int i = startIndex; i < inputFileNames.length; i++) {
+      wildcards[i - startIndex] = inputFileNames[i];
     }
+    //  Expand wildcards to list of
+    //  file names.
+    this.fileNames = FileNameUtils.expandFileNameWildcards(wildcards);
+  }
 
-    /** Initialize.
-     */
+  /**
+   * Get number of files to process.
+   *
+   * @return Number of files to process.
+   */
+  public int getNumberOfFilesToProcess() {
+    return filesToProcess;
+  }
 
-    public boolean initialize()
-        throws Exception
-    {
-                                //  Allow utf-8 output to printStream .
-        printStream =
-            new PrintStream
-            (
-                new BufferedOutputStream( System.out ) ,
-                true ,
-                "utf-8"
-            );
+  /**
+   * Get index of file currently being processed.
+   *
+   * @return Index of file currently being processed.
+   */
+  public int getCurrentFileNumber() {
+    return currentFileNumber;
+  }
 
-        return true;
-    }
+  /**
+   * Set index of file currently being processed.
+   *
+   * @param currentFileNumber Index of file currently being processed.
+   */
+  public void setCurrentFileNumber(int currentFileNumber) {
+    this.currentFileNumber = currentFileNumber;
+  }
 
-    /** Process one input file.
-     *
-     *  @param  inputFileName   Input file name.
-     */
+  /** Increment index of file currently being processed. */
+  public void incrementCurrentFileNumber() {
+    this.currentFileNumber++;
+  }
 
-    abstract public void processOneFile( String inputFileName )
-        throws Exception;
-
-    /** Process files. */
-
-    public int processFiles()
-        throws Exception
-    {
-        int result  = 0;
-                                //  If file names not set, do nothing.
-
-        if ( fileNames != null )
-        {
-                                //  Number of files to process.
-
-            filesToProcess      = fileNames.length;
-
-                                //  Process each file.
-
-            for ( int i = 0 ; i < fileNames.length ; i++ )
-            {
-                processOneFile( fileNames[ i ] );
-            }
-        }
-
-        return fileNames.length;
-    }
-
-    /** Terminate.
-     *
-     *  @param  filesProcessed  Number of files processed.
-     *  @param  processingTime  Processing time in seconds.
-     */
-
-    public void terminate
-    (
-        int filesProcessed ,
-        long processingTime
-    )
-    {
-        printStream.println
-        (
-            "Processed " +
-            Formatters.formatIntegerWithCommas
-            (
-                filesProcessed
-            ) +
-            " files in " +
-            Formatters.formatLongWithCommas
-            (
-                processingTime
-            ) +
-            " seconds."
-        );
-    }
-
-    /** Set output directory name.
-     *
-     *  @param  outputDirectoryName     Output directory name.
-     */
-
-    public void setOutputDirectoryName( String outputDirectoryName )
-    {
-        this.outputDirectoryName    = outputDirectoryName;
-    }
-
-    /** Get output directory name.
-     *
-     *  @return     Output directory name.
-     */
-
-    public String getOutputDirectoryName()
-    {
-        return outputDirectoryName;
-    }
-
-    /** Set input file names.
-     *
-     *  @param  inputFileNames          String array of input file names.
-     *                                  May contain wildcards.
-     *
-     *  @param  startIndex              Position in inputFileNames at
-     *                                  which file names start.
-     */
-
-    public void setInputFileNames
-    (
-        String[] inputFileNames ,
-        int startIndex
-    )
-    {
-                                //  Get file name/file wildcard specs.
-
-        String[] wildcards  =
-            new String[ inputFileNames.length - startIndex ];
-
-        for ( int i = startIndex ; i < inputFileNames.length ; i++ )
-        {
-            wildcards[ i - startIndex ] = inputFileNames[ i ];
-        }
-                                //  Expand wildcards to list of
-                                //  file names.
-        this.fileNames  =
-            FileNameUtils.expandFileNameWildcards( wildcards );
-    }
-
-    /** Get number of files to process.
-     *
-     *  @return     Number of files to process.
-     */
-
-    public int getNumberOfFilesToProcess()
-    {
-        return filesToProcess;
-    }
-
-    /** Get index of file currently being processed.
-     *
-     *  @return     Index of file currently being processed.
-     */
-
-    public int getCurrentFileNumber()
-    {
-        return currentFileNumber;
-    }
-
-    /** Set index of file currently being processed.
-     *
-     *  @param  currentFileNumber   Index of file currently being processed.
-     */
-
-    public void setCurrentFileNumber( int currentFileNumber )
-    {
-        this.currentFileNumber  = currentFileNumber;
-    }
-
-    /** Increment index of file currently being processed.
-     */
-
-    public void incrementCurrentFileNumber()
-    {
-        this.currentFileNumber++;
-    }
-
-    /** Get print stream.
-     *
-     *  @return     Print stream.
-     */
-
-    public PrintStream getPrintStream()
-    {
-        return printStream;
-    }
+  /**
+   * Get print stream.
+   *
+   * @return Print stream.
+   */
+  public PrintStream getPrintStream() {
+    return printStream;
+  }
 }
 
 /*
@@ -297,5 +226,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

@@ -2,127 +2,100 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.tcpretagger
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** TCP text retagger.
+/**
+ * TCP text retagger.
  *
- *  <p>
- *  This retagger applies a short list of rules to improve tagging
- *  in TCP texts (ECCO, Evans, EEBO).
- *  </p>
+ * <p>This retagger applies a short list of rules to improve tagging in TCP texts (ECCO, Evans,
+ * EEBO).
  */
+public class TCPRetagger extends UnigramTagger implements PartOfSpeechRetagger {
+  /** Part of speech tags. */
+  protected static PartOfSpeechTags posTags;
 
-public class TCPRetagger
-    extends UnigramTagger
-    implements PartOfSpeechRetagger
-{
-    /** Part of speech tags. */
+  /** Create TCP retagger. */
+  public TCPRetagger() {
+    super();
+  }
 
-    protected static PartOfSpeechTags posTags;
+  /**
+   * Retag a sentence.
+   *
+   * @param sentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
+   * @return The sentence with words retagged.
+   */
+  @SuppressWarnings("unchecked")
+  public <T extends AdornedWord> List<T> retagSentence(List<T> sentence) {
+    //  Get noun part of speech tags
+    //  if we don't already have them.
 
-    /** Create TCP retagger.
-     */
-
-    public TCPRetagger()
-    {
-        super();
+    if (posTags == null) {
+      posTags = getLexicon().getPartOfSpeechTags();
     }
+    //  Get proper noun part of speech.
 
-    /** Retag a sentence.
-     *
-     *  @param  sentence    The sentence as an
-     *                      {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
-     *
-     *  @return             The sentence with words retagged.
-     */
+    String properNounTag = posTags.getSingularProperNounTag();
 
-    @SuppressWarnings("unchecked")
-    public<T extends AdornedWord> List<T> retagSentence
-    (
-        List<T> sentence
-    )
-    {
-                                //  Get noun part of speech tags
-                                //  if we don't already have them.
+    //  Look for "Great Britain" sequences
+    //  and tag both words as proper nouns.
+    int i = 1;
 
-        if ( posTags == null )
-        {
-            posTags = getLexicon().getPartOfSpeechTags();
+    while (i < sentence.size()) {
+      //  Get next word in sentence.
+
+      T adornedWord = sentence.get(i);
+
+      //  Is spelling "Britain"?
+
+      if (adornedWord.getSpelling().equalsIgnoreCase("britain")) {
+        //  Was previous word "Great"?
+
+        T prevAdornedWord = sentence.get(i - 1);
+
+        if (prevAdornedWord.getSpelling().equalsIgnoreCase("great")) {
+          adornedWord.setPartsOfSpeech(properNounTag);
+          prevAdornedWord.setPartsOfSpeech(properNounTag);
         }
-                                //  Get proper noun part of speech.
+      }
 
-        String properNounTag    = posTags.getSingularProperNounTag();
-
-                                //  Look for "Great Britain" sequences
-                                //  and tag both words as proper nouns.
-        int i = 1;
-
-        while ( i < sentence.size() )
-        {
-                                //  Get next word in sentence.
-
-            T adornedWord   = sentence.get( i );
-
-                                //  Is spelling "Britain"?
-
-            if ( adornedWord.getSpelling().equalsIgnoreCase( "britain" ) )
-            {
-                                //  Was previous word "Great"?
-
-                T prevAdornedWord   = sentence.get( i - 1 );
-
-                if ( prevAdornedWord.getSpelling().equalsIgnoreCase( "great" ) )
-                {
-                    adornedWord.setPartsOfSpeech( properNounTag );
-                    prevAdornedWord.setPartsOfSpeech( properNounTag );
-                }
-            }
-
-            i++;
-        }
-                                //  Return updated sentence.
-        return sentence;
+      i++;
     }
+    //  Return updated sentence.
+    return sentence;
+  }
 
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @return     true if retagger can add or delete words.
-     */
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @return true if retagger can add or delete words.
+   */
+  public boolean getCanAddOrDeleteWords() {
+    return false;
+  }
 
-    public boolean getCanAddOrDeleteWords()
-    {
-        return false;
-    }
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @param canAddOrDeleteWords true if retagger can add or delete words.
+   *     <p>Ignored here.
+   */
+  public void setCanAddOrDeleteWords(boolean canAddOrDeleteWords) {}
 
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @param  canAddOrDeleteWords     true if retagger can add or
-     *                                  delete words.
-     *
-     *  <p>
-     *  Ignored here.
-     *  </p>
-     */
-
-    public void setCanAddOrDeleteWords( boolean canAddOrDeleteWords )
-    {
-    }
-
-    /** Return retagger description.
-     *
-     *  @return     Retagger description.
-     */
-
-    public String toString()
-    {
-        return "TCP retagger";
-    }
+  /**
+   * Return retagger description.
+   *
+   * @return Retagger description.
+   */
+  public String toString() {
+    return "TCP retagger";
+  }
 }
 
 /*
@@ -165,6 +138,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

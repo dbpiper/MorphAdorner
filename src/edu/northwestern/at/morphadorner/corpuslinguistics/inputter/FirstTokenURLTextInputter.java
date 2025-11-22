@@ -2,88 +2,64 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inputter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.UnicodeReader;
 import java.io.*;
 import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.*;
 import java.text.*;
-
-import edu.northwestern.at.utils.IsCloseableObject;
-import edu.northwestern.at.utils.UnicodeReader;
+import java.util.*;
 
 /** Text inputter which reads only the first token in each line from a URL. */
+public class FirstTokenURLTextInputter extends URLTextInputter implements TextInputter {
+  /**
+   * Loads text from a URL, keeping only first token on each line.
+   *
+   * @param url URL from which to read text.
+   * @param encoding Text encoding.
+   * @throws IOException If an output error occurs.
+   */
+  public void loadText(URL url, String encoding) throws IOException {
+    BufferedReader reader = new BufferedReader(new UnicodeReader(url.openStream(), encoding));
 
-public class FirstTokenURLTextInputter
-    extends URLTextInputter
-    implements TextInputter
-{
-    /** Loads text from a URL, keeping only first token on each line.
-     *
-     *  @param  url             URL from which to read text.
-     *  @param  encoding        Text encoding.
-     *
-     *  @throws IOException     If an output error occurs.
-     */
+    StringBuffer loadedTextBuffer = new StringBuffer();
 
-     public void loadText( URL url , String encoding )
-        throws IOException
-     {
-        BufferedReader reader   =
-            new BufferedReader
-            (
-                new UnicodeReader
-                (
-                    url.openStream() ,
-                    encoding
-                )
-            );
+    String line = reader.readLine();
 
-        StringBuffer loadedTextBuffer   = new StringBuffer();
-
-        String line = reader.readLine();
-
-        while ( line != null )
-        {
-            String[] tokens = line.split( "\t" );
-            loadedTextBuffer.append( tokens[ 0 ] );
-            loadedTextBuffer.append( " " );
-            line = reader.readLine();
-        }
-
-        reader.close();
-
-        loadedText  = loadedTextBuffer.toString();
+    while (line != null) {
+      String[] tokens = line.split("\t");
+      loadedTextBuffer.append(tokens[0]);
+      loadedTextBuffer.append(" ");
+      line = reader.readLine();
     }
 
-    /** Loads text from a string, keeping only first token on each line.
-     *
-     *  @param  str         String from which to read text.
-     *
-     *  @throws IOException     If an error occurs.
-     */
+    reader.close();
 
-    public void loadText( String str )
-        throws Exception
-    {
-        BufferedReader reader   =
-            new BufferedReader( new StringReader( str ) );
+    loadedText = loadedTextBuffer.toString();
+  }
 
-        StringBuffer loadedTextBuffer   = new StringBuffer();
+  /**
+   * Loads text from a string, keeping only first token on each line.
+   *
+   * @param str String from which to read text.
+   * @throws IOException If an error occurs.
+   */
+  public void loadText(String str) throws Exception {
+    BufferedReader reader = new BufferedReader(new StringReader(str));
 
-        String line = reader.readLine();
+    StringBuffer loadedTextBuffer = new StringBuffer();
 
-        while ( line != null )
-        {
-            String[] tokens = line.split( "\t" );
-            loadedTextBuffer.append( tokens[ 0 ] );
-            loadedTextBuffer.append( " " );
-            line = reader.readLine();
-        }
+    String line = reader.readLine();
 
-        reader.close();
-
-        loadedText  = loadedTextBuffer.toString();
+    while (line != null) {
+      String[] tokens = line.split("\t");
+      loadedTextBuffer.append(tokens[0]);
+      loadedTextBuffer.append(" ");
+      line = reader.readLine();
     }
+
+    reader.close();
+
+    loadedText = loadedTextBuffer.toString();
+  }
 }
 
 /*
@@ -126,6 +102,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

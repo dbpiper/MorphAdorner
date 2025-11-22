@@ -2,39 +2,35 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.Iterator;
-
 /** Abstract sentence iterator. */
+public interface SentenceSplitterIterator {
+  /**
+   * Check if there is another sentence available.
+   *
+   * @return true if another sentence is available.
+   */
+  public boolean hasNext();
 
-public interface SentenceSplitterIterator
-{
-    /** Check if there is another sentence available.
-     *
-     *  @return true if another sentence is available.
-     */
+  /**
+   * Return next sentence.
+   *
+   * @return next sentence as a string, or null if none.
+   */
+  public String next();
 
-    public boolean hasNext();
+  /**
+   * Peek ahead at text of next sentence.
+   *
+   * @return next sentence as a string, or null if none.
+   */
+  public String peek();
 
-    /** Return next sentence.
-     *
-     *  @return next sentence as a string, or null if none.
-     */
-
-    public String next();
-
-    /** Peek ahead at text of next sentence.
-     *
-     *  @return next sentence as a string, or null if none.
-     */
-
-    public String peek();
-
-    /** Set the text to split.
-     *
-     *  @param  text    Text with sentences over which to iterate.
-     */
-
-    public void setText( String text );
+  /**
+   * Set the text to split.
+   *
+   * @param text Text with sentences over which to iterate.
+   */
+  public void setText(String text);
 }
 
 /*
@@ -77,6 +73,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,33 +2,20 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.StringTokenizer;
+/** A "no-op" preTokenizer which leaves the input string unchanged. */
+public class NoopPreTokenizer extends AbstractPreTokenizer implements PreTokenizer {
+  /** Create a "no-op" preTokenizer. */
+  public NoopPreTokenizer() {}
 
-/** A "no-op" preTokenizer which leaves the input string unchanged.
- */
-
-public class NoopPreTokenizer
-    extends AbstractPreTokenizer
-    implements PreTokenizer
-{
-    /** Create a "no-op" preTokenizer.
-     */
-
-    public NoopPreTokenizer()
-    {
-    }
-
-    /** Prepares a string for tokenization.
-     *
-     *  @param  line    The string to prepare for tokenization.
-     *
-     *  @return         The input string with no changes.
-     */
-
-    public String pretokenize( String line )
-    {
-        return line;
-    }
+  /**
+   * Prepares a string for tokenization.
+   *
+   * @param line The string to prepare for tokenization.
+   * @return The input string with no changes.
+   */
+  public String pretokenize(String line) {
+    return line;
+  }
 }
 
 /*
@@ -71,6 +58,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

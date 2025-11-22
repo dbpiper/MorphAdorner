@@ -2,116 +2,78 @@ package edu.northwestern.at.morphadorner.tools.mergewordlists;
 
 /*  Please see the license information at the end of this file. */
 
-import java.net.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
+import java.net.*;
 import java.text.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-
-/** Merge word lists.
+/**
+ * Merge word lists.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  java edu.northwestern.at.morphadorner.tools.mergewordlists.MergeWordLists output.txt input.txt input2.txt ...<br />
- *  <br />
- *  output.txt -- output merged word list file.<br />
- *  input*.txt -- input text files containing word lists to be merged.<br />
- *  </p>
+ * <p>java edu.northwestern.at.morphadorner.tools.mergewordlists.MergeWordLists output.txt input.txt
+ * input2.txt ...<br>
+ * <br>
+ * output.txt -- output merged word list file.<br>
+ * input*.txt -- input text files containing word lists to be merged.<br>
  *
- *  <p>
- *  The output file is a utf-8 text file containing the merged word
- *  list from the input files.  Only one copy of a word is output
- *  if it appears multiple times.  The merged words appear in
- *  ascending alphanumeric order in the output file.
- *  </p>
+ * <p>The output file is a utf-8 text file containing the merged word list from the input files.
+ * Only one copy of a word is output if it appears multiple times. The merged words appear in
+ * ascending alphanumeric order in the output file.
  */
+public class MergeWordLists {
+  /** Merged word list. */
+  protected static Set<String> mergedWordSet = new TreeSet<String>();
 
-public class MergeWordLists
-{
-    /** Merged word list. */
+  /** Main program. */
+  public static void main(String[] args) {
+    //  Pick up the file names to process.
 
-    protected static Set<String> mergedWordSet  = new TreeSet<String>();
+    String[] fileNames = new String[args.length - 1];
 
-    /** Main program.
-     */
+    for (int i = 1; i < args.length; i++) {
+      fileNames[i - 1] = args[i];
+    }
+    //  Expand file name wildcard to
+    //  full file name list.
 
-    public static void main( String[] args )
-    {
-                                //  Pick up the file names to process.
+    fileNames = FileNameUtils.expandFileNameWildcards(fileNames);
 
-        String[] fileNames  = new String[ args.length - 1 ];
-
-        for ( int i = 1 ; i < args.length ; i++ )
-        {
-            fileNames[ i - 1 ]  = args[ i ];
-        }
-                                //  Expand file name wildcard to
-                                //  full file name list.
-
-        fileNames   = FileNameUtils.expandFileNameWildcards( fileNames );
-
-        for ( int i = 0 ; i < fileNames.length ; i++ )
-        {
-            try
-            {
-                loadAndMergeWords( fileNames[ i ] );
-            }
-            catch ( Exception e )
-            {
-                e.printStackTrace();
-            }
-        }
-
-        try
-        {
-            saveMergedWords( args[ 0 ] );
-        }
-        catch ( Exception e )
-        {
-            System.out.println( "Unable to save merged words." );
-        }
+    for (int i = 0; i < fileNames.length; i++) {
+      try {
+        loadAndMergeWords(fileNames[i]);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
 
-    /** Merge word lists from a file.
-     */
-
-    protected static void loadAndMergeWords( String inputFileName )
-        throws Exception
-    {
-        Set<String> set = SetUtils.loadSet( inputFileName , "utf-8" );
-
-        System.out.println
-        (
-            "Merging " + set.size() + " words from " + inputFileName
-        );
-
-        mergedWordSet.addAll( set );
+    try {
+      saveMergedWords(args[0]);
+    } catch (Exception e) {
+      System.out.println("Unable to save merged words.");
     }
+  }
 
-    /** Save the merged word lists.
-     */
+  /** Merge word lists from a file. */
+  protected static void loadAndMergeWords(String inputFileName) throws Exception {
+    Set<String> set = SetUtils.loadSet(inputFileName, "utf-8");
 
-    protected static void saveMergedWords( String outputFileName )
-        throws Exception
-    {
-        System.out.println
-        (
-            "Saving " + mergedWordSet.size() + " words to " + outputFileName
-        );
+    System.out.println("Merging " + set.size() + " words from " + inputFileName);
 
-        SetUtils.saveSet( mergedWordSet , outputFileName , "utf-8" );
-    }
+    mergedWordSet.addAll(set);
+  }
 
-    /** Allow overrides but not instantiation.
-     */
+  /** Save the merged word lists. */
+  protected static void saveMergedWords(String outputFileName) throws Exception {
+    System.out.println("Saving " + mergedWordSet.size() + " words to " + outputFileName);
 
-    protected MergeWordLists()
-    {
-    }
+    SetUtils.saveSet(mergedWordSet, outputFileName, "utf-8");
+  }
+
+  /** Allow overrides but not instantiation. */
+  protected MergeWordLists() {}
 }
 
 /*
@@ -154,6 +116,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

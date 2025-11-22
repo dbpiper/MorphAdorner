@@ -2,19 +2,15 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.hyphenator;
 
 /*  Please see the license information at the end of this file. */
 
-/** Defines an interface for adding hyphenation points to a word.
- */
-
-public interface Hyphenator
-{
-    /** Add hyphenation points to a word.
-     *
-     *  @param  word    The word to hyphenate.
-     *
-     *  @return         The word with hyphenation points added.
-     */
-
-    public String hyphenate( String word );
+/** Defines an interface for adding hyphenation points to a word. */
+public interface Hyphenator {
+  /**
+   * Add hyphenation points to a word.
+   *
+   * @param word The word to hyphenate.
+   * @return The word with hyphenation points added.
+   */
+  public String hyphenate(String word);
 }
 
 /*
@@ -57,5 +53,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

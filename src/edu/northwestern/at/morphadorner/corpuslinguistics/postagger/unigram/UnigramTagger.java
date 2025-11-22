@@ -2,116 +2,85 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** Unigram Part of Speech tagger.
+/**
+ * Unigram Part of Speech tagger.
  *
- *  <p>
- *  The unigram part of speech tagger uses a lexicon to assign
- *  the most frequently occurring part of speech tag to a spelling.
- *  </p>
+ * <p>The unigram part of speech tagger uses a lexicon to assign the most frequently occurring part
+ * of speech tag to a spelling.
  */
-
 public class UnigramTagger extends AbstractPartOfSpeechTagger
-    implements PartOfSpeechTagger, CanTagOneWord
-{
-    /** Create a unigram tagger.
-     */
+    implements PartOfSpeechTagger, CanTagOneWord {
+  /** Create a unigram tagger. */
+  public UnigramTagger() {}
 
-    public UnigramTagger()
-    {
+  /**
+   * Tag an adorned word list.
+   *
+   * @param sentence The sentence as a list of adorned words.
+   * @return An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
+   *     of the words in the sentence tagged with parts of speech.
+   *     <p>The input sentence is a {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} of words to
+   *     tag. The output is the same list with parts of speech added.
+   */
+  public <T extends AdornedWord> List<T> tagAdornedWordList(List<T> sentence) {
+    //  Iterate over words in sentence.
+
+    for (int i = 0; i < sentence.size(); i++) {
+      //  Get next word.
+
+      AdornedWord word = sentence.get(i);
+
+      //  Get part of speech tag for word.
+
+      tagWord(word);
     }
+    //  We have a new finished sentence.
 
-    /** Tag an adorned word list.
-     *
-     *  @param  sentence    The sentence as a list of adorned words.
-     *
-     *  @return             An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *                          of the words in the sentence tagged with
-     *                          parts of speech.
-     *
-     *  <p>
-     *  The input sentence is a
-     *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *  of words to tag.  The output is the same list
-     *  with parts of speech added.
-     *  </p>
-     */
+    return sentence;
+  }
 
-    public<T extends AdornedWord> List<T> tagAdornedWordList
-    (
-        List<T> sentence
-    )
-    {
-                                //  Iterate over words in sentence.
+  /**
+   * Tag a single word.
+   *
+   * @param word The word.
+   * @return The part of speech for the word.
+   *     <p>Returns most common tag for word.
+   */
+  public String tagWord(String word) {
+    return getMostCommonTag(word);
+  }
 
-        for ( int i = 0 ; i < sentence.size() ; i++ )
-        {
-                                //  Get next word.
+  /**
+   * Tag a single word.
+   *
+   * @param word The word as an AdornedWord.
+   * @return The part of speech for the word. The part of speech is also set in the input
+   *     AdornedWord.
+   *     <p>Returns most common tag for word.
+   */
+  public String tagWord(AdornedWord word) {
+    String result = tagWord(word.getSpelling());
 
-            AdornedWord word    = sentence.get( i );
+    word.setPartsOfSpeech(result);
 
-                                //  Get part of speech tag for word.
+    return result;
+  }
 
-            tagWord( word );
-        }
-                                //  We have a new finished sentence.
-
-        return sentence;
-    }
-
-    /** Tag a single word.
-     *
-     *  @param  word    The word.
-     *
-     *  @return         The part of speech for the word.
-     *
-     *  <p>
-     *  Returns most common tag for word.
-     *  </p>
-     */
-
-    public String tagWord( String word )
-    {
-        return getMostCommonTag( word );
-    }
-
-    /** Tag a single word.
-     *
-     *  @param  word    The word as an AdornedWord.
-     *
-     *  @return         The part of speech for the word.
-     *                  The part of speech is also set in the
-     *                  input AdornedWord.
-     *
-     *  <p>
-     *  Returns most common tag for word.
-     *  </p>
-     */
-
-    public String tagWord( AdornedWord word )
-    {
-        String result   = tagWord( word.getSpelling() );
-
-        word.setPartsOfSpeech( result );
-
-        return result;
-    }
-
-    /** Return tagger description.
-     *
-     *  @return     Tagger description.
-     */
-
-    public String toString()
-    {
-        return "Unigram tagger";
-    }
+  /**
+   * Return tagger description.
+   *
+   * @return Tagger description.
+   */
+  public String toString() {
+    return "Unigram tagger";
+  }
 }
 
 /*
@@ -154,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

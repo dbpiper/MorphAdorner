@@ -2,181 +2,133 @@ package edu.northwestern.at.morphadorner.tools.mergeenhancedbrilllexicon;
 
 /*  Please see the license information at the end of this file. */
 
-import java.net.*;
-import java.io.*;
-import java.text.*;
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.utils.*;
+import java.io.*;
+import java.net.*;
+import java.text.*;
+import java.util.*;
 
-/** Merge MorphAdorner lexicon with enhanced Brill format lexicon.
- */
+/** Merge MorphAdorner lexicon with enhanced Brill format lexicon. */
+public class MergeEnhancedBrillLexicon {
+  /**
+   * Merge enhanced Brill lexicon.
+   *
+   * @param lexiconFileName MorphAdorner lexicon file name.
+   * @param brillLexiconFileName Enhanced Brill format lexicon file name.
+   * @param mergedLexiconFileName Merged lexicon file name.
+   */
+  public static void mergeEnhancedBrillLexicon(
+      String lexiconFileName, String brillLexiconFileName, String mergedLexiconFileName)
+      throws IOException {
+    //  Load the MorphAdorner format lexicon.
 
-public class MergeEnhancedBrillLexicon
-{
-    /** Merge enhanced Brill lexicon.
-     *
-     *  @param  lexiconFileName         MorphAdorner lexicon file name.
-     *  @param  brillLexiconFileName    Enhanced Brill format lexicon file name.
-     *  @param  mergedLexiconFileName   Merged lexicon file name.
-     */
+    Lexicon lexicon = new BaseLexicon();
 
-    public static void mergeEnhancedBrillLexicon
-    (
-        String lexiconFileName ,
-        String brillLexiconFileName ,
-        String mergedLexiconFileName
+    lexicon.loadLexicon((new File(lexiconFileName)).toURI().toURL(), "utf-8");
+    //  Load parts of speech.
 
-    )
-        throws IOException
-    {
-                                //  Load the MorphAdorner format lexicon.
+    PartOfSpeechTags partOfSpeechTags = new NUPOSPartOfSpeechTags();
 
-        Lexicon lexicon = new BaseLexicon();
+    System.out.println(
+        "MorphAdorner lexicon has "
+            + Formatters.formatIntegerWithCommas(lexicon.getLexiconSize())
+            + " entries.");
+    //  Load enhanced Brill format lexicon.
 
-        lexicon.loadLexicon
-        (
-            (new File( lexiconFileName )).toURI().toURL() ,
-            "utf-8"
-        );
-                                //  Load parts of speech.
+    BrillLexicon brillLexicon =
+        new BrillLexicon(new File(brillLexiconFileName).toURI().toURL(), "utf-8");
 
-        PartOfSpeechTags partOfSpeechTags   = new NUPOSPartOfSpeechTags();
+    System.out.println(
+        "Enhanced Brill lexicon has "
+            + Formatters.formatIntegerWithCommas(brillLexicon.size())
+            + " entries.");
+    //  Loop over entries in the enhanced Brill
+    //  lexicon.
 
-        System.out.println
-        (
-            "MorphAdorner lexicon has " +
-            Formatters.formatIntegerWithCommas( lexicon.getLexiconSize() ) +
-            " entries."
-        );
-                                //  Load enhanced Brill format lexicon.
+    Iterator<String> iterator = brillLexicon.keySet().iterator();
 
-        BrillLexicon brillLexicon   =
-            new BrillLexicon(
-                new File( brillLexiconFileName ).toURI().toURL() , "utf-8" );
+    while (iterator.hasNext()) {
+      //  Get next word in enhanced Brill lexicon.
 
-        System.out.println
-        (
-            "Enhanced Brill lexicon has " +
-            Formatters.formatIntegerWithCommas( brillLexicon.size() ) +
-            " entries."
-        );
-                                //  Loop over entries in the enhanced Brill
-                                //  lexicon.
+      String word = iterator.next();
 
-        Iterator<String> iterator   = brillLexicon.keySet().iterator();
+      //  For each entry in the enhanced Brill
+      //  lexicon create an entry in the
+      //  MorphAdorner lexicon if necessary.
+      //  We won't have counts,
+      //  so assume first category has
+      //  count 2 and others have count 1.
 
-        while ( iterator.hasNext() )
-        {
-                                //  Get next word in enhanced Brill lexicon.
+      int firstFreq = 2;
+      int otherFreq = 1;
+      String lemma = "*";
 
-            String word     = iterator.next();
+      List<String> posTags = brillLexicon.get(word);
 
-                                //  For each entry in the enhanced Brill
-                                //  lexicon create an entry in the
-                                //  MorphAdorner lexicon if necessary.
-                                //  We won't have counts,
-                                //  so assume first category has
-                                //  count 2 and others have count 1.
+      //  If there is only one Brill tag,
+      //  and it is a proper noun tag,
+      //  look to see if there are existing
+      //  parts of speech for a lower case
+      //  version of the word.  If so, create
+      //  a lexicon entry with those first .
 
+      String posTag = posTags.get(0);
+      lemma = posTags.get(1);
 
-            int firstFreq   = 2;
-            int otherFreq   = 1;
-            String lemma    = "*";
+      if ((posTags.size() == 2) && (partOfSpeechTags.isProperNounTag(posTag))) {
+        String lowerCaseWord = word.toLowerCase();
 
-            List<String> posTags    = brillLexicon.get( word );
+        if (lexicon.containsEntry(lowerCaseWord)) {
+          LexiconEntry lexEntry = lexicon.getLexiconEntry(lowerCaseWord).deepClone();
 
-                                //  If there is only one Brill tag,
-                                //  and it is a proper noun tag,
-                                //  look to see if there are existing
-                                //  parts of speech for a lower case
-                                //  version of the word.  If so, create
-                                //  a lexicon entry with those first .
+          lexEntry.entry = word;
 
-            String posTag   = posTags.get( 0 );
-            lemma           = posTags.get( 1 );
-
-            if  (   ( posTags.size() == 2 ) &&
-                    ( partOfSpeechTags.isProperNounTag( posTag ) )
-                )
-            {
-                String lowerCaseWord    = word.toLowerCase();
-
-                if ( lexicon.containsEntry( lowerCaseWord ) )
-                {
-                    LexiconEntry lexEntry   =
-                        lexicon.getLexiconEntry( lowerCaseWord ).deepClone();
-
-                    lexEntry.entry  = word;
-
-                    lexicon.setLexiconEntry( word , lexEntry );
-                }
-
-                firstFreq   = 1;
-            }
-                                //  Now add the word and the parts of
-                                //  speech from the Brill lexicon to
-                                //  the MorphAdorner lexicon.
-
-            for ( int i = 0 ; i < posTags.size() ; i = i+2 )
-            {
-try
-{
-                posTag  = posTags.get( i );
-
-                if ( lexicon.getCategoryCount( word , posTag ) == 0 )
-                {
-                    lexicon.updateEntryCount
-                    (
-                        word ,
-                        posTag ,
-                        posTags.get( i + 1 ) ,
-                        ( i == 0 ) ? firstFreq : otherFreq
-                    );
-                }
-}
-catch ( Exception e )
-{
-    System.out.println( e.getMessage() );
-    System.out.println( "   word=" + word + ", posTags=" + posTags );
-}
-            }
+          lexicon.setLexiconEntry(word, lexEntry);
         }
-                                //  Saved merged lexicon.
 
-        lexicon.saveLexiconToTextFile( mergedLexiconFileName , "utf-8" );
+        firstFreq = 1;
+      }
+      //  Now add the word and the parts of
+      //  speech from the Brill lexicon to
+      //  the MorphAdorner lexicon.
 
-        System.out.println
-        (
-            "Merged lexicon has " +
-            Formatters.formatIntegerWithCommas( lexicon.getLexiconSize() ) +
-            " entries."
-        );
-    }
+      for (int i = 0; i < posTags.size(); i = i + 2) {
+        try {
+          posTag = posTags.get(i);
 
-    /** Main program.
-     */
-
-    public static void main( String[] args )
-    {
-        try
-        {
-            mergeEnhancedBrillLexicon( args[ 0 ] , args[ 1 ] , args[ 2 ] );
+          if (lexicon.getCategoryCount(word, posTag) == 0) {
+            lexicon.updateEntryCount(
+                word, posTag, posTags.get(i + 1), (i == 0) ? firstFreq : otherFreq);
+          }
+        } catch (Exception e) {
+          System.out.println(e.getMessage());
+          System.out.println("   word=" + word + ", posTags=" + posTags);
         }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+      }
     }
+    //  Saved merged lexicon.
 
-    /** Allow overrides but not instantiation.
-     */
+    lexicon.saveLexiconToTextFile(mergedLexiconFileName, "utf-8");
 
-    protected MergeEnhancedBrillLexicon()
-    {
+    System.out.println(
+        "Merged lexicon has "
+            + Formatters.formatIntegerWithCommas(lexicon.getLexiconSize())
+            + " entries.");
+  }
+
+  /** Main program. */
+  public static void main(String[] args) {
+    try {
+      mergeEnhancedBrillLexicon(args[0], args[1], args[2]);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
+
+  /** Allow overrides but not instantiation. */
+  protected MergeEnhancedBrillLexicon() {}
 }
 
 /*
@@ -219,6 +171,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

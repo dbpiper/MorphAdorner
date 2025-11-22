@@ -2,126 +2,103 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import java.util.*;
 
-/** Interface for a Lemmatizer.
- */
+/** Interface for a Lemmatizer. */
+public interface Lemmatizer {
+  /**
+   * Set the lexicon which may provide lemmata.
+   *
+   * @param lexicon The lexicon.
+   */
+  public void setLexicon(Lexicon lexicon);
 
-public interface Lemmatizer
-{
-    /** Set the lexicon which may provide lemmata.
-     *
-     *  @param  lexicon     The lexicon.
-     */
+  /**
+   * Set the dictionary for checking lemmata.
+   *
+   * @param dictionary The dictionary as a string set. May be null.
+   */
+  public void setDictionary(Set<String> dictionary);
 
-    public void setLexicon( Lexicon lexicon );
+  /**
+   * Returns a lemma given a spelling.
+   *
+   * @param spelling The spelling.
+   * @return The lemma. "*" is returned if the lemma cannot be found.
+   */
+  public String lemmatize(String spelling);
 
-    /** Set the dictionary for checking lemmata.
-     *
-     *  @param  dictionary      The dictionary as a string set.
-     *                          May be null.
-     */
+  /**
+   * Returns a lemma given a spelling and a part of speech.
+   *
+   * @param spelling The spelling.
+   * @param wordClass The word class.
+   * @return The lemma. "*" is returned if the lemma cannot be found.
+   *     <p>The word class should be a major word class as defined in {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.PartOfSpeech}.
+   */
+  public String lemmatize(String spelling, String wordClass);
 
-    public void setDictionary( Set<String> dictionary );
+  /**
+   * Check for words that cannot be lemmatized.
+   *
+   * @param spelling The spelling to be lemmatized.
+   * @return true if spelling is not a lemmatizable word -- e.g., it contains punctuation, is a
+   *     number, or is a Roman numeral.
+   */
+  public boolean cantLemmatize(String spelling);
 
-    /** Returns a lemma given a spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The lemma.  "*" is returned if the lemma
-     *                      cannot be found.
-     */
+  /**
+   * Get the lemma separator string,
+   *
+   * @return String to separate lemmata in compound lemma.
+   */
+  public String getLemmaSeparator();
 
-    public String lemmatize( String spelling );
+  /**
+   * Join separate lemmata into a compound lemma.
+   *
+   * @param lemmata String array of lemmata.
+   * @param separator String to separate lemmata.
+   * @return String containing joined lemmata. The lemmata are separated by the specified separator
+   *     character.
+   */
+  public String joinLemmata(String[] lemmata, String separator);
 
-    /** Returns a lemma given a spelling and a part of speech.
-     *
-     *  @param  spelling    The spelling.
-     *  @param  wordClass   The word class.
-     *
-     *  @return             The lemma.  "*" is returned if the lemma
-     *                      cannot be found.
-     *
-     *  <p>
-     *  The word class should be a major word class as defined in
-     *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.PartOfSpeech}.
-     *  </p>
-     */
+  /**
+   * Join separate lemmata into a compound lemma.
+   *
+   * @param lemmata String array of part of speech lemmas.
+   * @return String containing joined lemmata. The lemmata are separated by the default separator
+   *     character.
+   */
+  public String joinLemmata(String[] lemmata);
 
-    public String lemmatize( String spelling , String wordClass );
+  /**
+   * Split compound lemma into separate lemmata.
+   *
+   * @param lemma The compound lemma.
+   * @return String array of lemmata. Only one entry if lemma is not a compound lemma.
+   */
+  public String[] splitLemma(String lemma);
 
-    /** Check for words that cannot be lemmatized.
-     *
-     *  @param  spelling    The spelling to be lemmatized.
-     *
-     *  @return             true if spelling is not a lemmatizable
-     *                          word -- e.g., it contains punctuation,
-     *                          is a number, or is a Roman numeral.
-     */
+  /**
+   * Check if lemma is compound lemma.
+   *
+   * @param lemma The lemma.
+   * @return true if lemma is compound lemma.
+   */
+  public boolean isCompoundLemma(String lemma);
 
-    public boolean cantLemmatize( String spelling );
-
-    /** Get the lemma separator string,
-     *
-     *  @return String to separate lemmata in compound lemma.
-     */
-
-    public String getLemmaSeparator();
-
-    /** Join separate lemmata into a compound lemma.
-     *
-     *  @param  lemmata String array of lemmata.
-     *  @param  separator   String to separate lemmata.
-     *
-     *  @return             String containing joined lemmata.
-     *                          The lemmata are separated by the
-     *                          specified separator character.
-     */
-
-    public String joinLemmata( String[] lemmata , String separator );
-
-    /** Join separate lemmata into a compound lemma.
-     *
-     *  @param  lemmata String array of part of speech lemmas.
-     *
-     *  @return             String containing joined lemmata.
-     *                          The lemmata are separated by the
-     *                          default separator character.
-     */
-
-    public String joinLemmata( String[] lemmata );
-
-    /** Split compound lemma into separate lemmata.
-     *
-     *  @param  lemma       The compound lemma.
-     *
-     *  @return             String array of lemmata.  Only one entry if
-     *                          lemma is not a compound lemma.
-     */
-
-    public String[] splitLemma( String lemma );
-
-    /** Check if lemma is compound lemma.
-     *
-     *  @param  lemma       The lemma.
-     *
-     *  @return                 true if lemma is compound lemma.
-     */
-
-    public boolean isCompoundLemma( String lemma );
-
-    /** Get number of lemmata comprising this lemma.
-     *
-     *  @param  lemma   The lemma.
-     *
-     *  @return         Count of individual lemmata
-     *                  comprising this lemma.
-     */
-
-    public int countLemmata( String lemma );
+  /**
+   * Get number of lemmata comprising this lemma.
+   *
+   * @param lemma The lemma.
+   * @return Count of individual lemmata comprising this lemma.
+   */
+  public int countLemmata(String lemma);
 }
 
 /*
@@ -164,6 +141,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

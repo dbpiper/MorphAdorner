@@ -2,145 +2,116 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.abbreviations.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** Interface for a PartOfSpeechGuesser.
+/**
+ * Interface for a PartOfSpeechGuesser.
  *
- *  <p>
- *  A part of speech guesser "guesses" the probable part(s) of speech
- *  for a word which does not appear in the main lexicon.  Alternate
- *  spellings, lexical rules based upon word prefixes or suffixes,
- *  and many other approaches may be used to find potential
- *  part of speech.
- *  </p>
+ * <p>A part of speech guesser "guesses" the probable part(s) of speech for a word which does not
+ * appear in the main lexicon. Alternate spellings, lexical rules based upon word prefixes or
+ * suffixes, and many other approaches may be used to find potential part of speech.
  */
+public interface PartOfSpeechGuesser {
+  /**
+   * Guesses part of speech for a word.
+   *
+   * @param word The word.
+   * @return Map of part of speech tags and counts.
+   */
+  public Map<String, MutableInteger> guessPartsOfSpeech(String word);
 
-public interface PartOfSpeechGuesser
-{
-    /** Guesses part of speech for a word.
-     *
-     *  @param  word            The word.
-     *
-     *  @return                 Map of part of speech tags and counts.
-     */
+  /**
+   * Guesses part of speech for a word.
+   *
+   * @param word The word.
+   * @param isFirstWord If word is first word in a sentence.
+   * @return Map of part of speech tags and counts.
+   */
+  public Map<String, MutableInteger> guessPartsOfSpeech(String word, boolean isFirstWord);
 
-     public Map<String, MutableInteger> guessPartsOfSpeech( String word );
+  /**
+   * Guesses part of speech for a word in a sentence.
+   *
+   * @param sentence Sentence as a list of words.
+   * @param wordIndex The word index in the sentence.
+   * @return Map of part of speech tags and counts.
+   */
+  public Map<String, MutableInteger> guessPartsOfSpeech(List<String> sentence, int wordIndex);
 
-    /** Guesses part of speech for a word.
-     *
-     *  @param  word            The word.
-     *  @param  isFirstWord     If word is first word in a sentence.
-     *
-     *  @return                 Map of part of speech tags and counts.
-     */
+  /**
+   * Get spelling standardizer.
+   *
+   * @return The spelling standardizer.
+   */
+  public SpellingStandardizer getSpellingStandardizer();
 
-     public Map<String, MutableInteger> guessPartsOfSpeech
-     (
-        String word ,
-        boolean isFirstWord
-     );
+  /**
+   * Set spelling standardizer.
+   *
+   * @param spellingStandardizer The spelling standardizer.
+   */
+  public void setSpellingStandardizer(SpellingStandardizer spellingStandardizer);
 
-    /** Guesses part of speech for a word in a sentence.
-     *
-     *  @param  sentence        Sentence as a list of words.
-     *  @param  wordIndex       The word index in the sentence.
-     *
-     *  @return                 Map of part of speech tags and counts.
-     */
+  /**
+   * Get the word lexicon.
+   *
+   * @return The word lexicon.
+   */
+  public Lexicon getWordLexicon();
 
-    public Map<String, MutableInteger> guessPartsOfSpeech
-    (
-        List<String> sentence ,
-        int wordIndex
-    );
+  /**
+   * Set the word lexicon.
+   *
+   * @param wordLexicon The word lexicon.
+   */
+  public void setWordLexicon(Lexicon wordLexicon);
 
-    /** Get spelling standardizer.
-     *
-     *  @return     The spelling standardizer.
-     */
+  /**
+   * Get the suffix lexicon.
+   *
+   * @return The suffix lexicon.
+   */
+  public Lexicon getSuffixLexicon();
 
-    public SpellingStandardizer getSpellingStandardizer();
+  /**
+   * Get cached lexicon for a word.
+   *
+   * @param word The word whose source lexicon we want.
+   * @return The lexicon for the word.
+   */
+  public Lexicon getCachedLexiconForWord(String word);
 
-    /** Set spelling standardizer.
-     *
-     *  @param  spellingStandardizer        The spelling standardizer.
-     */
+  /**
+   * Set the suffix lexicon.
+   *
+   * @param suffixLexicon The suffix lexicon.
+   */
+  public void setSuffixLexicon(Lexicon suffixLexicon);
 
-    public void setSpellingStandardizer
-    (
-        SpellingStandardizer spellingStandardizer
-    );
+  /** Add an auxiliary word list. */
+  public void addAuxiliaryWordList(TaggedStrings wordList);
 
-    /** Get the word lexicon.
-     *
-     *  @return     The word lexicon.
-     */
+  /** Get auxiliary word lists. */
+  public List getAuxiliaryWordLists();
 
-    public Lexicon getWordLexicon();
+  /** Try using standardized spellings when guessing parts of speech. */
+  public void setTryStandardSpellings(boolean tryStandardSpellings);
 
-    /** Set the word lexicon.
-     *
-     *  @param  wordLexicon     The word lexicon.
-     */
+  /** Check for possessives of known nouns when guessing parts of speech. */
+  public void setCheckPossessives(boolean checkPossessives);
 
-    public void setWordLexicon( Lexicon wordLexicon );
-
-    /** Get the suffix lexicon.
-     *
-     *  @return     The suffix lexicon.
-     */
-
-    public Lexicon getSuffixLexicon();
-
-    /** Get cached lexicon for a word.
-     *
-     *  @param      word    The word whose source lexicon we want.
-     *
-     *  @return     The lexicon for the word.
-     */
-
-    public Lexicon getCachedLexiconForWord( String word );
-
-    /** Set the suffix lexicon.
-     *
-     *  @param  suffixLexicon   The suffix lexicon.
-     */
-
-    public void setSuffixLexicon( Lexicon suffixLexicon );
-
-    /** Add an auxiliary word list.
-     */
-
-    public void addAuxiliaryWordList( TaggedStrings wordList );
-
-    /** Get auxiliary word lists.
-     */
-
-    public List getAuxiliaryWordLists();
-
-    /** Try using standardized spellings when guessing parts of speech.
-     */
-
-    public void setTryStandardSpellings( boolean tryStandardSpellings );
-
-    /** Check for possessives of known nouns when guessing parts of speech.
-     */
-
-    public void setCheckPossessives( boolean checkPossessives );
-
-    /** Set abbreviations.
-     *
-     *  @param  abbreviations   Abbreviations.
-     */
-
-    public void setAbbreviations( Abbreviations abbreviations );
+  /**
+   * Set abbreviations.
+   *
+   * @param abbreviations Abbreviations.
+   */
+  public void setAbbreviations(Abbreviations abbreviations);
 }
 
 /*
@@ -183,6 +154,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

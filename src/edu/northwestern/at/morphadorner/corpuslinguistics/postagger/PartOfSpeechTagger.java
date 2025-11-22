@@ -2,9 +2,6 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser.*;
@@ -12,313 +9,247 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.co
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.lexical.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.transitionmatrix.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** Interface for a Part of Speech tagger.
- */
+/** Interface for a Part of Speech tagger. */
+public interface PartOfSpeechTagger {
+  /**
+   * See if tagger uses context rules.
+   *
+   * @return True if tagger uses context rules.
+   */
+  public boolean usesContextRules();
 
-public interface PartOfSpeechTagger
-{
-    /** See if tagger uses context rules.
-     *
-     *  @return     True if tagger uses context rules.
-     */
+  /**
+   * See if tagger uses lexical rules.
+   *
+   * @return True if tagger uses lexical rules.
+   */
+  public boolean usesLexicalRules();
 
-    public boolean usesContextRules();
+  /**
+   * See if tagger uses a probability transition matrix.
+   *
+   * @return True if tagger uses probability transition matrix.
+   */
+  public boolean usesTransitionProbabilities();
 
-    /** See if tagger uses lexical rules.
-     *
-     *  @return     True if tagger uses lexical rules.
-     */
+  /**
+   * Set context rules for tagging.
+   *
+   * @param contextRules String array of context rules.
+   * @throws InvalidRuleException if a rule is bad.
+   *     <p>For taggers which do not use context rules, this is a no-op.
+   */
+  public void setContextRules(String[] contextRules) throws InvalidRuleException;
 
-    public boolean usesLexicalRules();
+  /**
+   * Set lexical rules for tagging.
+   *
+   * @param lexicalRules String array of lexical rules.
+   * @throws InvalidRuleException if a rule is bad.
+   *     <p>For taggers which do not use lexical rules, this is a no-op.
+   */
+  public void setLexicalRules(String[] lexicalRules) throws InvalidRuleException;
 
-    /** See if tagger uses a probability transition matrix.
-     *
-     *  @return     True if tagger uses probability transition matrix.
-     */
+  /**
+   * Get the lexicon.
+   *
+   * @return The lexicon. May be null if tagger does not a lexicon.
+   */
+  public Lexicon getLexicon();
 
-    public boolean usesTransitionProbabilities();
+  /**
+   * Get the lexicon for a specific word.
+   *
+   * @param word The word whose associated lexicon we want.
+   * @return The lexicon. May be null if tagger does not a lexicon.
+   */
+  public Lexicon getLexicon(String word);
 
-    /** Set context rules for tagging.
-     *
-     *  @param  contextRules    String array of context rules.
-     *
-     *  @throws InvalidRuleException if a rule is bad.
-     *
-     *  <p>
-     *  For taggers which do not use context rules, this is a no-op.
-     *  </p>
-     */
+  /**
+   * Set the lexicon.
+   *
+   * @param lexicon Lexicon used for tagging.
+   */
+  public void setLexicon(Lexicon lexicon);
 
-    public void setContextRules( String[] contextRules )
-        throws InvalidRuleException;
+  /**
+   * Get tag transition probabilities matrix.
+   *
+   * @return Tag probabilities transition matrix. May be null for taggers which do not use a
+   *     transition matrix.
+   */
+  public TransitionMatrix getTransitionMatrix();
 
-    /** Set lexical rules for tagging.
-     *
-     *  @param  lexicalRules    String array of lexical rules.
-     *
-     *  @throws InvalidRuleException if a rule is bad.
-     *
-     *  <p>
-     *  For taggers which do not use lexical rules, this is a no-op.
-     *  </p>
-     */
+  /**
+   * Set tag transition probabilities matrix.
+   *
+   * @param transitionMatrix Tag probabilities transition matrix.
+   *     <p>For taggers which do not use transition matrices, this is a no-op.
+   */
+  public void setTransitionMatrix(TransitionMatrix transitionMatrix);
 
-    public void setLexicalRules( String[] lexicalRules )
-        throws InvalidRuleException;
+  /**
+   * Get part of speech guesser.
+   *
+   * @return The part of speech guesser.
+   */
+  public PartOfSpeechGuesser getPartOfSpeechGuesser();
 
-    /** Get the lexicon.
-     *
-     *  @return     The lexicon.    May be null if tagger does not
-     *                                  a lexicon.
-     */
+  /**
+   * Set part of speech guesser.
+   *
+   * @param guesser The part of speech guesser.
+   */
+  public void setPartOfSpeechGuesser(PartOfSpeechGuesser guesser);
 
-    public Lexicon getLexicon();
+  /**
+   * Get part of speech retagger.
+   *
+   * @return The part of speech retagger. May be null.
+   */
+  public PartOfSpeechRetagger getRetagger();
 
-    /** Get the lexicon for a specific word.
-     *
-     *  @param      word            The word whose associated
-     *                                  lexicon we want.
-     *
-     *  @return     The lexicon.    May be null if tagger does not
-     *                                  a lexicon.
-     */
+  /**
+   * Set part of speech retagger.
+   *
+   * @param retagger The part of speech retagger.
+   */
+  public void setRetagger(PartOfSpeechRetagger retagger);
 
-    public Lexicon getLexicon( String word );
+  /**
+   * Get the post tokenizer.
+   *
+   * @return The post tokenizer.
+   */
+  public PostTokenizer getPostTokenizer();
 
-    /** Set the lexicon.
-     *
-     *  @param  lexicon     Lexicon used for tagging.
-     */
+  /**
+   * Set the post tokenizer.
+   *
+   * @param postTokenizer The post tokenizer.
+   */
+  public void setPostTokenizer(PostTokenizer postTokenizer);
 
-    public void setLexicon( Lexicon lexicon );
+  /**
+   * Get the contextual smoother.
+   *
+   * @return The contextual smoother.
+   */
+  public ContextualSmoother getContextualSmoother();
 
-    /** Get tag transition probabilities matrix.
-     *
-     *  @return     Tag probabilities transition matrix.
-     *                  May be null for taggers which do not use
-     *                  a transition matrix.
-     */
+  /**
+   * Set the contextual smoother.
+   *
+   * @param contextualSmoother The contextual smoother.
+   */
+  public void setContextualSmoother(ContextualSmoother contextualSmoother);
 
-    public TransitionMatrix getTransitionMatrix();
+  /**
+   * Get the lexical smoother.
+   *
+   * @return The lexical smoother.
+   */
+  public LexicalSmoother getLexicalSmoother();
 
-    /** Set tag transition probabilities matrix.
-     *
-     *  @param  transitionMatrix    Tag probabilities transition matrix.
-     *
-     *  <p>
-     *  For taggers which do not use transition matrices, this is a no-op.
-     *  </p>
-     */
+  /**
+   * Set the lexical smoother.
+   *
+   * @param lexicalSmoother The lexical smoother.
+   */
+  public void setLexicalSmoother(LexicalSmoother lexicalSmoother);
 
-    public void setTransitionMatrix( TransitionMatrix transitionMatrix );
+  /**
+   * Get potential part of speech tags for a word.
+   *
+   * @param word The word whose part of speech tags we want.
+   * @return The list of part of speech tags. May be empty.
+   */
+  public List<String> getTagsForWord(String word);
 
-    /** Get part of speech guesser.
-     *
-     *  @return     The part of speech guesser.
-     */
+  /**
+   * Get count of times a word appears with a given tag.
+   *
+   * @param word The word.
+   * @param tag The part of speech tag.
+   * @return The number of times the word appears with the given tag.
+   */
+  public int getTagCount(String word, String tag);
 
-    public PartOfSpeechGuesser getPartOfSpeechGuesser();
+  /** Clear count of successful rule applications. */
+  public void clearRuleCorrections();
 
-    /** Set part of speech guesser.
-     *
-     *  @param  guesser     The part of speech guesser.
-     */
+  /** Increment count of successful rule applications. */
+  public void incrementRuleCorrections();
 
-    public void setPartOfSpeechGuesser( PartOfSpeechGuesser guesser );
+  /** Get count of successful rule applications. */
+  public int getRuleCorrections();
 
-    /** Get part of speech retagger.
-     *
-     *  @return     The part of speech retagger.  May be null.
-     */
+  /**
+   * Tag a list of sentences.
+   *
+   * @param sentences The list of sentences.
+   * @return The sentences with words adorned with parts of speech.
+   *     <p>The sentences are a {@link java.util.List} of {@link java.util.List}s of words to be
+   *     tagged. Each sentence is represented as a list of words. The output is a list of {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}s.
+   */
+  public List<List<AdornedWord>> tagSentences(List<List<String>> sentences);
 
-    public PartOfSpeechRetagger getRetagger();
+  /**
+   * Tag a sentence.
+   *
+   * @param sentence The sentence as a List of string tokens.
+   * @return The tagged sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
+   */
+  public List<AdornedWord> tagSentence(List<String> sentence);
 
-    /** Set part of speech retagger.
-     *
-     *  @param  retagger    The part of speech retagger.
-     */
+  /**
+   * Tag a sentence.
+   *
+   * @param sentence The sentence as a list of string words.
+   * @param regIDSet Set of word IDs requiring special handling. May be null.
+   * @return An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
+   *     of the words in the sentence tagged with parts of speech.
+   *     <p>The input sentence is a {@link java.util.List} of adorned words to be tagged. The output
+   *     is the same list with parts of speech added/modified.
+   */
+  public <T extends AdornedWord> List<T> tagAdornedWordSentence(
+      List<T> sentence, Set<String> regIDSet);
 
-    public void setRetagger( PartOfSpeechRetagger retagger );
+  /**
+   * Tag a list of sentences.
+   *
+   * @param sentences The list of sentences.
+   * @param regIDSet Set of word IDs requiring special handling. May be null.
+   * @return The sentences with words adorned with parts of speech.
+   *     <p>The sentences are a {@link java.util.List} of {@link java.util.List}s of adorned words
+   *     to be tagged. Each sentence is represented as a list of words. The output is a list of
+   *     {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}s.
+   */
+  public <T extends AdornedWord> List<List<T>> tagAdornedWordSentences(
+      List<List<T>> sentences, Set<String> regIDSet);
 
-    /** Get the post tokenizer.
-     *
-     *  @return         The post tokenizer.
-     */
+  /**
+   * Tag a list of adorned words.
+   *
+   * @param sentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
+   * @return The tagged sentence (same as input with parts of speech added).
+   */
+  public <T extends AdornedWord> List<T> tagAdornedWordList(List<T> sentence);
 
-    public PostTokenizer getPostTokenizer();
-
-    /** Set the post tokenizer.
-     *
-     *  @param  postTokenizer   The post tokenizer.
-     */
-
-    public void setPostTokenizer( PostTokenizer postTokenizer );
-
-    /** Get the contextual smoother.
-     *
-     *  @return         The contextual smoother.
-     */
-
-    public ContextualSmoother getContextualSmoother();
-
-    /** Set the contextual smoother.
-     *
-     *  @param  contextualSmoother  The contextual smoother.
-     */
-
-    public void setContextualSmoother( ContextualSmoother contextualSmoother );
-
-    /** Get the lexical smoother.
-     *
-     *  @return         The lexical smoother.
-     */
-
-    public LexicalSmoother getLexicalSmoother();
-
-    /** Set the lexical smoother.
-     *
-     *  @param  lexicalSmoother The lexical smoother.
-     */
-
-    public void setLexicalSmoother( LexicalSmoother lexicalSmoother );
-
-    /** Get potential part of speech tags for a word.
-     *
-     *  @param  word    The word whose part of speech tags we want.
-     *
-     *  @return         The list of part of speech tags.  May be empty.
-     */
-
-    public List<String> getTagsForWord( String word );
-
-    /** Get count of times a word appears with a given tag.
-     *
-     *  @param  word    The word.
-     *  @param  tag     The part of speech tag.
-     *
-     *  @return         The number of times the word appears
-     *                  with the given tag.
-     */
-
-    public int getTagCount( String word , String  tag );
-
-    /** Clear count of successful rule applications.
-     */
-
-    public void clearRuleCorrections();
-
-    /** Increment count of successful rule applications.
-     */
-
-    public void incrementRuleCorrections();
-
-    /** Get count of successful rule applications.
-     */
-
-    public int getRuleCorrections();
-
-    /** Tag a list of sentences.
-     *
-     *  @param  sentences   The list of sentences.
-     *
-     *  @return             The sentences with words adorned with
-     *                      parts of speech.
-     *
-     *  <p>
-     *  The sentences are a {@link java.util.List} of
-     *  {@link java.util.List}s of words to be tagged.
-     *  Each sentence is represented as a list of
-     *  words.  The output is a list of
-     *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}s.
-     *  </p>
-     */
-
-    public List<List<AdornedWord>> tagSentences( List<List<String>> sentences );
-
-    /** Tag a sentence.
-     *
-     *  @param  sentence    The sentence as a List of string tokens.
-     *
-     *  @return             The tagged sentence as an
-     *                      {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
-     */
-
-    public List<AdornedWord> tagSentence( List<String> sentence );
-
-    /** Tag a sentence.
-     *
-     *  @param  sentence    The sentence as a list of string words.
-     *  @param  regIDSet    Set of word IDs requiring special handling.
-     *                      May be null.
-     *
-     *  @return             An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *                      of the words in the sentence tagged with
-     *                      parts of speech.
-     *
-     *  <p>
-     *  The input sentence is a {@link java.util.List} of
-     *  adorned words to be tagged.  The output is
-     *  the same list with parts of speech added/modified.
-     *  </p>
-     */
-
-    public<T extends AdornedWord> List<T> tagAdornedWordSentence
-    (
-        List<T> sentence ,
-        Set<String> regIDSet
-    );
-
-    /** Tag a list of sentences.
-     *
-     *  @param  sentences   The list of sentences.
-     *  @param  regIDSet    Set of word IDs requiring special handling.
-     *                      May be null.
-     *
-     *  @return             The sentences with words adorned with
-     *                      parts of speech.
-     *
-     *  <p>
-     *  The sentences are a {@link java.util.List} of
-     *  {@link java.util.List}s of adorned words to be tagged.
-     *  Each sentence is represented as a list of
-     *  words.  The output is a list of
-     *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}s.
-     *  </p>
-     */
-
-    public<T extends AdornedWord> List<List<T>> tagAdornedWordSentences
-    (
-        List<List<T>> sentences ,
-        Set<String> regIDSet
-    );
-
-    /** Tag a list of adorned words.
-     *
-     *  @param  sentence    The sentence as an
-     *                      {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
-     *
-     *  @return             The tagged sentence (same as input with
-     *                      parts of speech added).
-     */
-
-    public<T extends AdornedWord> List<T> tagAdornedWordList
-    (
-        List<T> sentence
-    );
-
-    /** Retag words in a tagged sentence.
-     *
-     *  @param  taggedSentence  The tagged sentence as an
-     *                          {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
-     *
-     *  @return                 The retagged sentence.
-     */
-
-    public<T extends AdornedWord> List<T> retagWords
-    (
-        List<T> taggedSentence
-    );
+  /**
+   * Retag words in a tagged sentence.
+   *
+   * @param taggedSentence The tagged sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
+   * @return The retagged sentence.
+   */
+  public <T extends AdornedWord> List<T> retagWords(List<T> taggedSentence);
 }
 
 /*
@@ -361,6 +292,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

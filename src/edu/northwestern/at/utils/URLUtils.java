@@ -3,124 +3,88 @@ package edu.northwestern.at.utils;
 /*  Please see the license information at the end of this file. */
 
 import java.io.*;
-import java.util.*;
 import java.net.*;
+import java.util.*;
 
-/** URL utilities.
+/**
+ * URL utilities.
  *
- *  <p>
- *  This static class provides various utility methods for manipulating
- *  URIs/URLs.
- *  </p>
+ * <p>This static class provides various utility methods for manipulating URIs/URLs.
  */
+public class URLUtils {
+  /**
+   * Get URL from file name or URL.
+   *
+   * @param fileNameOrURL The file name or URL string.
+   * @return A URL for the specified file name or URL.
+   */
+  public static URL getURLFromFileNameOrURL(String fileNameOrURL) {
+    URL fileURL;
 
-public class URLUtils
-{
-    /** Get URL from file name or URL.
-     *
-     *  @param  fileNameOrURL   The file name or URL string.
-     *
-     *  @return                 A URL for the specified file name or URL.
-     */
-
-    public static URL getURLFromFileNameOrURL( String fileNameOrURL )
-    {
-        URL fileURL;
-
-        try
-        {
-            fileURL = new URL( fileNameOrURL );
-        }
-        catch ( MalformedURLException e )
-        {
-            try
-            {
-                fileURL = new File( fileNameOrURL ).toURI().toURL();
-            }
-            catch ( Exception e2 )
-            {
-                fileURL = null;
-            }
-        }
-
-        return fileURL;
+    try {
+      fileURL = new URL(fileNameOrURL);
+    } catch (MalformedURLException e) {
+      try {
+        fileURL = new File(fileNameOrURL).toURI().toURL();
+      } catch (Exception e2) {
+        fileURL = null;
+      }
     }
 
-    /** Get a file name from a URL.
-     *
-     *  @param  url                     The URL.
-     *  @param  outputDirectoryName     The output directory name.
-     *
-     *  @return     The file name stripped of its original path
-     *              with the specified output directory attached.
-     */
+    return fileURL;
+  }
 
-    public static String getFileNameFromURL
-    (
-        URL url ,
-        String outputDirectoryName
-    )
-    {
-        String hostName = url.getHost();
-        String path     = url.getPath();
-        String baseName = "";
+  /**
+   * Get a file name from a URL.
+   *
+   * @param url The URL.
+   * @param outputDirectoryName The output directory name.
+   * @return The file name stripped of its original path with the specified output directory
+   *     attached.
+   */
+  public static String getFileNameFromURL(URL url, String outputDirectoryName) {
+    String hostName = url.getHost();
+    String path = url.getPath();
+    String baseName = "";
 
-        if ( path.length() == 0 )
-        {
-            if ( hostName.length() == 0 )
-            {
-                baseName    = "adorned";
-            }
-            else
-            {
-                baseName    = hostName;
-            }
-        }
-
-        else
-        {
-            if ( hostName.length() == 0 )
-            {
-                baseName    = new File( path ).getName();
-            }
-            else
-            {
-                baseName    = new File( hostName + "." + path ).getName();
-            }
-        }
-
-        return new File( outputDirectoryName , baseName ).getPath();
+    if (path.length() == 0) {
+      if (hostName.length() == 0) {
+        baseName = "adorned";
+      } else {
+        baseName = hostName;
+      }
+    } else {
+      if (hostName.length() == 0) {
+        baseName = new File(path).getName();
+      } else {
+        baseName = new File(hostName + "." + path).getName();
+      }
     }
 
-    /** Check if string is a valid URL.
-     *
-     *  @param  possibleURL String to check for being a URL.
-     *
-     *  @return                     true if string is a URL.
-     */
+    return new File(outputDirectoryName, baseName).getPath();
+  }
 
-    public static boolean isURL( String possibleURL )
-    {
-        boolean result  = false;
+  /**
+   * Check if string is a valid URL.
+   *
+   * @param possibleURL String to check for being a URL.
+   * @return true if string is a URL.
+   */
+  public static boolean isURL(String possibleURL) {
+    boolean result = false;
 
-        try
-        {
-            URL url = new URL( possibleURL );
+    try {
+      URL url = new URL(possibleURL);
 
-            result  = true;
-        }
-        catch ( Exception e )
-        {
-        }
-
-        return result;
+      result = true;
+    } catch (Exception e) {
     }
 
-    /** Don't allow instantiation but do allow overrides. */
+    return result;
+  }
 
-    protected URLUtils()
-    {
-    }
+  /** Don't allow instantiation but do allow overrides. */
+  protected URLUtils() {}
 }
 
 /*
@@ -163,5 +127,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

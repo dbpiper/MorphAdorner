@@ -5,110 +5,85 @@ package edu.northwestern.at.utils;
 import java.io.Serializable;
 import java.util.regex.*;
 
-/** Defines a pattern replacer.
+/**
+ * Defines a pattern replacer.
  *
- *  <p>
- *  Defines a source pattern (regular expresssion) and its replacement
- *  string, along with a method for performing the replacement.
- *  </p>
+ * <p>Defines a source pattern (regular expresssion) and its replacement string, along with a method
+ * for performing the replacement.
  */
+public class PatternReplacer implements Serializable {
+  /** Source pattern string. */
+  protected String sourcePattern;
 
-public class PatternReplacer implements Serializable
-{
-    /** Source pattern string. */
+  /** Compiled source pattern matcher. */
+  protected Matcher sourcePatternMatcher;
 
-    protected String sourcePattern;
+  /** Replacement. */
+  protected String replacementPattern;
 
-    /** Compiled source pattern matcher. */
+  /**
+   * Create a pattern replacer definition.
+   *
+   * @param sourcePattern Source pattern string as a regular expression.
+   * @param replacementPattern Replacement pattern string as a regular expression replacement
+   *     expression.
+   */
+  public PatternReplacer(String sourcePattern, String replacementPattern) {
+    this.sourcePattern = sourcePattern;
+    this.replacementPattern = replacementPattern;
 
-    protected Matcher sourcePatternMatcher;
+    this.sourcePatternMatcher = Pattern.compile(sourcePattern).matcher("");
+  }
 
-    /** Replacement. */
+  /**
+   * Return matched groups.
+   *
+   * @param s String to match.
+   * @return String array of matched groups. Null if match fails.
+   */
+  public String[] matchGroups(String s) {
+    String[] result = null;
 
-    protected String replacementPattern;
+    if (sourcePatternMatcher.reset(s).find()) {
+      int groupCount = sourcePatternMatcher.groupCount();
 
-    /** Create a pattern replacer definition.
-     *
-     *  @param  sourcePattern       Source pattern string as a
-     *                              regular expression.
-     *
-     *  @param  replacementPattern  Replacement pattern string
-     *                              as a regular expression
-     *                              replacement expression.
-     */
+      result = new String[groupCount + 1];
 
-    public PatternReplacer
-    (
-        String sourcePattern ,
-        String replacementPattern
-    )
-    {
-        this.sourcePattern          = sourcePattern;
-        this.replacementPattern     = replacementPattern;
-
-        this.sourcePatternMatcher   =
-            Pattern.compile( sourcePattern ).matcher( "" );
+      for (int i = 0; i <= groupCount; i++) {
+        result[i] = sourcePatternMatcher.group(i);
+      }
     }
 
-    /** Return matched groups.
-     *
-     *  @param  s   String to match.
-     *
-     *  @return     String array of matched groups.
-     *              Null if match fails.
-     */
+    return result;
+  }
 
-    public String[] matchGroups( String s )
-    {
-        String[] result = null;
+  /**
+   * Perform replacement.
+   *
+   * @param s String in which to perform replacement.
+   * @return String with source pattern replaced.
+   */
+  public String replace(String s) {
+    return sourcePatternMatcher.reset(s).replaceAll(replacementPattern);
+  }
 
-        if ( sourcePatternMatcher.reset( s ).find() )
-        {
-            int groupCount  = sourcePatternMatcher.groupCount();
+  /**
+   * Get pattern matcher.
+   *
+   * @return The pattern matcher.
+   */
+  public Matcher getMatcher() {
+    return sourcePatternMatcher;
+  }
 
-            result  = new String[ groupCount + 1 ];
-
-            for ( int i = 0 ; i <= groupCount ; i++ )
-            {
-                result[ i ] = sourcePatternMatcher.group( i );
-            }
-        }
-
-        return result;
-    }
-
-    /** Perform replacement.
-     *
-     *  @param  s   String in which to perform replacement.
-     *
-     *  @return     String with source pattern replaced.
-     */
-
-    public String replace( String s )
-    {
-        return
-            sourcePatternMatcher.reset( s ).replaceAll( replacementPattern );
-    }
-
-    /** Get pattern matcher.
-     *
-     *  @return     The pattern matcher.
-     */
-
-    public Matcher getMatcher()
-    {
-        return sourcePatternMatcher;
-    }
-
-    /** Display pattern replacer as string.
-     *
-     *  @return     Pattern replacer as string.
-     */
-
-    public String toString()
-    {
-        return sourcePattern + " -> " + replacementPattern;
-    }
+  /**
+   * Display pattern replacer as string.
+   *
+   * @return Pattern replacer as string.
+   */
+  public String toString() {
+    return sourcePattern + " -> " + replacementPattern;
+  }
 }
 
 /*
@@ -151,6 +126,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

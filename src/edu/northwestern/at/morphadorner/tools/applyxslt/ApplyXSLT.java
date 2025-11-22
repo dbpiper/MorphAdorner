@@ -1,27 +1,27 @@
 package edu.northwestern.at.morphadorner.tools.applyxslt;
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
-import java.net.URL;
 import java.util.*;
 import java.util.zip.*;
-
 import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import edu.northwestern.at.utils.*;
-
-/** Apply XSLT transformation to a batch of input files.
+/**
+ * Apply XSLT transformation to a batch of input files.
  *
- *  <p>
- *  Usage:
- *  </p>
- *  <blockquote>
- *  <pre>
+ * <p>Usage:
+ *
+ * <blockquote>
+ *
+ * <pre>
  *  java edu.northwestern.at.morphadorner.tools.applyxslt.ApplyXSLT outputdirectory script.xsl input1.xml input2.xml ...
  *  </pre>
- *  </blockquote>
- *  <table>
+ *
+ * </blockquote>
+ *
+ * <table>
  *  <tr>
  *  <td>outputdirectory</td>
  *  <td>Output directory for files processed by applying the XSLT
@@ -36,134 +36,100 @@ import edu.northwestern.at.utils.*;
  *  </tr>
  *  </table>
  */
+public class ApplyXSLT {
+  /** Templates for transformer. */
+  protected static Templates templates;
 
-public class ApplyXSLT
-{
-    /** Templates for transformer. */
+  /** Input source. */
+  protected static Source inputXML;
 
-    protected static Templates templates;
+  /** Result. */
+  protected static Result result;
 
-    /** Input source. */
-
-    protected static Source inputXML;
-
-    /** Result. */
-
-    protected static Result result;
-
-    /** Main program. */
-
-    public static void main( String[] args )
-    {
-        try
-        {
-            applyXSLT( args );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+  /** Main program. */
+  public static void main(String[] args) {
+    try {
+      applyXSLT(args);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
 
-    /** Apply XSLT transformation to files. */
+  /** Apply XSLT transformation to files. */
+  public static void applyXSLT(final String[] args) throws Exception {
+    FileBatchProcessor processor =
+        new FileBatchProcessor() {
+          /**
+           * Transform one input file using the XSL script.
+           *
+           * @param inputFileName Input XML file name to transform.
+           */
+          public void processOneFile(String inputFileName) throws Exception {
+            //  Set up input file for transformation.
 
-    public static void applyXSLT( final String[] args )
-        throws Exception
-    {
-        FileBatchProcessor processor    = new FileBatchProcessor()
-        {
-            /** Transform one input file using the XSL script.
-             *
-             *  @param  inputFileName   Input XML file name to transform.
-             */
+            inputXML = new StreamSource(inputFileName);
 
-            public void processOneFile( String inputFileName )
-                throws Exception
-            {
-                                //  Set up input file for transformation.
+            //  Get output file name for transformed
+            //  XML.
 
-                inputXML    = new StreamSource( inputFileName );
+            String outputFileName =
+                new File(outputDirectoryName, new File(inputFileName).getName()).toString();
 
-                                //  Get output file name for transformed
-                                //  XML.
+            //  Skip processing if output file
+            //  exists.
 
-                String outputFileName   =
-                    new File
-                    (
-                        outputDirectoryName ,
-                        new File( inputFileName ).getName()
-                    ).toString();
+            if (FileNameUtils.fileExists(outputFileName)) {
+              printStream.println("Skipping " + inputFileName);
+            } else {
+              printStream.println("Processing " + inputFileName);
 
-                                //  Skip processing if output file
-                                //  exists.
+              outputFileName = new File(outputFileName).toURI().toURL().toString();
 
-                if ( FileNameUtils.fileExists( outputFileName ) )
-                {
-                    printStream.println( "Skipping " + inputFileName );
-                }
-                else
-                {
-                    printStream.println( "Processing " + inputFileName );
+              try {
+                //  Get a clone of the compiled transformer.
 
-                    outputFileName  =
-                        new File( outputFileName ).toURI().toURL().toString();
+                Transformer transformer = templates.newTransformer();
 
-                    try
-                    {
-                                //  Get a clone of the compiled transformer.
+                //  Indent the output.
 
-                        Transformer transformer = templates.newTransformer();
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                //  Set up the output file.
 
-                                //  Indent the output.
+                result = new StreamResult(outputFileName);
 
-                        transformer.setOutputProperty
-                        (
-                            OutputKeys.INDENT ,
-                            "yes"
-                        );
-                                //  Set up the output file.
+                //  Transform input to output using
+                //  the compiled XSLT style sheet.
 
-                        result = new StreamResult( outputFileName );
-
-                                //  Transform input to output using
-                                //  the compiled XSLT style sheet.
-
-                        transformer.transform( inputXML , result );
-                    }
-                    catch ( Exception e )
-                    {
-                        printStream.println
-                        (
-                            "   --- Error: " + inputFileName +
-                            ": " + e.getMessage()
-                        );
-                    }
-                }
+                transformer.transform(inputXML, result);
+              } catch (Exception e) {
+                printStream.println("   --- Error: " + inputFileName + ": " + e.getMessage());
+              }
             }
+          }
         };
-                                //  Set the output directory for the
-                                //  transformed files.
+    //  Set the output directory for the
+    //  transformed files.
 
-        processor.setOutputDirectoryName( args[ 0 ] );
+    processor.setOutputDirectoryName(args[0]);
 
-                                //  Set input file names.
+    //  Set input file names.
 
-        processor.setInputFileNames( args , 2 );
+    processor.setInputFileNames(args, 2);
 
-                                //  Get a transformer factory.
+    //  Get a transformer factory.
 
-        TransformerFactory factory  = TransformerFactory.newInstance();
+    TransformerFactory factory = TransformerFactory.newInstance();
 
-                                //  Compile the XSLT input file.
+    //  Compile the XSLT input file.
 
-        Source xslSource    = new StreamSource( args[ 1 ] );
+    Source xslSource = new StreamSource(args[1]);
 
-        templates   = factory.newTemplates( xslSource );
+    templates = factory.newTemplates(xslSource);
 
-                                //  Transform all the input files
-                                //  using the compiled style sheet.
-        processor.run();
-    }
+    //  Transform all the input files
+    //  using the compiled style sheet.
+    processor.run();
+  }
 }
 
 /*
@@ -206,6 +172,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

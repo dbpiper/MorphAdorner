@@ -5,14 +5,8 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namestandardizer;
 import java.io.*;
 import java.util.*;
 
-/** DefaultNameStandardizer: Default name standardizer.
- */
-
-public class DefaultNameStandardizer
-    extends AbstractNameStandardizer
-    implements NameStandardizer
-{
-}
+/** DefaultNameStandardizer: Default name standardizer. */
+public class DefaultNameStandardizer extends AbstractNameStandardizer implements NameStandardizer {}
 
 /*
 Copyright (c) 2008, 2013 by Northwestern University.
@@ -54,6 +48,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

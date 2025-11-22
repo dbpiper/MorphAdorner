@@ -4,9 +4,8 @@ package com.rmtheis.langdetect.profile;
 
 import com.cybozu.labs.langdetect.util.LangProfile;
 
-abstract public class CLangProfile
-{
-    abstract public LangProfile getLangProfile();
+public abstract class CLangProfile {
+  public abstract LangProfile getLangProfile();
 }
 
 /*
@@ -49,6 +48,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

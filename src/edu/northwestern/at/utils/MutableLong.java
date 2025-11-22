@@ -4,158 +4,126 @@ package edu.northwestern.at.utils;
 
 import java.io.Serializable;
 
-/** Implements a long object wrapper which allows changing the long value.
+/**
+ * Implements a long object wrapper which allows changing the long value.
  *
- *  <p>
- *  The built-in Java Long class does not allow changing the value
- *  of the wrapped Long value once the Long object is created.
- *  MutableLong provides most of the same methods as Long but adds
- *  extra methods to allow changing the value of the stored long.
- *  This is useful when wrapping longs for storage in collection types
- *  since it is much more efficient to update the value of an existing
- *  MutableLong than to create a new Long every time the value
- *  changes.
- *  </p>
+ * <p>The built-in Java Long class does not allow changing the value of the wrapped Long value once
+ * the Long object is created. MutableLong provides most of the same methods as Long but adds extra
+ * methods to allow changing the value of the stored long. This is useful when wrapping longs for
+ * storage in collection types since it is much more efficient to update the value of an existing
+ * MutableLong than to create a new Long every time the value changes.
  */
+public class MutableLong extends Number implements Serializable {
+  /** The long wrapped here. */
+  protected long mutableLong;
 
-public class MutableLong extends Number implements Serializable
-{
-    /** The long wrapped here. */
+  /**
+   * Create MutableLong object from an int value.
+   *
+   * @param l The long being wrapped.
+   */
+  public MutableLong(long l) {
+    mutableLong = l;
+  }
 
-    protected long mutableLong;
+  /**
+   * Create MutableLong object from a string.
+   *
+   * @param s String containing an integer value.
+   */
+  public MutableLong(String s) throws NumberFormatException {
+    mutableLong = Long.parseLong(s);
+  }
 
-    /** Create MutableLong object from an int value.
-     *
-     *  @param  l   The long being wrapped.
-     */
+  /**
+   * Compares this object to another object.
+   *
+   * @param obj The other object.
+   */
+  public int compareTo(Object obj) {
+    return compareTo((Number) obj);
+  }
 
-    public MutableLong( long l )
-    {
-        mutableLong = l;
+  /**
+   * Compares this number to another number.
+   *
+   * @param number The other number.
+   */
+  public int compareTo(Number number) {
+    return doCompare(mutableLong, number.longValue());
+  }
+
+  protected int doCompare(long i, long j) {
+    return (i >= j) ? ((int) ((i != j) ? 1 : 0)) : -1;
+  }
+
+  public boolean equals(Object obj) {
+    if ((obj != null) && (obj instanceof Number)) {
+      return (mutableLong == ((Number) obj).longValue());
+    } else {
+      return false;
     }
+  }
 
-    /** Create MutableLong object from a string.
-     *
-     *  @param  s   String containing an integer value.
-     */
+  public int hashCode() {
+    return (int) mutableLong;
+  }
 
-    public MutableLong( String s )
-        throws NumberFormatException
-    {
-        mutableLong = Long.parseLong( s );
-    }
+  public byte byteValue() {
+    return (byte) mutableLong;
+  }
 
-    /**  Compares this object to another object.
-     *
-     *  @param  obj     The other object.
-     */
+  public short shortValue() {
+    return (short) mutableLong;
+  }
 
-    public int compareTo( Object obj )
-    {
-        return compareTo( (Number)obj );
-    }
+  public int intValue() {
+    return (int) mutableLong;
+  }
 
-    /**  Compares this number to another number.
-     *
-     *  @param  number  The other number.
-     */
+  public long longValue() {
+    return mutableLong;
+  }
 
-    public int compareTo( Number number )
-    {
-        return doCompare( mutableLong , number.longValue() );
-    }
+  public float floatValue() {
+    return (float) mutableLong;
+  }
 
-    protected int doCompare( long i , long j )
-    {
-        return ( i >= j ) ? ( (int)( ( i != j ) ? 1 : 0 ) ) : -1;
-    }
+  public double doubleValue() {
+    return (double) mutableLong;
+  }
 
-    public boolean equals( Object obj )
-    {
-        if ( ( obj != null ) && ( obj instanceof Number ) )
-        {
-            return ( mutableLong == ((Number)obj).longValue() );
-        }
-        else
-        {
-            return false;
-        }
-    }
+  public String toString() {
+    return String.valueOf(mutableLong);
+  }
 
-    public int hashCode()
-    {
-        return (int)mutableLong;
-    }
+  public void setValue(byte aByte) {
+    mutableLong = aByte;
+  }
 
-    public byte byteValue()
-    {
-        return (byte)mutableLong;
-    }
+  public void setValue(short aWord) {
+    mutableLong = aWord;
+  }
 
-    public short shortValue()
-    {
-        return (short)mutableLong;
-    }
+  public void setValue(int i) {
+    mutableLong = (long) i;
+  }
 
-    public int intValue()
-    {
-        return (int)mutableLong;
-    }
+  public void setValue(long l) {
+    mutableLong = l;
+  }
 
-    public long longValue()
-    {
-        return mutableLong;
-    }
+  public void setValue(float f) {
+    mutableLong = (long) f;
+  }
 
-    public float floatValue()
-    {
-        return (float)mutableLong;
-    }
+  public void setValue(double d) {
+    mutableLong = (long) d;
+  }
 
-    public double doubleValue()
-    {
-        return (double)mutableLong;
-    }
-
-    public String toString()
-    {
-        return String.valueOf( mutableLong );
-    }
-
-    public void setValue( byte aByte )
-    {
-        mutableLong = aByte;
-    }
-
-    public void setValue( short aWord )
-    {
-        mutableLong = aWord;
-    }
-
-    public void setValue( int i )
-    {
-        mutableLong = (long)i;
-    }
-
-    public void setValue( long l )
-    {
-        mutableLong = l;
-    }
-
-    public void setValue( float f )
-    {
-        mutableLong = (long)f;
-    }
-
-    public void setValue( double d )
-    {
-        mutableLong = (long)d;
-    }
-
-    public Long toLong()
-    {
-        return new Long( mutableLong );
-    }
+  public Long toLong() {
+    return new Long(mutableLong);
+  }
 }
 
 /*
@@ -198,6 +166,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

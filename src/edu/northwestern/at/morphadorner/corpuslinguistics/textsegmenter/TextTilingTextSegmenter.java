@@ -2,124 +2,102 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsegmenter;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.ListFactory;
-import edu.northwestern.at.utils.SetFactory;
 import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.textsegmenter.struct.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.textsegmenter.texttiling.*;
+import edu.northwestern.at.utils.ListFactory;
+import java.util.*;
 
-/** Marti Hearst's TextTiling linear text segmenter.
- */
+/** Marti Hearst's TextTiling linear text segmenter. */
+public class TextTilingTextSegmenter extends AbstractTextSegmenter implements TextSegmenter {
+  /** Sliding window size. */
+  protected int slidingWindowSize = 10;
 
-public class TextTilingTextSegmenter
-    extends AbstractTextSegmenter
-    implements TextSegmenter
-{
-    /** Sliding window size. */
+  /** Step size. */
+  protected int stepSize = 100;
 
-    protected int slidingWindowSize = 10;
+  /** Create segmenter. */
+  public TextTilingTextSegmenter() {
+    super();
+  }
 
-    /** Step size. */
+  /**
+   * Get sliding window size.
+   *
+   * @return Sliding window size.
+   */
+  public int getSlidingWindowSize() {
+    return slidingWindowSize;
+  }
 
-    protected int stepSize          = 100;
+  /**
+   * Set sliding window size.
+   *
+   * @param slidingWindowSize The sliding window size.
+   */
+  public void setSlidingWindowSize(int slidingWindowSize) {
+    this.slidingWindowSize = slidingWindowSize;
+  }
 
-    /** Create segmenter.
-     */
+  /**
+   * Get step size.
+   *
+   * @return The step size.
+   */
+  public int getStepSize() {
+    return stepSize;
+  }
 
-    public TextTilingTextSegmenter()
-    {
-        super();
+  /**
+   * Set step size.
+   *
+   * @param stepSize The step size.
+   */
+  public void setStepSize(int stepSize) {
+    this.stepSize = stepSize;
+  }
+
+  /**
+   * Segment text.
+   *
+   * @param sentences The list of tokenized sentences to segment.
+   * @return A list of sentence indices which start a new text segment.
+   */
+  public <T> List<Integer> getSegmentPositions(List<List<T>> sentences) {
+    RawText c = new RawText(sentences);
+
+    TextTiling tiler = new TextTiling(c, stopWords);
+
+    tiler.setWindowSize(slidingWindowSize);
+    tiler.setStepSize(stepSize);
+
+    tiler.similarityDetermination();
+    tiler.depthScore();
+    tiler.boundaryIdentification();
+
+    List<Integer> sentenceBoundaries = c.boundaries;
+
+    List<Integer> result = ListFactory.createNewList();
+    List<Integer> segmentation = tiler.getSegmentation();
+
+    result.add(0);
+
+    for (int i = 1; i < sentenceBoundaries.size(); i++) {
+      //  Get sentence boundaries for next segment.
+
+      int start = sentenceBoundaries.get(i - 1);
+      int end = sentenceBoundaries.get(i);
+
+      //  If start is a topic boundary, add its
+      //  index to result list.
+
+      if (segmentation.contains(start)) {
+        result.add(i - 1);
+      }
     }
 
-    /** Get sliding window size.
-     *
-     *  @return     Sliding window size.
-     */
-
-    public int getSlidingWindowSize()
-    {
-        return slidingWindowSize;
-    }
-
-    /** Set sliding window size.
-     *
-     *  @param  slidingWindowSize   The sliding window size.
-     */
-
-    public void setSlidingWindowSize( int slidingWindowSize )
-    {
-        this.slidingWindowSize  = slidingWindowSize;
-    }
-
-    /** Get step size.
-     *
-     *  @return     The step size.
-     */
-
-    public int getStepSize()
-    {
-        return stepSize;
-    }
-
-    /** Set step size.
-     *
-     *  @param  stepSize    The step size.
-     */
-
-    public void setStepSize( int stepSize )
-    {
-        this.stepSize   = stepSize;
-    }
-
-    /** Segment text.
-     *
-     *  @param  sentences   The list of tokenized sentences to segment.
-     *
-     *  @return             A list of sentence indices which start
-     *                      a new text segment.
-     */
-
-    public <T> List<Integer> getSegmentPositions( List<List<T>> sentences )
-    {
-        RawText c           = new RawText( sentences );
-
-        TextTiling tiler    = new TextTiling( c , stopWords );
-
-        tiler.setWindowSize( slidingWindowSize );
-        tiler.setStepSize( stepSize );
-
-        tiler.similarityDetermination();
-        tiler.depthScore();
-        tiler.boundaryIdentification();
-
-        List<Integer> sentenceBoundaries    = c.boundaries;
-
-        List<Integer> result        = ListFactory.createNewList();
-        List<Integer> segmentation  = tiler.getSegmentation();
-
-        result.add( 0 );
-
-        for ( int i = 1 ; i < sentenceBoundaries.size() ; i++ )
-        {
-                                //  Get sentence boundaries for next segment.
-
-            int start   = sentenceBoundaries.get( i - 1 );
-            int end     = sentenceBoundaries.get( i );
-
-                                //  If start is a topic boundary, add its
-                                //  index to result list.
-
-            if ( segmentation.contains( start ) )
-            {
-                result.add( i - 1 );
-            }
-        }
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -162,6 +140,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

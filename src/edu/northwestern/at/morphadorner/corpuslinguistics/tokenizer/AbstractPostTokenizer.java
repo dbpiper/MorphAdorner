@@ -5,76 +5,53 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 import edu.northwestern.at.utils.IsCloseableObject;
 import edu.northwestern.at.utils.logger.*;
 
-/** Post tokenizer which processes an extracted token.
+/**
+ * Post tokenizer which processes an extracted token.
  *
- *  <p>
- *  This post tokenizer leaves the token unchanged.
- *  </p>
+ * <p>This post tokenizer leaves the token unchanged.
  */
+public abstract class AbstractPostTokenizer extends IsCloseableObject
+    implements PostTokenizer, UsesLogger {
+  /** Logger used for output. */
+  protected Logger logger;
 
-abstract public class AbstractPostTokenizer
-    extends IsCloseableObject
-    implements PostTokenizer, UsesLogger
-{
-    /** Logger used for output. */
+  /** Create a postTokenizer. */
+  public AbstractPostTokenizer() {
+    logger = new DummyLogger();
+  }
 
-    protected Logger logger;
+  /**
+   * Process a token after tokenization.
+   *
+   * @param token The token to process after tokenization.
+   * @return Array of two strings. [0] = the token minimally processed. [1] = the token maximally
+   *     processed.
+   *     <p>The minimally processed token is typically results in an original spelling.
+   *     <p>The maximally processed token typically results in a partially or completely
+   *     standardized spelling.
+   *     <p>These may be identical.
+   */
+  public String[] postTokenize(String token) {
+    return new String[] {token, token};
+  }
 
-    /** Create a postTokenizer.
-     */
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    public AbstractPostTokenizer()
-    {
-        logger  = new DummyLogger();
-    }
-
-    /** Process a token after tokenization.
-     *
-     *  @param  token   The token to process after tokenization.
-     *
-     *  @return         Array of two strings.
-     *                  [0] = the token minimally processed.
-     *                  [1] = the token maximally processed.
-     *
-     *  <p>
-     *  The minimally processed token is typically results in an original
-     *  spelling.
-     *  </p>
-     *  <p>
-     *  The maximally processed token typically results in a
-     *  partially or completely standardized spelling.
-     *  </p>
-     *
-     *  <p>
-     *  These may be identical.
-     *  </p>
-     *
-     */
-
-    public String[] postTokenize( String token )
-    {
-        return new String[]{ token , token };
-    }
-
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
-
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 }
 
 /*
@@ -117,6 +94,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

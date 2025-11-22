@@ -4,67 +4,53 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.affix;
 
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
 
-/** Affix Part of Speech tagger.
+/**
+ * Affix Part of Speech tagger.
  *
- *  <p>
- *  The affix part of speech tagger uses an affix lexicon to assign
- *  a part of speech tag to a spelling based upon the prefixes or
- *  suffixes of the spelling.
- *  </p>
+ * <p>The affix part of speech tagger uses an affix lexicon to assign a part of speech tag to a
+ * spelling based upon the prefixes or suffixes of the spelling.
  */
+public class AffixTagger extends UnigramTagger {
+  /** Create a affix tagger. */
+  public AffixTagger() {}
 
-public class AffixTagger extends UnigramTagger
-{
-    /** Create a affix tagger.
-     */
+  /**
+   * Tag a single word.
+   *
+   * @param word The word.
+   * @return The part of speech for the word.
+   */
+  public String tagWord(String word) {
+    String result = "";
+    //  Try suffixes of length four down to
+    //  one to assign part of speech tag.
 
-    public AffixTagger()
-    {
+    int l = word.length();
+
+    for (int i = Math.min(4, l); i > 0; i--) {
+      String suffix = word.substring(l - i, l);
+
+      if (lexicon.getEntryCount(suffix) > 0) {
+        result = lexicon.getLargestCategory(word);
+        break;
+      }
     }
 
-    /** Tag a single word.
-     *
-     *  @param  word    The word.
-     *
-     *  @return         The part of speech for the word.
-     */
-
-    public String tagWord( String word )
-    {
-        String result   = "";
-                                //  Try suffixes of length four down to
-                                //  one to assign part of speech tag.
-
-        int l   = word.length();
-
-        for ( int i = Math.min( 4 , l ) ; i > 0 ; i-- )
-        {
-            String suffix   = word.substring( l - i , l );
-
-            if ( lexicon.getEntryCount( suffix ) > 0 )
-            {
-                result  = lexicon.getLargestCategory( word );
-                break;
-            }
-        }
-
-        if ( result.length() == 0 )
-        {
-            result  = lexicon.getPartOfSpeechTags().getSingularNounTag();
-        }
-
-        return result;
+    if (result.length() == 0) {
+      result = lexicon.getPartOfSpeechTags().getSingularNounTag();
     }
 
-    /** Return tagger description.
-     *
-     *  @return     Tagger description.
-     */
+    return result;
+  }
 
-    public String toString()
-    {
-        return "Affix tagger";
-    }
+  /**
+   * Return tagger description.
+   *
+   * @return Tagger description.
+   */
+  public String toString() {
+    return "Affix tagger";
+  }
 }
 
 /*
@@ -107,6 +93,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

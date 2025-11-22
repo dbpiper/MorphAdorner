@@ -4,31 +4,22 @@ package edu.northwestern.at.utils;
 
 import java.util.*;
 
-/** Exception for reporting invalid data input.
+/**
+ * Exception for reporting invalid data input.
  *
- *  <p>
- *  An InvalidDataException can be thrown as an exception in the usual way,
- *  e.g.,
- *  </p>
+ * <p>An InvalidDataException can be thrown as an exception in the usual way, e.g.,
  *
- *  <p>
- *  <code>
+ * <p><code>
  *  throw new InvalidDataException( "Your imput data is invalid" );
  *  </code>
- *  </p>
  *
- *  <p>
- *  However, an instance of InvalidDataException can also be used to
- *  collect a list of input data errors.  You can throw
- *  the existing InvalidDataException at this point and the detailed
- *  messages will be available to the code which catches the error.
- *  </p>
+ * <p>However, an instance of InvalidDataException can also be used to collect a list of input data
+ * errors. You can throw the existing InvalidDataException at this point and the detailed messages
+ * will be available to the code which catches the error.
  *
- *  <p>
- *  Example:
- *  </p>
+ * <p>Example:
  *
- *  <pre>
+ * <pre>
  *  <code>
  *  InvalidDataException ide    = new InvalidDataException();
  *  lineNumber = 0;
@@ -46,59 +37,48 @@ import java.util.*;
  *  </code>
  *  </pre>
  */
+public class InvalidDataException extends Exception {
+  /** List to hold error messages. */
+  protected List<String> errorMessages = ListFactory.createNewList();
 
-public class InvalidDataException extends Exception
-{
-    /** List to hold error messages. */
+  /** Create empty data exception. */
+  public InvalidDataException() {}
 
-    protected List<String> errorMessages    =
-        ListFactory.createNewList();
+  /**
+   * Create data exception with error description.
+   *
+   * @param description Description of error.
+   */
+  public InvalidDataException(String description) {
+    super(description);
+  }
 
-    /** Create empty data exception. */
+  /**
+   * Add error message to list of errors.
+   *
+   * @param errorMessage The message to add to the list.
+   */
+  public void addMessage(String errorMessage) {
+    errorMessages.add(errorMessage);
+  }
 
-    public InvalidDataException()
-    {
-    }
+  /**
+   * Get list of error messages.
+   *
+   * @return Error messages as unmodifiable list.
+   */
+  public List<String> getMessages() {
+    return Collections.unmodifiableList(errorMessages);
+  }
 
-    /** Create data exception with error description.
-     *
-     *  @param  description     Description of error.
-     */
-
-    public InvalidDataException( String description )
-    {
-        super( description );
-    }
-
-    /** Add error message to list of errors.
-     *
-     *  @param  errorMessage        The message to add to the list.
-     */
-
-    public void addMessage( String errorMessage )
-    {
-        errorMessages.add( errorMessage );
-    }
-
-    /** Get list of error messages.
-     *
-     *  @return     Error messages as unmodifiable list.
-     */
-
-    public List<String> getMessages()
-    {
-        return Collections.unmodifiableList( errorMessages );
-    }
-
-    /** Check there are any error messages.
-     *
-     *  @return     true if there are any error messages.
-     */
-
-    public boolean hasMessages()
-    {
-        return ( errorMessages.size() > 0 );
-    }
+  /**
+   * Check there are any error messages.
+   *
+   * @return true if there are any error messages.
+   */
+  public boolean hasMessages() {
+    return (errorMessages.size() > 0);
+  }
 }
 
 /*
@@ -141,6 +121,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,235 +2,194 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
 /** Holds information about a single file. */
+public class FileInfo {
+  /** The wrapped file. */
+  File file;
 
-public class FileInfo
-{
-    /** The wrapped file. */
+  /** The base directory. */
+  String baseDirectory;
 
-    File file;
+  /**
+   * Create a wrapped file.
+   *
+   * @param file The file to wrap.
+   */
+  public FileInfo(File file) {
+    this.file = file;
+  }
 
-    /** The base directory. */
+  /**
+   * Create a wrapped file.
+   *
+   * @param file The file to wrap.
+   * @param baseDirectory The base directory.
+   */
+  public FileInfo(File file, File baseDirectory) {
+    this.file = file;
 
-    String baseDirectory;
+    if (baseDirectory != null) {
+      try {
+        this.baseDirectory = baseDirectory.getCanonicalPath();
+      } catch (Exception e) {
+      }
+    }
+  }
 
-    /** Create a wrapped file.
-     *
-     *  @param  file    The file to wrap.
-     */
+  /**
+   * Get file name.
+   *
+   * @return Short file name without leading path.
+   */
+  public String getFileName() {
+    return (file == null) ? "" : file.getName();
+  }
 
-    public FileInfo( File file )
-    {
-        this.file   = file;
+  /**
+   * Get full file name.
+   *
+   * @return Full file name with leading path.
+   */
+  public String getFullFileName() {
+    String result = "";
+
+    if (file != null) {
+      try {
+        result = file.getCanonicalPath();
+      } catch (Exception e) {
+      }
     }
 
-    /** Create a wrapped file.
-     *
-     *  @param  file            The file to wrap.
-     *  @param  baseDirectory   The base directory.
-     */
+    return result;
+  }
 
-    public FileInfo( File file , File baseDirectory )
-    {
-        this.file           = file;
+  /**
+   * Get full file name relative to base directory.
+   *
+   * @return Full file name with leading path relative to base directory.
+   */
+  public String getRelativeFileName() {
+    String result = "";
 
-        if ( baseDirectory != null )
-        {
-            try
-            {
-                this.baseDirectory  = baseDirectory.getCanonicalPath();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
+    if (file != null) {
+      try {
+        result = file.getCanonicalPath();
+      } catch (Exception e) {
+      }
     }
 
-    /** Get file name.
-     *
-     *  @return     Short file name without leading path.
-     */
-
-    public String getFileName()
-    {
-        return ( file == null ) ? "" : file.getName();
+    if (result.length() >= baseDirectory.length()) {
+      result = result.substring(baseDirectory.length());
     }
 
-    /** Get full file name.
-     *
-     *  @return     Full file name with leading path.
-     */
+    return result;
+  }
 
-    public String getFullFileName()
-    {
-        String result   = "";
+  /**
+   * Get file length.
+   *
+   * @return File length.
+   */
+  public long getLength() {
+    return (file == null) ? 0 : file.length();
+  }
 
-        if ( file != null )
-        {
-            try
-            {
-                result  = file.getCanonicalPath();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
+  /**
+   * Get last modified time.
+   *
+   * @return Last modified time.
+   */
+  public long getLastModified() {
+    return (file == null) ? 0 : file.lastModified();
+  }
 
-        return result;
+  /**
+   * Get last modified date/time.
+   *
+   * @return Last modified date/time.
+   */
+  public Date getLastModifiedDateTime() {
+    return (file == null) ? new Date(0) : new Date(file.lastModified());
+  }
+
+  /**
+   * True if file is a normal file.
+   *
+   * @return true if file is a normal file.
+   */
+  public boolean getIsFile() {
+    return (file == null) ? false : file.isFile();
+  }
+
+  /**
+   * True if file is a directory.
+   *
+   * @return true if file is a directory.
+   */
+  public boolean getIsDirectory() {
+    return (file == null) ? false : file.isDirectory();
+  }
+
+  /**
+   * Get parent file.
+   *
+   * @return Parent file.
+   */
+  public File getParentFile() {
+    return (file == null) ? null : file.getParentFile();
+  }
+
+  /**
+   * Get parent file path.
+   *
+   * @return Parent file path.
+   */
+  public String getParentPath() {
+    String result = "";
+
+    if (file != null) {
+      try {
+        result = file.getParentFile().getCanonicalPath();
+      } catch (Exception e) {
+      }
     }
 
-    /** Get full file name relative to base directory.
-     *
-     *  @return     Full file name with leading path relative to base directory.
-     */
+    return result;
+  }
 
-    public String getRelativeFileName()
-    {
-        String result   = "";
+  /**
+   * Get parent directory path relative to base directory.
+   *
+   * @return Parent directory path relative to base directory.
+   */
+  public String getRelativeParentPath() {
+    String result = "";
 
-        if ( file != null )
-        {
-            try
-            {
-                result  = file.getCanonicalPath();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
+    if (file != null) {
+      try {
+        result = file.getParentFile().getCanonicalPath();
+      } catch (Exception e) {
+      }
 
-        if ( result.length() >= baseDirectory.length() )
-        {
-            result  = result.substring( baseDirectory.length() );
-        }
-
-        return result;
+      if (result.length() >= baseDirectory.length()) {
+        result = result.substring(baseDirectory.length());
+      }
     }
 
-    /** Get file length.
-     *
-     *  @return     File length.
-     */
+    return result;
+  }
 
-    public long getLength()
-    {
-        return ( file == null ) ? 0 : file.length();
-    }
-
-    /** Get last modified time.
-     *
-     *  @return     Last modified time.
-     */
-
-    public long getLastModified()
-    {
-        return ( file == null ) ? 0 : file.lastModified();
-    }
-
-    /** Get last modified date/time.
-     *
-     *  @return     Last modified date/time.
-     */
-
-    public Date getLastModifiedDateTime()
-    {
-        return ( file == null ) ?
-            new Date( 0 ) : new Date( file.lastModified() );
-    }
-
-    /** True if file is a normal file.
-     *
-     *  @return     true if file is a normal file.
-     */
-
-    public boolean getIsFile()
-    {
-        return ( file == null ) ? false : file.isFile();
-    }
-
-    /** True if file is a directory.
-     *
-     *  @return     true if file is a directory.
-     */
-
-    public boolean getIsDirectory()
-    {
-        return ( file == null ) ? false : file.isDirectory();
-    }
-
-    /** Get parent file.
-     *
-     *  @return     Parent file.
-     */
-
-    public File getParentFile()
-    {
-        return ( file == null ) ? null : file.getParentFile();
-    }
-
-    /** Get parent file path.
-     *
-     *  @return     Parent file path.
-     */
-
-    public String getParentPath()
-    {
-        String result   = "";
-
-        if ( file != null )
-        {
-            try
-            {
-                result  = file.getParentFile().getCanonicalPath();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
-
-        return result;
-    }
-
-    /** Get parent directory path relative to base directory.
-     *
-     *  @return     Parent directory path relative to base directory.
-     */
-
-    public String getRelativeParentPath()
-    {
-        String result   = "";
-
-        if ( file != null )
-        {
-            try
-            {
-                result  = file.getParentFile().getCanonicalPath();
-            }
-            catch ( Exception e )
-            {
-            }
-
-            if ( result.length() >= baseDirectory.length() )
-            {
-                result  = result.substring( baseDirectory.length() );
-            }
-        }
-
-        return result;
-    }
-
-    /** Return full file name as default string value.
-     *
-     *  @return full file name.
-     */
-
-    public String toString()
-    {
-        return getFullFileName();
-    }
+  /**
+   * Return full file name as default string value.
+   *
+   * @return full file name.
+   */
+  public String toString() {
+    return getFullFileName();
+  }
 }
 
 /*
@@ -273,6 +232,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

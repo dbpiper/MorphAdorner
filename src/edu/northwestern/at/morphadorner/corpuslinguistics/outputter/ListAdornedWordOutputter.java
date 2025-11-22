@@ -2,161 +2,110 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.outputter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
+/** Outputs adorned words to a collection list. */
+public class ListAdornedWordOutputter implements AdornedWordOutputter {
+  /** List holding adorned word output. The list entries are all lists of strings. */
+  protected List<List<String>> adornedWordDataList = ListFactory.createNewList();
 
-/** Outputs adorned words to a collection list.
- */
+  /** Separator character for output. */
+  protected char separatorCharacter = '\t';
 
-public class ListAdornedWordOutputter
-    implements AdornedWordOutputter
-{
-    /** List holding adorned word output.
-     *  The list entries are all lists of strings.
-     */
+  /** Output file name. */
+  protected String fileName = null;
 
-    protected List<List<String>> adornedWordDataList    =
-        ListFactory.createNewList();
+  /** Output file encoding. */
+  protected String fileEncoding = "utf-8";
 
-    /** Separator character for output. */
+  /** Create outputter. */
+  public ListAdornedWordOutputter() {}
 
-    protected char separatorCharacter   = '\t';
+  /**
+   * Create output file.
+   *
+   * @param fileName Output file name.
+   * @param encoding Encoding for the output file.
+   * @param separatorCharacter Output separator character.
+   *     <p>The unused arguments are stored but otherwise ignored.
+   */
+  public void createOutputFile(String fileName, String encoding, char separatorCharacter)
+      throws IOException {
+    this.fileName = fileName;
+    this.fileEncoding = encoding;
+    this.separatorCharacter = separatorCharacter;
+  }
 
-    /** Output file name. */
+  /**
+   * Set word attribute names.
+   *
+   * @param wordAttributeNames Word attribute names.
+   */
+  public void setWordAttributeNames(List<String> wordAttributeNames) {}
 
-    protected String fileName           = null;
+  /**
+   * Outputs a word and its adornments (part of speech, lemmata, etc).
+   *
+   * @param wordAndAdornments Word and its adornments as an array of string.
+   * @throws IOException If an output error occurs.
+   *     <p>Outputs word and adornments as a tab-separated text line to standard output.
+   */
+  public void outputWordAndAdornments(String[] wordAndAdornments) throws IOException {
+    List<String> list = ListFactory.createNewList();
 
-    /** Output file encoding. */
+    list.addAll(Arrays.asList(wordAndAdornments));
 
-    protected String fileEncoding       = "utf-8";
+    adornedWordDataList.add(list);
+  }
 
-    /** Create outputter.
-     */
+  /**
+   * Outputs a word and its adornments (part of speech, lemmata, etc).
+   *
+   * @param wordAndAdornments Word and its adornments as a string list.
+   * @throws IOException If an output error occurs.
+   *     <p>Outputs word and adornments as a tab-separated text line to standard output.
+   */
+  public void outputWordAndAdornments(List<String> wordAndAdornments) throws IOException {
+    //  We must copy the input list.
 
-    public ListAdornedWordOutputter()
-    {
-    }
+    List<String> list = ListFactory.createNewList();
 
-    /** Create output file.
-     *
-     *  @param  fileName                Output file name.
-     *  @param  encoding                Encoding for the output file.
-     *  @param  separatorCharacter      Output separator character.
-     *
-     *  <p>
-     *  The unused arguments are stored but otherwise ignored.
-     *  </p>
-     */
+    list.addAll(wordAndAdornments);
 
-    public void createOutputFile
-    (
-        String fileName ,
-        String encoding ,
-        char separatorCharacter
-    )
-        throws IOException
-    {
-        this.fileName           = fileName;
-        this.fileEncoding       = encoding;
-        this.separatorCharacter = separatorCharacter;
-    }
+    adornedWordDataList.add(list);
+  }
 
-    /** Set word attribute names.
-     *
-     *  @param  wordAttributeNames  Word attribute names.
-     */
+  /**
+   * Get output file name.
+   *
+   * @return Output file name.
+   */
+  public String getOutputFileName() {
+    return fileName;
+  }
 
-    public void setWordAttributeNames( List<String> wordAttributeNames )
-    {
-    }
+  /**
+   * Get output file encoding.
+   *
+   * @return Output file encoding.
+   */
+  public String getOutputFileEncoding() {
+    return fileEncoding;
+  }
 
-    /** Outputs a word and its adornments (part of speech, lemmata, etc).
-     *
-     *  @param  wordAndAdornments   Word and its adornments as an
-     *                              array of string.
-     *
-     *  @throws IOException         If an output error occurs.
-     *
-     *  <p>
-     *  Outputs word and adornments as a tab-separated text line to
-     *  standard output.
-     *  </p>
-     */
+  /** Close outputter. */
+  public void close() {}
 
-     public void outputWordAndAdornments( String[] wordAndAdornments )
-        throws IOException
-     {
-        List<String> list   = ListFactory.createNewList();
-
-        list.addAll( Arrays.asList( wordAndAdornments ) );
-
-        adornedWordDataList.add( list );
-     }
-
-    /** Outputs a word and its adornments (part of speech, lemmata, etc).
-     *
-     *  @param  wordAndAdornments       Word and its adornments as a
-     *                                  string list.
-     *
-     *  @throws IOException             If an output error occurs.
-     *
-     *  <p>
-     *  Outputs word and adornments as a tab-separated text line to
-     *  standard output.
-     *  </p>
-     */
-
-     public void outputWordAndAdornments( List<String> wordAndAdornments )
-        throws IOException
-     {
-                                //  We must copy the input list.
-
-        List<String> list   = ListFactory.createNewList();
-
-        list.addAll( wordAndAdornments );
-
-        adornedWordDataList.add( list );
-     }
-
-    /** Get output file name.
-     *
-     *  @return Output file name.
-     */
-
-    public String getOutputFileName()
-    {
-        return fileName;
-    }
-
-    /** Get output file encoding.
-     *
-     *  @return Output file encoding.
-     */
-
-    public String getOutputFileEncoding()
-    {
-        return fileEncoding;
-    }
-
-    /** Close outputter.
-     */
-
-    public void close()
-    {
-    }
-
-    /** Get list of adorned word output.
-     *
-     *  @return     List of adorned word output.
-     *              This is a list of string lists.
-     */
-
-    public List<List<String>> getAdornedWordDataList()
-    {
-        return adornedWordDataList;
-    }
+  /**
+   * Get list of adorned word output.
+   *
+   * @return List of adorned word output. This is a list of string lists.
+   */
+  public List<List<String>> getAdornedWordDataList() {
+    return adornedWordDataList;
+  }
 }
 
 /*
@@ -199,6 +148,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

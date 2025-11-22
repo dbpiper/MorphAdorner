@@ -6,25 +6,13 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.MapFactory;
-import edu.northwestern.at.utils.SortedArrayList;
-import edu.northwestern.at.utils.UTF8Properties;
-
-/** DefaultPartOfSpeechTagsMapper: default returns original tag unchanged.
- */
-
-public class DefaultPartOfSpeechTagsMapper
-    extends NoopPartOfSpeechTagsMapper
-    implements PartOfSpeechTagsMapper
-{
-    /** Create default part of speech tags mapper.
-     */
-
-    public DefaultPartOfSpeechTagsMapper()
-        throws IOException
-    {
-        super();
-    }
+/** DefaultPartOfSpeechTagsMapper: default returns original tag unchanged. */
+public class DefaultPartOfSpeechTagsMapper extends NoopPartOfSpeechTagsMapper
+    implements PartOfSpeechTagsMapper {
+  /** Create default part of speech tags mapper. */
+  public DefaultPartOfSpeechTagsMapper() throws IOException {
+    super();
+  }
 }
 
 /*
@@ -67,6 +55,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

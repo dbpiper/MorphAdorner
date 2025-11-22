@@ -5,114 +5,81 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** Inflector factory.
- */
+/** Inflector factory. */
+public class InflectorFactory {
+  /**
+   * Get an inflector.
+   *
+   * @return The inflector.
+   */
+  public static Inflector newInflector() {
+    String className = System.getProperty("inflector.class");
 
-public class InflectorFactory
-{
-    /** Get an inflector.
-     *
-     *  @return     The inflector.
-     */
-
-    public static Inflector newInflector()
-    {
-        String className    =
-            System.getProperty( "inflector.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultInflector";
-        }
-
-        return newInflector( className );
+    if (className == null) {
+      className = "DefaultInflector";
     }
 
-    /** Get an inflector.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The inflector.
-     */
+    return newInflector(className);
+  }
 
-    public static Inflector newInflector
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get an inflector.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The inflector.
+   */
+  public static Inflector newInflector(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "inflector.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultInflector";
-        }
-
-        return newInflector( className );
+    if (properties != null) {
+      className = properties.getProperty("inflector.class");
     }
 
-    /** Get an inflector of a specified class name.
-     *
-     *  @param  className   Class name for the inflector.
-     *
-     *  @return             The inflector.
-     */
-
-    public static Inflector newInflector( String className )
-    {
-        Inflector inflector = null;
-
-        try
-        {
-            inflector   =
-                (Inflector)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    Inflector.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                inflector   =
-                    (Inflector)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create inflector of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    inflector   = new DefaultInflector();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null inflector.
-/*
-                    System.err.println(
-                        "Unable to create inflector, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return inflector;
+    if (className == null) {
+      className = "DefaultInflector";
     }
+
+    return newInflector(className);
+  }
+
+  /**
+   * Get an inflector of a specified class name.
+   *
+   * @param className Class name for the inflector.
+   * @return The inflector.
+   */
+  public static Inflector newInflector(String className) {
+    Inflector inflector = null;
+
+    try {
+      inflector = (Inflector) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName = ClassUtils.packageName(Inflector.class.getName()) + "." + className;
+
+      try {
+        inflector = (Inflector) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create inflector of class " + fixedClassName + ", using default.");
+
+        try {
+          inflector = new DefaultInflector();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null inflector.
+          /*
+                              System.err.println(
+                                  "Unable to create inflector, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return inflector;
+  }
 }
 
 /*
@@ -155,6 +122,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

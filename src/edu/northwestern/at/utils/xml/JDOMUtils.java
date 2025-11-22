@@ -2,550 +2,391 @@ package edu.northwestern.at.utils.xml;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import java.util.zip.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
-
+import java.util.*;
+import java.util.zip.*;
 import org.jdom2.*;
 import org.jdom2.contrib.schema.*;
 import org.jdom2.filter.*;
 import org.jdom2.input.*;
 import org.jdom2.output.*;
 import org.jdom2.transform.*;
-
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import edu.northwestern.at.utils.*;
+/** XML JDOM utilities. */
+public class JDOMUtils {
+  /**
+   * Parses an XML file.
+   *
+   * @param file File.
+   * @return JDOM document.
+   * @throws Exception
+   */
+  public static Document parse(File file) throws IOException, JDOMException, SAXException {
+    SAXBuilder builder = new SAXBuilder();
 
-/** XML JDOM utilities.
- */
+    return builder.build(file);
+  }
 
-public class JDOMUtils
-{
-    /** Parses an XML file.
-     *
-     *  @param  file        File.
-     *
-     *  @return             JDOM document.
-     *
-     *  @throws         Exception
-     */
+  /**
+   * Parses an XML file.
+   *
+   * @param path File path.
+   * @return JDOM document.
+   * @throws Exception
+   */
+  public static Document parse(String path) throws IOException, JDOMException, SAXException {
+    return parse(new File(path));
+  }
 
-    public static Document parse( File file )
-        throws IOException, JDOMException, SAXException
-    {
-        SAXBuilder builder = new SAXBuilder();
+  /**
+   * Parses XML document from URL.
+   *
+   * @param url URL.
+   * @return JDOM document.
+   * @throws Exception
+   */
+  public static Document parse(URL url) throws IOException, JDOMException, SAXException {
+    return new SAXBuilder().build(url.openStream());
+  }
 
-        return builder.build( file );
-    }
+  /**
+   * Parses XML document from a string.
+   *
+   * @param text Document text string.
+   * @return JDOM document.
+   * @throws Exception
+   */
+  public static Document parseText(String text) throws IOException, JDOMException, SAXException {
+    return new SAXBuilder().build(new InputSource(new StringReader(text)));
+  }
 
-    /** Parses an XML file.
-     *
-     *  @param  path        File path.
-     *
-     *  @return                 JDOM document.
-     *
-     *  @throws Exception
-     */
+  /**
+   * Get attribute.
+   *
+   * @param element The JDOM element.
+   * @param attributeName The attribute name whose value we want.
+   * @param ignoreCase true to ignore attribute name case.
+   * @return The attribute or null if not found.
+   */
+  public static Attribute getAttribute(Element element, String attributeName, boolean ignoreCase) {
+    //  Null returned by default if
+    //  attribute not found.
 
-    public static Document parse( String path )
-        throws IOException, JDOMException, SAXException
-    {
-        return parse( new File( path ) );
-    }
+    Attribute result = null;
 
-    /** Parses XML document from URL.
-     *
-     *  @param  url     URL.
-     *
-     *  @return             JDOM document.
-     *
-     *  @throws Exception
-     */
+    if (element != null) {
+      //  Get attributes for element.
 
-    public static Document parse( URL url )
-        throws IOException, JDOMException, SAXException
-    {
-        return new SAXBuilder().build( url.openStream() );
-    }
+      List attributeList = element.getAttributes();
 
-    /** Parses XML document from a string.
-     *
-     *  @param  text    Document text string.
-     *
-     *  @return         JDOM document.
-     *
-     *  @throws Exception
-     */
+      //  Lowercase name of attribute to find.
 
-    public static Document parseText( String text )
-        throws IOException, JDOMException, SAXException
-    {
-        return
-            new SAXBuilder().build( new InputSource( new StringReader( text ) ) );
-    }
+      String name = attributeName;
 
-    /** Get attribute.
-     *
-     *  @param  element         The JDOM element.
-     *  @param  attributeName   The attribute name whose value we want.
-     *  @param  ignoreCase      true to ignore attribute name case.
-     *
-     *  @return                 The attribute or null if not found.
-     */
+      if (ignoreCase) {
+        name = name.toLowerCase();
+      }
+      //  See if we can find lowercase attribute
+      //  name in list of attributes for
+      //  the element.
 
-     public static Attribute getAttribute
-     (
-        Element element ,
-        String attributeName ,
-        boolean ignoreCase
-     )
-     {
-                                //  Null returned by default if
-                                //  attribute not found.
+      for (int i = 0; i < attributeList.size(); i++) {
+        Attribute attribute = (Attribute) attributeList.get(i);
 
-        Attribute result    = null;
+        String attName = attribute.getQualifiedName();
 
-        if ( element != null )
-        {
-                                //  Get attributes for element.
-
-            List attributeList  = element.getAttributes();
-
-                                //  Lowercase name of attribute to find.
-
-            String name         = attributeName;
-
-            if ( ignoreCase )
-            {
-                name    = name.toLowerCase();
-            }
-                                //  See if we can find lowercase attribute
-                                //  name in list of attributes for
-                                //  the element.
-
-            for ( int i = 0 ; i < attributeList.size() ; i++ )
-            {
-                Attribute attribute = (Attribute)attributeList.get( i );
-
-                String attName      = attribute.getQualifiedName();
-
-                if ( ignoreCase )
-                {
-                    attName = attName.toLowerCase();
-                }
-
-                if ( attName.equals( name ) )
-                {
-                                //  Found matching attribute name.
-
-                    result  = attribute;
-                    break;
-                }
-            }
-        }
-                                //  Return attribute.
-        return result;
-     }
-
-    /** Get attribute value.
-     *
-     *  @param  element         The JDOM element.
-     *  @param  attributeName   The attribute name whose value we want.
-     *  @param  ignoreCase      true to ignore attribute name case.
-     *
-     *  @return                 The attribute value or null if not found.
-     */
-
-     public static String getAttributeValue
-     (
-        Element element ,
-        String attributeName ,
-        boolean ignoreCase
-     )
-     {
-        String result       = null;
-
-        Attribute attribute =
-            getAttribute
-            (
-                element ,
-                attributeName ,
-                ignoreCase
-            );
-
-        if ( attribute != null )
-        {
-            result  = attribute.getValue();
+        if (ignoreCase) {
+          attName = attName.toLowerCase();
         }
 
-        return result;
-     }
+        if (attName.equals(name)) {
+          //  Found matching attribute name.
 
-    /** Get attribute value ignoring case.
-     *
-     *  @param  element         The JDOM element.
-     *  @param  attributeName   The attribute name whose value we want.
-     *
-     *  @return                 The attribute value or null if not found.
-     */
-
-     public static String getAttributeValueIgnoreCase
-     (
-        Element element ,
-        String attributeName
-     )
-     {
-        return getAttributeValue( element , attributeName , true );
-     }
-
-    /** Get mapped attributes for an element.
-     *
-     *  @param  element     The JDOM element whose attributes are desired.
-     *
-     *  @return             Map with attribute name as key and
-     *                      attribute value as value.
-     */
-
-    public static Map<String,String> getAttributeValues( Element element )
-    {
-        Map<String, String> result  = MapFactory.createNewMap();
-
-        if ( element != null )
-        {
-                                //  Get attributes for element.
-
-            List attributeList  = element.getAttributes();
-
-                                //  Store each attribute name and its value
-                                //  in result map.
-
-            for ( int i = 0 ; i < attributeList.size() ; i++ )
-            {
-                Attribute attribute = (Attribute)attributeList.get( i );
-
-                result.put
-                (
-                    attribute.getQualifiedName() ,
-                    attribute.getValue()
-                );
-            }
+          result = attribute;
+          break;
         }
-                                //  Return attribute values.
-        return result;
+      }
+    }
+    //  Return attribute.
+    return result;
+  }
+
+  /**
+   * Get attribute value.
+   *
+   * @param element The JDOM element.
+   * @param attributeName The attribute name whose value we want.
+   * @param ignoreCase true to ignore attribute name case.
+   * @return The attribute value or null if not found.
+   */
+  public static String getAttributeValue(
+      Element element, String attributeName, boolean ignoreCase) {
+    String result = null;
+
+    Attribute attribute = getAttribute(element, attributeName, ignoreCase);
+
+    if (attribute != null) {
+      result = attribute.getValue();
     }
 
-    /** Set attribute value.
-     *
-     *  @param  element         The JDOM element.
-     *  @param  attributeName   The attribute name whose value should be set.
-     *  @param  attributeValue  The attribute value.
-     */
+    return result;
+  }
 
-     public static void setAttributeValue
-     (
-        Element element ,
-        String attributeName ,
-        String attributeValue
-     )
-     {
-        Attribute attribute =
-            getAttribute( element , attributeName , false );
+  /**
+   * Get attribute value ignoring case.
+   *
+   * @param element The JDOM element.
+   * @param attributeName The attribute name whose value we want.
+   * @return The attribute value or null if not found.
+   */
+  public static String getAttributeValueIgnoreCase(Element element, String attributeName) {
+    return getAttributeValue(element, attributeName, true);
+  }
 
-        if ( attribute != null )
-        {
-            attribute.setValue( attributeValue );
-        }
-        else
-        {
-            if ( attributeName.indexOf( ":" ) > 0 )
-            {
-                String[] name   = attributeName.split( ":" );
+  /**
+   * Get mapped attributes for an element.
+   *
+   * @param element The JDOM element whose attributes are desired.
+   * @return Map with attribute name as key and attribute value as value.
+   */
+  public static Map<String, String> getAttributeValues(Element element) {
+    Map<String, String> result = MapFactory.createNewMap();
 
-                attribute   =
-                    new Attribute
-                    (
-                        name[ 1 ] ,
-                        attributeValue ,
-                        Namespace.XML_NAMESPACE
-                    );
-            }
-            else
-            {
-                attribute   =
-                    new Attribute( attributeName , attributeValue );
-            }
+    if (element != null) {
+      //  Get attributes for element.
 
-            element.setAttribute( attribute );
-        }
-     }
+      List attributeList = element.getAttributes();
 
-    /** Remove attribute.
-     *
-     *  @param  element         The JDOM element.
-     *  @param  attributeName   The attribute name to remove.
-     */
+      //  Store each attribute name and its value
+      //  in result map.
 
-     public static void removeAttribute
-     (
-        Element element ,
-        String attributeName
-     )
-     {
-        if ( ( element == null ) || ( attributeName == null ) ) return;
+      for (int i = 0; i < attributeList.size(); i++) {
+        Attribute attribute = (Attribute) attributeList.get(i);
 
-        if ( attributeName.indexOf( ":" ) > 0 )
-        {
-            String[] name   = attributeName.split( ":" );
+        result.put(attribute.getQualifiedName(), attribute.getValue());
+      }
+    }
+    //  Return attribute values.
+    return result;
+  }
 
-            element.removeAttribute( name[ 1 ] ,  Namespace.XML_NAMESPACE );
-        }
-        else
-        {
-            element.removeAttribute( attributeName );
-        }
-     }
+  /**
+   * Set attribute value.
+   *
+   * @param element The JDOM element.
+   * @param attributeName The attribute name whose value should be set.
+   * @param attributeValue The attribute value.
+   */
+  public static void setAttributeValue(
+      Element element, String attributeName, String attributeValue) {
+    Attribute attribute = getAttribute(element, attributeName, false);
 
-    /** Process elements selected by an element filter.
-     *
-     *  @param  document    The document to which to apply the filter.
-     *  @param  filter      The filter.
-     *  @param  processor   The element processor.
-     */
+    if (attribute != null) {
+      attribute.setValue(attributeValue);
+    } else {
+      if (attributeName.indexOf(":") > 0) {
+        String[] name = attributeName.split(":");
 
-    public static void applyElementFilter
-    (
-        Document document ,
-        Filter<Element> filter ,
-        ElementProcessor processor
-    )
-    {
-                                //  Get list of elements using filter.
+        attribute = new Attribute(name[1], attributeValue, Namespace.XML_NAMESPACE);
+      } else {
+        attribute = new Attribute(attributeName, attributeValue);
+      }
 
-        List<Element> elements  = ListFactory.createNewList();
+      element.setAttribute(attribute);
+    }
+  }
 
-        @SuppressWarnings("unchecked")
-        Iterator<Element> iterator  =
-            (Iterator<Element>)document.getRootElement().getDescendants( filter );
+  /**
+   * Remove attribute.
+   *
+   * @param element The JDOM element.
+   * @param attributeName The attribute name to remove.
+   */
+  public static void removeAttribute(Element element, String attributeName) {
+    if ((element == null) || (attributeName == null)) return;
 
-        while ( iterator.hasNext() )
-        {
-            Element element = iterator.next();
-            elements.add( element );
-        }
-                                //  Process each selected element.
+    if (attributeName.indexOf(":") > 0) {
+      String[] name = attributeName.split(":");
 
-        for ( int i = 0 ; i < elements.size() ; i++ )
-        {
-            processor.processElement( document , elements.get( i ) );
-        }
+      element.removeAttribute(name[1], Namespace.XML_NAMESPACE);
+    } else {
+      element.removeAttribute(attributeName);
+    }
+  }
+
+  /**
+   * Process elements selected by an element filter.
+   *
+   * @param document The document to which to apply the filter.
+   * @param filter The filter.
+   * @param processor The element processor.
+   */
+  public static void applyElementFilter(
+      Document document, Filter<Element> filter, ElementProcessor processor) {
+    //  Get list of elements using filter.
+
+    List<Element> elements = ListFactory.createNewList();
+
+    @SuppressWarnings("unchecked")
+    Iterator<Element> iterator =
+        (Iterator<Element>) document.getRootElement().getDescendants(filter);
+
+    while (iterator.hasNext()) {
+      Element element = iterator.next();
+      elements.add(element);
+    }
+    //  Process each selected element.
+
+    for (int i = 0; i < elements.size(); i++) {
+      processor.processElement(document, elements.get(i));
+    }
+  }
+
+  /**
+   * Saves a JDOM document to an XML file in utf-8.
+   *
+   * @param document JDOM document.
+   * @param path Output file path.
+   * @param format The JDOM output format.
+   * @throws FileNotFoundException, IOException
+   */
+  public static void save(Document document, String path, org.jdom2.output.Format format)
+      throws FileNotFoundException, IOException {
+    XMLOutputter xmlOut = new XMLOutputter(format);
+
+    FileOutputStream outputStream = new FileOutputStream(new File(path), false);
+
+    BufferedOutputStream bufferedStream = new BufferedOutputStream(outputStream);
+
+    OutputStreamWriter writer = new OutputStreamWriter(bufferedStream, "utf-8");
+
+    xmlOut.output(document, writer);
+
+    writer.close();
+  }
+
+  /**
+   * Saves a JDOM document to a String.
+   *
+   * @param document JDOM document.
+   * @param format The JDOM output format.
+   * @return String containing saved document.
+   * @throws FileNotFoundException, IOException
+   */
+  public static String saveToString(Document document, org.jdom2.output.Format format)
+      throws FileNotFoundException, IOException {
+    XMLOutputter xmlOut = new XMLOutputter(format);
+
+    StringWriter writer = new StringWriter();
+
+    xmlOut.output(document, writer);
+
+    writer.close();
+
+    return writer.toString();
+  }
+
+  /**
+   * Saves a JDOM document to an XML file in utf-8.
+   *
+   * @param document JDOM document.
+   * @param path Output file path.
+   * @throws IOException
+   *     <p>The document is "pretty printed."
+   */
+  public static void savePretty(Document document, String path)
+      throws FileNotFoundException, IOException {
+    save(document, path, org.jdom2.output.Format.getPrettyFormat());
+  }
+
+  /**
+   * Saves a JDOM document to an XML file in utf-8.
+   *
+   * @param document JDOM document.
+   * @param path Output file path.
+   * @throws IOException
+   *     <p>The document is output raw, without "pretty printing."
+   */
+  public static void saveRaw(Document document, String path)
+      throws FileNotFoundException, IOException {
+    save(document, path, org.jdom2.output.Format.getRawFormat());
+  }
+
+  /**
+   * Saves a JDOM document to a compressed XML file in utf-8.
+   *
+   * @param document JDOM document.
+   * @param path Output file path.
+   * @throws IOException
+   *     <p>The document is output raw, without "pretty printing."
+   */
+  public static void saveRawCompressed(Document document, String path)
+      throws FileNotFoundException, IOException {
+    XMLOutputter xmlOut = new XMLOutputter(org.jdom2.output.Format.getRawFormat());
+
+    FileOutputStream outputStream = new FileOutputStream(new File(path), false);
+
+    BufferedOutputStream bufferedStream =
+        new BufferedOutputStream(new GZIPOutputStream(outputStream));
+
+    OutputStreamWriter writer = new OutputStreamWriter(bufferedStream, "utf-8");
+
+    xmlOut.output(document, writer);
+
+    writer.close();
+  }
+
+  /**
+   * Validate a JDOM document against a schema.
+   *
+   * @param document The parsed JDOM document to validate.
+   * @param schemaURI The schema URI.
+   * @return List of validation errors. Null if no errors.
+   * @throws IOException if the schema URI cannot be read.
+   * @throws JDOMException if the schema is invalid or validation fails.
+   */
+  public static List<ValidationError> validateDocument(Document document, String schemaURI)
+      throws JDOMException, IOException {
+    List<ValidationError> result = null;
+
+    //  No schema?  Assume validation
+    //  succeeds.
+
+    if ((schemaURI != null) && (schemaURI.length() > 0)) {
+      //  Compile the schema.
+
+      Schema schema = SchemaUtils.parseSchema(schemaURI);
+
+      result = validateDocument(document, schema);
     }
 
-    /** Saves a JDOM document to an XML file in utf-8.
-     *
-     *  @param  document    JDOM document.
-     *  @param  path        Output file path.
-     *  @param  format      The JDOM output format.
-     *
-     *  @throws FileNotFoundException, IOException
-     */
+    return result;
+  }
 
-    public static void save
-    (
-        Document document ,
-        String path ,
-        org.jdom2.output.Format format
-    )
-        throws FileNotFoundException , IOException
-    {
-        XMLOutputter xmlOut = new XMLOutputter( format );
+  /**
+   * Validate a JDOM document against a schema.
+   *
+   * @param document The parsed JDOM document to validate.
+   * @param schema A parsed schema.
+   * @return List of validation errors. Null if no errors.
+   * @throws IOException if the schema URI cannot be read.
+   * @throws JDOMException if the schema is invalid or validation fails.
+   *     <p>Simply returns without error if validation succeeds.
+   */
+  public static List<ValidationError> validateDocument(Document document, Schema schema)
+      throws JDOMException, IOException {
+    //  Check the document against the
+    //  schema.
 
-        FileOutputStream outputStream   =
-            new FileOutputStream( new File( path ) , false );
+    return schema.validate(document);
+  }
 
-        BufferedOutputStream bufferedStream =
-            new BufferedOutputStream( outputStream );
-
-        OutputStreamWriter writer           =
-            new OutputStreamWriter( bufferedStream , "utf-8" );
-
-        xmlOut.output( document , writer );
-
-        writer.close();
-    }
-
-    /** Saves a JDOM document to a String.
-     *
-     *  @param  document    JDOM document.
-     *  @param  format      The JDOM output format.
-     *
-     *  @return             String containing saved document.
-     *
-     *  @throws FileNotFoundException, IOException
-     */
-
-    public static String saveToString
-    (
-        Document document ,
-        org.jdom2.output.Format format
-    )
-        throws FileNotFoundException , IOException
-    {
-        XMLOutputter xmlOut = new XMLOutputter( format );
-
-        StringWriter writer = new StringWriter();
-
-        xmlOut.output( document , writer );
-
-        writer.close();
-
-        return writer.toString();
-    }
-
-    /** Saves a JDOM document to an XML file in utf-8.
-     *
-     *  @param  document    JDOM document.
-     *  @param  path        Output file path.
-     *
-     *  @throws IOException
-     *
-     *  <p>
-     *  The document is "pretty printed."
-     *  </p>
-     */
-
-    public static void savePretty( Document document , String path )
-        throws FileNotFoundException , IOException
-    {
-        save( document , path , org.jdom2.output.Format.getPrettyFormat() );
-    }
-
-    /** Saves a JDOM document to an XML file in utf-8.
-     *
-     *  @param  document    JDOM document.
-     *  @param  path        Output file path.
-     *
-     *  @throws IOException
-     *
-     *  <p>
-     *  The document is output raw, without "pretty printing."
-     *  </p>
-     */
-
-    public static void saveRaw( Document document , String path )
-        throws FileNotFoundException , IOException
-    {
-        save( document , path , org.jdom2.output.Format.getRawFormat() );
-    }
-
-    /** Saves a JDOM document to a compressed XML file in utf-8.
-     *
-     *  @param  document    JDOM document.
-     *  @param  path        Output file path.
-     *
-     *  @throws IOException
-     *
-     *  <p>
-     *  The document is output raw, without "pretty printing."
-     *  </p>
-     */
-
-    public static void saveRawCompressed( Document document , String path )
-        throws FileNotFoundException , IOException
-    {
-        XMLOutputter xmlOut =
-            new XMLOutputter( org.jdom2.output.Format.getRawFormat() );
-
-        FileOutputStream outputStream   =
-            new FileOutputStream( new File( path ) , false );
-
-        BufferedOutputStream bufferedStream =
-            new BufferedOutputStream
-            (
-                new GZIPOutputStream( outputStream )
-            );
-
-        OutputStreamWriter writer           =
-            new OutputStreamWriter( bufferedStream , "utf-8" );
-
-        xmlOut.output( document , writer );
-
-        writer.close();
-    }
-
-    /** Validate a JDOM document against a schema.
-     *
-     *  @param  document    The parsed JDOM document to validate.
-     *  @param  schemaURI   The schema URI.
-     *
-     *  @return             List of validation errors.   Null if no errors.
-     *
-     *  @throws             IOException if the schema URI cannot be read.
-     *  @throws             JDOMException if the schema is invalid or
-     *                      validation fails.
-     */
-
-    public static List<ValidationError> validateDocument
-    (
-        Document document ,
-        String schemaURI
-    )
-        throws JDOMException, IOException
-    {
-        List<ValidationError> result    = null;
-
-                                //  No schema?  Assume validation
-                                //  succeeds.
-
-        if ( ( schemaURI != null ) && ( schemaURI.length() > 0 ) )
-        {
-                                //  Compile the schema.
-
-            Schema schema   = SchemaUtils.parseSchema( schemaURI );
-
-            result  = validateDocument( document , schema );
-        }
-
-        return result;
-    }
-
-    /** Validate a JDOM document against a schema.
-     *
-     *  @param  document    The parsed JDOM document to validate.
-     *  @param  schema      A parsed schema.
-     *
-     *  @return             List of validation errors.   Null if no errors.
-     *
-     *  @throws             IOException if the schema URI cannot be read.
-     *  @throws             JDOMException if the schema is invalid or
-     *                      validation fails.
-     *
-     *  <p>
-     *  Simply returns without error if validation succeeds.
-     *  </p>
-     */
-
-    public static List<ValidationError> validateDocument
-    (
-        Document document ,
-        Schema schema
-    )
-        throws JDOMException, IOException
-    {
-                                //  Check the document against the
-                                //  schema.
-
-        return schema.validate( document );
-    }
-
-    /** Allow overrides but not instantiation.
-     */
-
-    protected JDOMUtils()
-    {
-    }
+  /** Allow overrides but not instantiation. */
+  protected JDOMUtils() {}
 }
 
 /*
@@ -588,6 +429,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

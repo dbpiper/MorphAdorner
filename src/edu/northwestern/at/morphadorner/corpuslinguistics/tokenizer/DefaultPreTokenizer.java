@@ -2,20 +2,12 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
-/** Default pretokenizes which prepares a string for tokenization.
- */
-
-public class DefaultPreTokenizer
-    extends AbstractPreTokenizer
-    implements PreTokenizer
-{
-    /** Create a default preTokenizer.
-     */
-
-    public DefaultPreTokenizer()
-    {
-        super();
-    }
+/** Default pretokenizes which prepares a string for tokenization. */
+public class DefaultPreTokenizer extends AbstractPreTokenizer implements PreTokenizer {
+  /** Create a default preTokenizer. */
+  public DefaultPreTokenizer() {
+    super();
+  }
 }
 
 /*
@@ -58,6 +50,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

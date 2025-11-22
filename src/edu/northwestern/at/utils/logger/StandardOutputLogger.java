@@ -2,41 +2,22 @@ package edu.northwestern.at.utils.logger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
-import edu.northwestern.at.utils.DebugUtils;
+/** Simple logger which outputs log messages to standard output. */
+public class StandardOutputLogger extends StandardErrorLogger implements Logger {
+  /** Create a standard output logger. */
+  public StandardOutputLogger() {
+    //  Open UTF-8 output stream.
+    try {
+      printStream = new PrintStream(new BufferedOutputStream(System.out), true, "utf-8");
 
-/** Simple logger which outputs log messages to standard output.
- */
-
-public class StandardOutputLogger
-    extends StandardErrorLogger
-    implements Logger
-{
-    /** Create a standard output logger.
-     */
-
-    public StandardOutputLogger()
-    {
-                                //  Open UTF-8 output stream.
-        try
-        {
-            printStream     =
-                new PrintStream
-                (
-                    new BufferedOutputStream( System.out ) ,
-                    true ,
-                    "utf-8"
-                );
-
-            loggerEnabled = false;
-        }
-        catch ( Exception e )
-        {
-            loggerEnabled   = false;
-        }
+      loggerEnabled = false;
+    } catch (Exception e) {
+      loggerEnabled = false;
     }
+  }
 }
 
 /*
@@ -79,6 +60,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

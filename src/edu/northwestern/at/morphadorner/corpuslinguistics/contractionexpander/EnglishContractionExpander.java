@@ -2,115 +2,83 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.contractionexpander;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-
 /** A contraction expander for English. */
+public class EnglishContractionExpander extends AbstractContractionExpander
+    implements ContractionExpander {
+  /**
+   * Path to list of contracted spellings.
+   *
+   * <p>The contracted spellings file contains pairs of contracted forms and expanded forms
+   * separated by a tab character. Each line of the file contains one pair.
+   */
+  protected static String contractedSpellingsFileName = "resources/contractedspellings.txt";
 
-public class EnglishContractionExpander
-    extends AbstractContractionExpander
-    implements ContractionExpander
-{
-    /** Path to list of contracted spellings.
-     *
-     *  <p>
-     *  The contracted spellings file contains
-     *  pairs of contracted forms and expanded forms
-     *  separated by a tab character.  Each line of the
-     *  file contains one pair.
-     *  </p>
-     */
+  /** Contraction tokenizer. */
+  protected WordTokenizer contractionTokenizer =
+      //      new ContractionTokenizer();
+      new PennTreebankTokenizer();
 
-    protected static String contractedSpellingsFileName =
-        "resources/contractedspellings.txt";
+  /** Create an English contraction expander. */
+  public EnglishContractionExpander() {
+    //  Load irregular forms.
+    try {
+      Reader reader =
+          new UnicodeReader(getClass().getResourceAsStream(contractedSpellingsFileName), "utf-8");
 
-    /** Contraction tokenizer. */
+      loadContractedSpellings(reader);
 
-    protected WordTokenizer contractionTokenizer    =
-//      new ContractionTokenizer();
-        new PennTreebankTokenizer();
+      reader.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    /*
+            System.out.println(
+                "# of contractions read: " +
+                contractedSpellings.getStringCount() );
+    */
+  }
 
-    /** Create an English contraction expander. */
+  /**
+   * Returns an expanded spelling for a contracted spelling.
+   *
+   * @param spelling The spelling.
+   * @return The expanded form of the contraction.
+   */
+  public String expandContraction(String spelling) {
+    String result = spelling;
 
-    public EnglishContractionExpander()
-    {
-                                //  Load irregular forms.
-        try
-        {
-            Reader reader   =
-                new UnicodeReader
-                (
-                    getClass().getResourceAsStream
-                    (
-                        contractedSpellingsFileName
-                    ),
-                    "utf-8"
-                );
+    if (contractedSpellings.containsString(spelling.toLowerCase())) {
+      result = contractedSpellings.getTag(spelling.toLowerCase());
+    } else {
+      List contractionSegments = contractionTokenizer.extractWords(spelling);
 
-            loadContractedSpellings( reader );
+      StringBuffer sb = new StringBuffer();
+      String segment;
 
-            reader.close();
+      for (int i = 0; i < contractionSegments.size(); i++) {
+        if (i > 0) {
+          sb.append(" ");
         }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
+
+        segment = (String) contractionSegments.get(i);
+
+        if (contractedSpellings.containsString(segment)) {
+          segment = contractedSpellings.getTag(segment);
         }
-/*
-        System.out.println(
-            "# of contractions read: " +
-            contractedSpellings.getStringCount() );
-*/
+
+        sb.append(segment);
+      }
+
+      result = sb.toString();
     }
 
-    /** Returns an expanded spelling for a contracted spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The expanded form of the contraction.
-     */
-
-    public String expandContraction( String spelling )
-    {
-        String result   = spelling;
-
-        if ( contractedSpellings.containsString( spelling.toLowerCase() ) )
-        {
-            result  = contractedSpellings.getTag( spelling.toLowerCase() );
-        }
-        else
-        {
-            List contractionSegments    =
-                contractionTokenizer.extractWords( spelling );
-
-            StringBuffer sb = new StringBuffer();
-            String segment;
-
-            for ( int i = 0 ; i < contractionSegments.size() ; i++ )
-            {
-                if ( i > 0 )
-                {
-                    sb.append( " " );
-                }
-
-                segment = (String)contractionSegments.get( i );
-
-                if ( contractedSpellings.containsString( segment ) )
-                {
-                    segment =
-                        contractedSpellings.getTag( segment );
-                }
-
-                sb.append( segment );
-            }
-
-            result  = sb.toString();
-        }
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -153,6 +121,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -4,30 +4,20 @@ package edu.northwestern.at.utils.math.rootfinders;
 
 import edu.northwestern.at.utils.math.*;
 
-/** Interface for testing for convergence in root finders.
- */
-
-public interface RootFinderConvergenceTest
-{
-    /** Interface for testing for convergence in root finders.
-     *
-     *  @param  xNow                        Current root estimate.
-     *  @param  xPrev                       Previous root estimate.
-     *  @param  fxNow                       Function value at xNow.
-     *  @param  xTolerance                  Convergence tolerance for estimates.
-     *  @param  fxTolerance                 Convergence tolerance for function values.
-     *
-     *  @return                             true if convergence achieved.
-     */
-
-    public boolean converged
-    (
-        double xNow ,
-        double xPrev ,
-        double fxNow ,
-        double xTolerance ,
-        double fxTolerance
-    );
+/** Interface for testing for convergence in root finders. */
+public interface RootFinderConvergenceTest {
+  /**
+   * Interface for testing for convergence in root finders.
+   *
+   * @param xNow Current root estimate.
+   * @param xPrev Previous root estimate.
+   * @param fxNow Function value at xNow.
+   * @param xTolerance Convergence tolerance for estimates.
+   * @param fxTolerance Convergence tolerance for function values.
+   * @return true if convergence achieved.
+   */
+  public boolean converged(
+      double xNow, double xPrev, double fxNow, double xTolerance, double fxTolerance);
 }
 
 /*
@@ -70,5 +60,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

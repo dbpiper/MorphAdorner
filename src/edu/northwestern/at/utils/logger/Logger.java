@@ -2,123 +2,108 @@ package edu.northwestern.at.utils.logger;
 
 /*  Please see the license information at the end of this file. */
 
-/** Interface for a logger.
+/**
+ * Interface for a logger.
  *
- *  <p>
- *  A logger is used to write messages to a log file.
- *  Each message has an associated level of severity.
- *  In increasing order these are:
- *  </p>
+ * <p>A logger is used to write messages to a log file. Each message has an associated level of
+ * severity. In increasing order these are:
  *
- *  <ol>
- *  <li>debug</li>
- *  <li>information</li>
- *  <li>warning</li>
- *  <li>error</li>
- *  <li>fatal</li>
- *  </p>
- *
- *  <p>
- *  Please see
- *  {@link edu.northwestern.at.utils.logger.LoggerConstants}
- *  for the associated numeric values for each level.
- *  </p>
+ * <ol>
+ *   <li>debug
+ *   <li>information
+ *   <li>warning
+ *   <li>error
+ *   <li>fatal
+ *       <p>Please see {@link edu.northwestern.at.utils.logger.LoggerConstants} for the associated
+ *       numeric values for each level.
  */
+public interface Logger {
+  /**
+   * Log a message at the Debug level.
+   *
+   * @param str Log message.
+   */
+  public void logDebug(String str);
 
-public interface Logger
-{
-    /** Log a message at the Debug level.
-     *
-     *  @param  str     Log message.
-     */
+  /**
+   * Log a message at the Info level.
+   *
+   * @param str Log message.
+   */
+  public void logInfo(String str);
 
-    public void logDebug( String str );
+  /**
+   * Log a message at the Warn level.
+   *
+   * @param str Log message.
+   */
+  public void logWarning(String str);
 
-    /** Log a message at the Info level.
-     *
-     *  @param  str     Log message.
-     */
+  /**
+   * Log a message at the Error level.
+   *
+   * @param str Log message.
+   */
+  public void logError(String str);
 
-    public void logInfo( String str );
+  /**
+   * Logs a error message with a stack trace.
+   *
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void logError(String str, Throwable t);
 
-    /** Log a message at the Warn level.
-     *
-     *  @param  str     Log message.
-     */
+  /**
+   * Log a message at the Fatal level.
+   *
+   * @param str Log message.
+   */
+  public void logFatal(String str);
 
-    public void logWarning( String str );
+  /**
+   * Logs a fatal message with a stack trace.
+   *
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void logFatal(String str, Throwable t);
 
-    /** Log a message at the Error level.
-     *
-     *  @param  str     Log message.
-     */
+  /**
+   * Log a message at a specified level.
+   *
+   * @param level Message level. See {@link edu.northwestern.at.utils.logger.LoggerConstants} for
+   *     the allowed values.
+   * @param str Log message.
+   */
+  public void log(int level, String str);
 
-    public void logError( String str );
+  /**
+   * Log a message with a stack trace.
+   *
+   * @param level Message level. See {@link edu.northwestern.at.utils.logger.LoggerConstants} for
+   *     the allowed values.
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void log(int level, String str, Throwable t);
 
-    /** Logs a error message with a stack trace.
-     *
-     *  @param  str     Log message.
-     *
-     *  @param  t       Throwable.
-     */
+  /**
+   * Returns true if debugging messages are enabled.
+   *
+   * @return True if debugging messages are enabled.
+   */
+  public boolean isDebuggingEnabled();
 
-    public void logError( String str , Throwable t );
+  /**
+   * Returns true if logger is enabled.
+   *
+   * @return True if logger is enabled.
+   */
+  public boolean isLoggerEnabled();
 
-    /** Log a message at the Fatal level.
-     *
-     *  @param  str     Log message.
-     */
-
-    public void logFatal( String str );
-
-    /** Logs a fatal message with a stack trace.
-     *
-     *  @param  str     Log message.
-     *
-     *  @param  t       Throwable.
-     */
-
-    public void logFatal( String str , Throwable t );
-
-    /** Log a message at a specified level.
-     *
-     *  @param  level   Message level.
-     *                  See {@link edu.northwestern.at.utils.logger.LoggerConstants}
-     *                  for the allowed values.
-     *  @param  str     Log message.
-     */
-
-    public void log( int level , String str );
-
-    /** Log a message with a stack trace.
-     *
-     *  @param  level   Message level.
-     *                  See {@link edu.northwestern.at.utils.logger.LoggerConstants}
-     *                  for the allowed values.
-     *  @param  str     Log message.
-     *  @param  t       Throwable.
-     */
-
-    public void log( int level , String str , Throwable t );
-
-    /** Returns true if debugging messages are enabled.
-     *
-     *  @return     True if debugging messages are enabled.
-     */
-
-    public boolean isDebuggingEnabled();
-
-    /** Returns true if logger is enabled.
-     *
-     *  @return     True if logger is enabled.
-     */
-
-    public boolean isLoggerEnabled();
-
-    /** Terminate.logger.
-     */
-
-    public void terminate();
+  /** Terminate.logger. */
+  public void terminate();
 }
 
 /*
@@ -161,5 +146,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

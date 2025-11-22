@@ -2,171 +2,124 @@ package edu.northwestern.at.morphadorner;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
-
 import java.text.*;
 import java.util.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
+/** Filter to strip word elements from adorned file. */
+public class StripAllWordElementsFilter extends ExtendedXMLFilterImpl {
+  /** Div count. */
+  protected int divCount = 0;
 
-/** Filter to strip word elements from adorned file.
-  */
+  /** Line within div count. */
+  protected int lineCount = 0;
 
-public class StripAllWordElementsFilter extends ExtendedXMLFilterImpl
-{
-    /** Div count. */
+  /** True if processing w or c element. */
+  protected boolean processingWorC;
 
-    protected int divCount = 0;
+  /**
+   * Create filter.
+   *
+   * @param reader XML input reader to which filter applies.
+   */
+  public StripAllWordElementsFilter(XMLReader reader) {
+    super(reader);
+    //  Not processing <w> or <c> yet.
 
-    /** Line within div count. */
+    processingWorC = false;
+  }
 
-    protected int lineCount = 0;
+  /**
+   * Handle start of an XML element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   * @param atts The XML element's attributes.
+   */
+  public void startElement(String uri, String localName, String qName, Attributes atts)
+      throws SAXException {
+    //  Not processing <w> or <c> yet.
 
-    /** True if processing w or c element. */
+    processingWorC = false;
 
-    protected boolean processingWorC;
+    //  Set flag if we're starting a <w>,
+    //  <pc>, or <c> element.  We do not emit
+    //  the <w>, <pc>, or <c> element, just its
+    //  text.
 
-    /** Create filter.
-      *
-      * @param  reader          XML input reader to which filter applies.
-      */
+    if (qName.equals("w")) {
+      processingWorC = true;
+    } else if (qName.equals("pc")) {
+      processingWorC = true;
+    } else if (qName.equals("c")) {
+      processingWorC = true;
+    } else if (qName.equals("div")) {
+      AttributesImpl newAtts = new AttributesImpl(atts);
 
-    public StripAllWordElementsFilter( XMLReader reader )
-    {
-        super( reader );
-                                //  Not processing <w> or <c> yet.
+      if (atts.getIndex("xml:id") < 0) {
+        divCount++;
+        lineCount = 0;
 
-        processingWorC  = false;
+        setAttributeValue(newAtts, "xml:id", divCount);
+      }
+
+      super.startElement(uri, localName, qName, newAtts);
+    } else if (qName.equals("l")) {
+      AttributesImpl newAtts = new AttributesImpl(atts);
+
+      if (atts.getIndex("n") < 0) {
+        lineCount++;
+
+        String n = StringUtils.intToString(lineCount);
+
+        setAttributeValue(newAtts, "n", lineCount);
+      }
+
+      super.startElement(uri, localName, qName, newAtts);
+    } else {
+      super.startElement(uri, localName, qName, atts);
     }
+  }
 
-    /** Handle start of an XML element.
-      *
-      * @param  uri         The XML element's URI.
-      * @param  localName   The XML element's local name.
-      * @param  qName       The XML element's qname.
-      * @param  atts        The XML element's attributes.
-      */
+  /**
+   * Handle character data.
+   *
+   * @param ch Array of characters.
+   * @param start The starting position in the array.
+   * @param length The number of characters.
+   * @throws org.xml.sax.SAXException If there is an error.
+   */
+  public void characters(char ch[], int start, int length) throws SAXException {
+    super.characters(ch, start, length);
+  }
 
-    public void startElement
-    (
-        String uri ,
-        String localName ,
-        String qName ,
-        Attributes atts
-    )
-        throws SAXException
-    {
-                                //  Not processing <w> or <c> yet.
+  /**
+   * Handle end of an element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   */
+  public void endElement(String uri, String localName, String qName) throws SAXException {
+    //  Not processing <w> or <c> anymore.
 
-        processingWorC  = false;
+    processingWorC = false;
 
-                                //  Set flag if we're starting a <w>,
-                                //  <pc>, or <c> element.  We do not emit
-                                //  the <w>, <pc>, or <c> element, just its
-                                //  text.
+    //  Do not output end element tag
+    //  for skipped <w> or <c>.
 
-        if ( qName.equals( "w" ) )
-        {
-            processingWorC  = true;
-        }
-        else if ( qName.equals( "pc" ) )
-        {
-            processingWorC  = true;
-        }
-        else if ( qName.equals( "c" ) )
-        {
-            processingWorC  = true;
-        }
-        else if ( qName.equals( "div" ) )
-        {
-            AttributesImpl newAtts  = new AttributesImpl( atts );
-
-            if ( atts.getIndex( "xml:id" ) < 0 )
-            {
-                divCount++;
-                lineCount   = 0;
-
-                setAttributeValue( newAtts , "xml:id" , divCount );
-            }
-
-            super.startElement( uri , localName , qName , newAtts );
-        }
-        else if ( qName.equals( "l" ) )
-        {
-            AttributesImpl newAtts  = new AttributesImpl( atts );
-
-            if ( atts.getIndex( "n" ) < 0 )
-            {
-                lineCount++;
-
-                String n    = StringUtils.intToString( lineCount );
-
-                setAttributeValue( newAtts , "n" , lineCount );
-            }
-
-            super.startElement( uri , localName , qName , newAtts );
-        }
-        else
-        {
-            super.startElement( uri , localName , qName , atts );
-        }
+    if (qName.equals("w")) {
+    } else if (qName.equals("pc")) {
+    } else if (qName.equals("c")) {
+    } else {
+      super.endElement(uri, localName, qName);
     }
-
-    /** Handle character data.
-     *
-     *  @param  ch      Array of characters.
-     *  @param  start   The starting position in the array.
-     *  @param  length  The number of characters.
-     *
-     *  @throws org.xml.sax.SAXException If there is an error.
-     */
-
-    public void characters( char ch[] , int start , int length )
-        throws SAXException
-    {
-        super.characters( ch , start , length );
-    }
-
-    /** Handle end of an element.
-     *
-     *  @param  uri         The XML element's URI.
-     *  @param  localName   The XML element's local name.
-     *  @param  qName       The XML element's qname.
-     */
-
-    public void endElement
-    (
-        String uri ,
-        String localName ,
-        String qName
-    )
-        throws SAXException
-    {
-                                //  Not processing <w> or <c> anymore.
-
-        processingWorC  = false;
-
-                                //  Do not output end element tag
-                                //  for skipped <w> or <c>.
-
-        if ( qName.equals( "w" ) )
-        {
-        }
-        else if ( qName.equals( "pc" ) )
-        {
-        }
-        else if ( qName.equals( "c" ) )
-        {
-        }
-        else
-        {
-            super.endElement( uri , localName , qName );
-        }
-    }
+  }
 }
 
 /*
@@ -209,6 +162,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

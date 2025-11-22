@@ -5,103 +5,72 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** PartOfSpeechGuesser factory.
- */
+/** PartOfSpeechGuesser factory. */
+public class PartOfSpeechGuesserFactory {
+  /**
+   * Get a part of speech guesser.
+   *
+   * @return The part of speech guesser.
+   */
+  public static PartOfSpeechGuesser newPartOfSpeechGuesser() {
+    String className = System.getProperty("partofspeechguesser.class");
 
-public class PartOfSpeechGuesserFactory
-{
-    /** Get a part of speech guesser.
-     *
-     *  @return     The part of speech guesser.
-     */
-
-    public static PartOfSpeechGuesser newPartOfSpeechGuesser()
-    {
-        String className    =
-            System.getProperty( "partofspeechguesser.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultPartOfSpeechGuesser";
-        }
-
-        return newPartOfSpeechGuesser( className );
+    if (className == null) {
+      className = "DefaultPartOfSpeechGuesser";
     }
 
-    /** Get a part of speech guesser.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The part of speech guesser.
-     */
+    return newPartOfSpeechGuesser(className);
+  }
 
-    public static PartOfSpeechGuesser newPartOfSpeechGuesser
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a part of speech guesser.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The part of speech guesser.
+   */
+  public static PartOfSpeechGuesser newPartOfSpeechGuesser(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "partofspeechguesser.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultPartOfSpeechGuesser";
-        }
-
-        return newPartOfSpeechGuesser( className );
+    if (properties != null) {
+      className = properties.getProperty("partofspeechguesser.class");
     }
 
-    /** Get a part of speech guesser of a specified class name.
-     *
-     *  @param  className   Class name for the part of speech guesser.
-     *
-     *  @return             The part of speech guesser.
-     */
-
-    public static PartOfSpeechGuesser newPartOfSpeechGuesser
-    (
-        String className
-    )
-    {
-        PartOfSpeechGuesser partOfSpeechGuesser = null;
-
-        try
-        {
-            partOfSpeechGuesser =
-                (PartOfSpeechGuesser)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    PartOfSpeechGuesserFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                partOfSpeechGuesser =
-                    (PartOfSpeechGuesser)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create part of speech guesser of class " +
-                    fixedClassName + ", using default." );
-
-                partOfSpeechGuesser = new DefaultPartOfSpeechGuesser();
-            }
-        }
-
-        return partOfSpeechGuesser;
+    if (className == null) {
+      className = "DefaultPartOfSpeechGuesser";
     }
+
+    return newPartOfSpeechGuesser(className);
+  }
+
+  /**
+   * Get a part of speech guesser of a specified class name.
+   *
+   * @param className Class name for the part of speech guesser.
+   * @return The part of speech guesser.
+   */
+  public static PartOfSpeechGuesser newPartOfSpeechGuesser(String className) {
+    PartOfSpeechGuesser partOfSpeechGuesser = null;
+
+    try {
+      partOfSpeechGuesser = (PartOfSpeechGuesser) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(PartOfSpeechGuesserFactory.class.getName()) + "." + className;
+
+      try {
+        partOfSpeechGuesser = (PartOfSpeechGuesser) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create part of speech guesser of class "
+                + fixedClassName
+                + ", using default.");
+
+        partOfSpeechGuesser = new DefaultPartOfSpeechGuesser();
+      }
+    }
+
+    return partOfSpeechGuesser;
+  }
 }
 
 /*
@@ -144,6 +113,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,96 +2,70 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namerecognizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
+/** Interface for a Name Recognizer. */
+public interface NameRecognizer {
+  /**
+   * Get the lexicon.
+   *
+   * @return The lexicon. May be null if name recognizer does not use a lexicon.
+   */
+  public Lexicon getLexicon();
 
-import edu.northwestern.at.morphadorner.tools.*;
+  /**
+   * Set the lexicon.
+   *
+   * @param lexicon Lexicon used for name recognition.
+   */
+  public void setLexicon(Lexicon lexicon);
 
-/** Interface for a Name Recognizer.
- */
+  /**
+   * Get part of speech tagger.
+   *
+   * @return The part of speech tagger.
+   */
+  public PartOfSpeechTagger getPartOfSpeechTagger();
 
-public interface NameRecognizer
-{
-    /** Get the lexicon.
-     *
-     *  @return     The lexicon.    May be null if name recognizer does not
-     *                              use a lexicon.
-     */
+  /**
+   * Set part of speech tagger.
+   *
+   * @param partOfSpeechTagger The part of speech tagger.
+   */
+  public void setPartOfSpeechTagger(PartOfSpeechTagger partOfSpeechTagger);
 
-    public Lexicon getLexicon();
+  /**
+   * Returns names from text.
+   *
+   * @param text The text from which to extract names.
+   * @return Array of string sets containing names and places. [0] = Set of proper names. [1] = Set
+   *     of places.
+   */
+  public Set<String>[] findNames(String text);
 
-    /** Set the lexicon.
-     *
-     *  @param  lexicon     Lexicon used for name recognition.
-     */
+  /**
+   * Returns names from list of adorned word sentences.
+   *
+   * @param sentences The list of sentences of adorned words from which to extract names.
+   * @return Array of string sets containing names and places. [0] = Set of proper names. [1] = Set
+   *     of places.
+   */
+  public <T extends AdornedWord> Set<String>[] findNames(List<List<T>> sentences);
 
-    public void setLexicon( Lexicon lexicon );
-
-    /** Get part of speech tagger.
-     *
-     *  @return     The part of speech tagger.
-     *
-     */
-
-    public PartOfSpeechTagger getPartOfSpeechTagger();
-
-    /** Set part of speech tagger.
-     *
-     *  @param  partOfSpeechTagger  The part of speech tagger.
-     *
-     */
-
-    public void setPartOfSpeechTagger
-    (
-        PartOfSpeechTagger partOfSpeechTagger
-    );
-
-    /** Returns names from text.
-     *
-     *  @param  text    The text from which to extract names.
-     *
-     *  @return         Array of string sets containing names and places.
-     *                  [0] = Set of proper names.
-     *                  [1] = Set of places.
-     */
-
-     public Set<String>[] findNames( String text );
-
-    /** Returns names from list of adorned word sentences.
-     *
-     *  @param  sentences   The list of sentences of adorned words
-     *                      from which to extract names.
-     *
-     *  @return             Array of string sets containing names and places.
-     *                      [0] = Set of proper names.
-     *                      [1] = Set of places.
-     */
-
-    public <T extends AdornedWord> Set<String>[] findNames
-    (
-        List<List<T>> sentences
-    );
-
-    /** Returns name positions in list of adorned word sentences.
-     *
-     *  @param  sentences   The list of sentences of adorned words
-     *                      from which to extract names.
-     *
-     *  @return         Array of Set of names and places.
-     *                  [0] = Set of proper names.
-     *                  [1] = Set of places.
-     */
-
-    public <T extends AdornedWord> List<NamePosition>[] findNamePositions
-    (
-        List<List<T>> sentences
-    );
+  /**
+   * Returns name positions in list of adorned word sentences.
+   *
+   * @param sentences The list of sentences of adorned words from which to extract names.
+   * @return Array of Set of names and places. [0] = Set of proper names. [1] = Set of places.
+   */
+  public <T extends AdornedWord> List<NamePosition>[] findNamePositions(List<List<T>> sentences);
 }
 
 /*
@@ -134,6 +108,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

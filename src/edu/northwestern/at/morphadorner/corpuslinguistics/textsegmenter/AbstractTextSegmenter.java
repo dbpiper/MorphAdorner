@@ -2,115 +2,92 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsegmenter;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.List;
-
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.logger.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.stemmer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.logger.*;
+import java.util.List;
 
-/** Base class for segmenting a text.
- */
+/** Base class for segmenting a text. */
+public abstract class AbstractTextSegmenter extends IsCloseableObject
+    implements TextSegmenter, IsCloseable, UsesLogger {
+  /** Logger used for output. */
+  protected Logger logger;
 
-abstract public class AbstractTextSegmenter
-    extends IsCloseableObject
-    implements TextSegmenter, IsCloseable, UsesLogger
-{
-    /** Logger used for output. */
+  /** Stop words. */
+  protected StopWords stopWords = new ChoiStopWords();
 
-    protected Logger logger;
+  /** Stemmer. */
+  protected Stemmer stemmer = new PorterStemmer();
 
-    /** Stop words. */
+  /** Create a text segmenter. */
+  public AbstractTextSegmenter() {
+    //  Create dummy logger.
 
-    protected StopWords stopWords   = new ChoiStopWords();
+    logger = new DummyLogger();
+  }
 
-    /** Stemmer. */
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    protected Stemmer stemmer       = new PorterStemmer();
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-    /** Create a text segmenter.
-     */
+  /**
+   * Get the stop words.
+   *
+   * @return The stop words.
+   */
+  public StopWords getStopWords() {
+    return stopWords;
+  }
 
-    public AbstractTextSegmenter()
-    {
-                                //  Create dummy logger.
+  /**
+   * Set stop word set.
+   *
+   * @param stopWords The stop words.
+   */
+  public void setStopWords(StopWords stopWords) {
+    this.stopWords = stopWords;
+  }
 
-        logger  = new DummyLogger();
-    }
+  /**
+   * Get the stemmer.
+   *
+   * @return The stemmer.
+   */
+  public Stemmer getStemmer() {
+    return stemmer;
+  }
 
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
+  /**
+   * Set stop word set.
+   *
+   * @param stemmer The stemmer.
+   */
+  public void setStemmer(Stemmer stemmer) {
+    this.stemmer = stemmer;
+  }
 
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
-
-    /** Get the stop words.
-     *
-     *  @return     The stop words.
-     */
-
-    public StopWords getStopWords()
-    {
-        return stopWords;
-    }
-
-    /** Set stop word set.
-     *
-     *  @param  stopWords       The stop words.
-     */
-
-    public void setStopWords( StopWords stopWords )
-    {
-        this.stopWords  = stopWords;
-    }
-
-    /** Get the stemmer.
-     *
-     *  @return     The stemmer.
-     */
-
-    public Stemmer getStemmer()
-    {
-        return stemmer;
-    }
-
-    /** Set stop word set.
-     *
-     *  @param  stemmer     The stemmer.
-     */
-
-    public void setStemmer( Stemmer stemmer )
-    {
-        this.stemmer    = stemmer;
-    }
-
-    /** Segment text.
-     *
-     *  @param  sentences   The list of tokenized sentences to segment.
-     *
-     *  @return             A list of sentence indices which start
-     *                      a new text segment.
-     */
-
-    abstract public <T> List<Integer> getSegmentPositions
-    (
-        List<List<T>> sentences
-    );
+  /**
+   * Segment text.
+   *
+   * @param sentences The list of tokenized sentences to segment.
+   * @return A list of sentence indices which start a new text segment.
+   */
+  public abstract <T> List<Integer> getSegmentPositions(List<List<T>> sentences);
 }
 
 /*
@@ -153,6 +130,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

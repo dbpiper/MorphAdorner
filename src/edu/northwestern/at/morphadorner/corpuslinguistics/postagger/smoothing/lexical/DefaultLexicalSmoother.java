@@ -2,30 +2,21 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.l
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
+import java.util.*;
 
-/** Default lexical smoother.
+/**
+ * Default lexical smoother.
  *
- *  <p>
- *  The default lexical smoother is an additive smoother which
- *  uses 0.5 as the additive smoothing constant (Lidstone smoothing).
- *  </p>
+ * <p>The default lexical smoother is an additive smoother which uses 0.5 as the additive smoothing
+ * constant (Lidstone smoothing).
  */
-
-public class DefaultLexicalSmoother
-    extends AdditiveLexicalSmoother
-    implements LexicalSmoother
-{
-    /** Create an additive lexical smoother.
-     */
-
-    public DefaultLexicalSmoother()
-    {
-        super();
-    }
+public class DefaultLexicalSmoother extends AdditiveLexicalSmoother implements LexicalSmoother {
+  /** Create an additive lexical smoother. */
+  public DefaultLexicalSmoother() {
+    super();
+  }
 }
 
 /*
@@ -68,6 +59,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

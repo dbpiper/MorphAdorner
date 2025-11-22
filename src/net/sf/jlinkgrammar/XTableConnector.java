@@ -1,13 +1,10 @@
 package net.sf.jlinkgrammar;
 
-/**
- * TODO add javadoc
- *
- */
+/** TODO add javadoc */
 public class XTableConnector {
-    int lw, rw;
-    Connector le, re;
-    int cost;
-    ParseSet set;
-    XTableConnector next;
+  int lw, rw;
+  Connector le, re;
+  int cost;
+  ParseSet set;
+  XTableConnector next;
 }

@@ -2,155 +2,120 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inputter;
 
 /*  Please see the license information at the end of this file. */
 
-import java.text.*;
-import java.util.*;
-
-import org.jdom2.*;
-import org.jdom2.input.*;
-import org.jdom2.filter.*;
-import org.jdom2.output.*;
-
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.xml.*;
+import java.text.*;
+import java.util.*;
+import org.jdom2.*;
+import org.jdom2.filter.*;
+import org.jdom2.input.*;
+import org.jdom2.output.*;
 
 /** Adds displayable content for certain gap elements in XML file. */
+public class GapFixer {
+  /** Letter gap marker is Unicode lozenge = \u25CA. */
+  protected static final char letterGapChar = CharUtils.CHAR_GAP_MARKER;
 
-public class GapFixer
-{
-    /** Letter gap marker is Unicode lozenge = \u25CA. */
+  protected static final String letterGapString = letterGapChar + "";
 
-    protected static final char letterGapChar       =
-        CharUtils.CHAR_GAP_MARKER;
+  /** Word gap marker is Unicode lozenge = \u25CA. */
+  protected static final char wordGapChar = '\u25CA';
 
-    protected static final String letterGapString   = letterGapChar + "";
+  protected static final String wordGapString = wordGapChar + "";
 
-    /** Word gap marker is Unicode lozenge = \u25CA. */
+  /** Span gap marker is Unicode three dots = \u2026. */
+  protected static final char spanGapChar = '\u2026';
 
-    protected static final char wordGapChar     = '\u25CA';
-    protected static final String wordGapString = wordGapChar + "";
+  protected static final String spanGapString = spanGapChar + "";
 
-    /** Span gap marker is Unicode three dots = \u2026. */
+  /**
+   * Fix some gap elements in a DOM document.
+   *
+   * @param document Document containing gaps to fix.
+   */
+  public static void fixGaps(Document document) {
+    //  Create filter for <gap> elements.
 
-    protected static final char spanGapChar     = '\u2026';
-    protected static final String spanGapString = spanGapChar + "";
+    Filter<Element> filter = Filters.element("gap");
 
-    /** Fix some gap elements in a DOM document.
-     *
-     *  @param  document    Document containing gaps to fix.
-     */
+    //  Create processor for <gap> elements.
 
-    public static void fixGaps( Document document )
-    {
-                                //  Create filter for <gap> elements.
+    ElementProcessor processor = new GapProcessor();
 
-        Filter<Element> filter              = Filters.element( "gap" );
+    //  Process <gap> elements.
 
-                                //  Create processor for <gap> elements.
+    JDOMUtils.applyElementFilter(document, filter, processor);
+  }
 
-        ElementProcessor processor  = new GapProcessor();
+  /** Allow overrides but no instantiation. */
+  protected GapFixer() {}
 
-                                //  Process <gap> elements.
+  /** JDOM element processor which fixes <gap> elements. */
+  public static class GapProcessor implements ElementProcessor {
+    public void processElement(Document document, Element gap) {
+      //  Collect information about this gap
+      //  to see if we want to add a displayable
+      //  element.
 
-        JDOMUtils.applyElementFilter( document , filter , processor );
+      boolean isWords = false;
+      boolean isPage = false;
+      boolean isSpan = false;
+      boolean isParagraph = false;
+      boolean isMissing = false;
+      boolean isLetter = false;
+      int count = 0;
+
+      String desc = JDOMUtils.getAttributeValueIgnoreCase(gap, "desc");
+
+      if (desc == null) desc = "";
+
+      String extent = JDOMUtils.getAttributeValueIgnoreCase(gap, "extent");
+
+      if (extent == null) {
+        extent = "";
+      } else {
+        String[] extentTokens = extent.split(" ");
+
+        isWords = (StringUtils.indexOfIgnoreCase(extentTokens[1], "word") >= 0);
+
+        isPage = (StringUtils.indexOfIgnoreCase(extentTokens[1], "page") >= 0);
+
+        isSpan = (StringUtils.indexOfIgnoreCase(extentTokens[1], "span") >= 0);
+
+        isParagraph = (StringUtils.indexOfIgnoreCase(extentTokens[1], "paragraph") >= 0);
+
+        isMissing = (StringUtils.indexOfIgnoreCase(extentTokens[1], "missing") >= 0);
+
+        isLetter = (StringUtils.indexOfIgnoreCase(extentTokens[1], "letter") >= 0);
+
+        extentTokens[0] = StringUtils.replaceAll(extentTokens[0], "+", "");
+
+        count = Integer.parseInt(extentTokens[0]);
+      }
+
+      String disp = JDOMUtils.getAttributeValueIgnoreCase(gap, "disp");
+
+      if (disp == null) disp = "";
+
+      if (isWords) disp = wordGapString;
+      if (isSpan) disp = spanGapString;
+      if (isPage || isMissing || isParagraph) disp = "";
+
+      if (isLetter && (disp.length() == 0)) {
+        disp = StringUtils.dupl(letterGapString, count);
+      }
+
+      disp = StringUtils.replaceAll(disp, "\u3008", "");
+      disp = StringUtils.replaceAll(disp, "\u3009", "");
+      disp = StringUtils.replaceAll(disp, "\uFEFF", "");
+
+      //  Add displayable text to gap element.
+
+      if (disp.length() > 0) {
+        gap.setText(disp);
+      }
     }
-
-    /** Allow overrides but no instantiation.
-     */
-
-    protected GapFixer()
-    {
-    }
-
-    /** JDOM element processor which fixes <gap> elements. */
-
-    public static class GapProcessor implements ElementProcessor
-    {
-        public void processElement( Document document , Element gap )
-        {
-                                //  Collect information about this gap
-                                //  to see if we want to add a displayable
-                                //  element.
-
-            boolean isWords         = false;
-            boolean isPage          = false;
-            boolean isSpan          = false;
-            boolean isParagraph     = false;
-            boolean isMissing       = false;
-            boolean isLetter        = false;
-            int count               = 0;
-
-            String desc =
-                JDOMUtils.getAttributeValueIgnoreCase( gap , "desc" );
-
-            if ( desc == null ) desc = "";
-
-            String extent   =
-                JDOMUtils.getAttributeValueIgnoreCase( gap , "extent" );
-
-            if ( extent == null )
-            {
-                extent = "";
-            }
-            else
-            {
-                String[] extentTokens   = extent.split( " " );
-
-                isWords =
-                    ( StringUtils.indexOfIgnoreCase(
-                        extentTokens[ 1 ] , "word" ) >= 0 );
-
-                isPage  =
-                    ( StringUtils.indexOfIgnoreCase(
-                        extentTokens[ 1 ] , "page" ) >= 0 );
-
-                isSpan  =
-                    ( StringUtils.indexOfIgnoreCase(
-                        extentTokens[ 1 ] , "span" ) >= 0 );
-
-                isParagraph =
-                    ( StringUtils.indexOfIgnoreCase(
-                        extentTokens[ 1 ] , "paragraph" ) >= 0 );
-
-                isMissing   =
-                    ( StringUtils.indexOfIgnoreCase(
-                        extentTokens[ 1 ] , "missing" ) >= 0 );
-
-                isLetter    =
-                    ( StringUtils.indexOfIgnoreCase(
-                        extentTokens[ 1 ] , "letter" ) >= 0 );
-
-                extentTokens[ 0 ]   =
-                    StringUtils.replaceAll( extentTokens[ 0 ] , "+" , "" );
-
-                count = Integer.parseInt( extentTokens[ 0 ] );
-            }
-
-            String disp =
-                JDOMUtils.getAttributeValueIgnoreCase( gap , "disp" );
-
-            if ( disp == null ) disp = "";
-
-            if ( isWords ) disp = wordGapString;
-            if ( isSpan ) disp  = spanGapString;
-            if ( isPage || isMissing ||  isParagraph ) disp = "";
-
-            if ( isLetter && ( disp.length() == 0 ) )
-            {
-                disp = StringUtils.dupl( letterGapString , count );
-            }
-
-            disp    = StringUtils.replaceAll( disp , "\u3008" , "" );
-            disp    = StringUtils.replaceAll( disp , "\u3009" , "" );
-            disp    = StringUtils.replaceAll( disp , "\uFEFF" , "" );
-
-                                //  Add displayable text to gap element.
-
-            if ( disp.length() > 0 )
-            {
-                gap.setText( disp );
-            }
-        }
-    }
+  }
 }
 
 /*
@@ -193,6 +158,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

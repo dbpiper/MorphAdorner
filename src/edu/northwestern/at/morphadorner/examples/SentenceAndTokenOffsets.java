@@ -2,219 +2,176 @@ package edu.northwestern.at.morphadorner.examples;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.text.*;
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
 import edu.northwestern.at.utils.*;
+import java.io.*;
+import java.text.*;
+import java.util.*;
 
-/** SentenceAndTokenOffsets: Display sentence and token offsets in text.
+/**
+ * SentenceAndTokenOffsets: Display sentence and token offsets in text.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  <code>
+ * <p><code>
  *  java -Xmx256m edu.northwestern.at.morphadorner.example.SentenceAndTokenOffsets InputFileName
  *  </code>
- *  </p>
  *
- *  <p>
- *  where "InputFileName" specifies the name of a text file to split
- *  into sentences and word tokens.  The default sentence splitter,
- *  tokenizer, part of speech guesser, and word and suffix lexicons
- *  are used.
- *  </p>
+ * <p>where "InputFileName" specifies the name of a text file to split into sentences and word
+ * tokens. The default sentence splitter, tokenizer, part of speech guesser, and word and suffix
+ * lexicons are used.
  *
- *  <p>
- *  Example:
- *  </p>
+ * <p>Example:
  *
- *  <p>
- *  <code>
+ * <p><code>
  *  java -Xmx256m edu.northwestern.at.morphadorner.example.AdornAString mytext.txt
  *  </code>
- *  </p>
  *
- *  <p>
- *  The output displays each extracted sentence along with its starting and
- *  ending offset in the text read from the specified input file.
- *  For each sentence, a list of the extracted tokens in that sentence
- *  is displayed along with each token's starting and ending offset
- *  relative to the start of the sentence text.
- *  </p>
+ * <p>The output displays each extracted sentence along with its starting and ending offset in the
+ * text read from the specified input file. For each sentence, a list of the extracted tokens in
+ * that sentence is displayed along with each token's starting and ending offset relative to the
+ * start of the sentence text.
  */
-
-public class SentenceAndTokenOffsets
-{
-    /** Main program.
-     *
-     *  @param  args    Command line arguments.
-     */
-
-    public static void main( String[] args )
-    {
-        try
-        {
-            if ( args.length > 0 )
-            {
-                displayOffsets( args[ 0 ] );
-            }
-            else
-            {
-                System.err.println(
-                    "Usage: SentenceAndTokenOffsets inputFileName" );
-            }
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+public class SentenceAndTokenOffsets {
+  /**
+   * Main program.
+   *
+   * @param args Command line arguments.
+   */
+  public static void main(String[] args) {
+    try {
+      if (args.length > 0) {
+        displayOffsets(args[0]);
+      } else {
+        System.err.println("Usage: SentenceAndTokenOffsets inputFileName");
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
 
-    /** Display sentence and token offsets in text.
-     *
-     *  @param  inputFileName   Input file name.
-     */
+  /**
+   * Display sentence and token offsets in text.
+   *
+   * @param inputFileName Input file name.
+   */
+  public static void displayOffsets(String inputFileName) throws Exception {
+    //  Wrap standard output as utf-8.
 
-    public static void displayOffsets( String inputFileName )
-        throws Exception
-    {
-                                //  Wrap standard output as utf-8.
+    PrintStream printOut = new PrintStream(new BufferedOutputStream(System.out), true, "utf-8");
+    //  Load text to split into
+    //  sentences and tokens.
 
-        PrintStream printOut    =
-            new PrintStream
-            (
-                new BufferedOutputStream( System.out ) ,
-                true ,
-                "utf-8"
-            );
-                                //  Load text to split into
-                                //  sentences and tokens.
+    String sampleText = FileUtils.readTextFile(inputFileName, "utf-8");
 
-        String sampleText   =
-            FileUtils.readTextFile( inputFileName , "utf-8" );
+    //  Convert all whitespace characters
+    //  into blanks.  (Not necessary,
+    //  but makes the display cleaner below.)
 
-                                //  Convert all whitespace characters
-                                //  into blanks.  (Not necessary,
-                                //  but makes the display cleaner below.)
+    sampleText = sampleText.replaceAll("\\s", " ");
 
-        sampleText  = sampleText.replaceAll( "\\s" , " " );
+    //  Create default sentence splitter.
 
-                                //  Create default sentence splitter.
+    SentenceSplitter splitter = new DefaultSentenceSplitter();
 
-        SentenceSplitter splitter   = new DefaultSentenceSplitter();
+    //  Create part of speech guesser
+    //  for use by splitter.
 
-                                //  Create part of speech guesser
-                                //  for use by splitter.
+    PartOfSpeechGuesser partOfSpeechGuesser = new DefaultPartOfSpeechGuesser();
 
-        PartOfSpeechGuesser partOfSpeechGuesser =
-            new DefaultPartOfSpeechGuesser();
+    //  Get default word lexicon for
+    //  use by part of speech guesser.
 
-                                //  Get default word lexicon for
-                                //  use by part of speech guesser.
+    Lexicon lexicon = new DefaultWordLexicon();
 
-        Lexicon lexicon = new DefaultWordLexicon();
+    //  Set lexicon into guesser.
 
-                                //  Set lexicon into guesser.
+    partOfSpeechGuesser.setWordLexicon(lexicon);
 
-        partOfSpeechGuesser.setWordLexicon( lexicon );
+    //  Get default suffix lexicon for
+    //  use by part of speech guesser.
 
-                                //  Get default suffix lexicon for
-                                //  use by part of speech guesser.
+    Lexicon suffixLexicon = new DefaultSuffixLexicon();
 
-        Lexicon suffixLexicon       = new DefaultSuffixLexicon();
+    //  Set suffix lexicon into guesser.
 
-                                //  Set suffix lexicon into guesser.
+    partOfSpeechGuesser.setSuffixLexicon(suffixLexicon);
 
-        partOfSpeechGuesser.setSuffixLexicon( suffixLexicon );
+    //  Set guesser into sentence splitter.
 
-                                //  Set guesser into sentence splitter.
+    splitter.setPartOfSpeechGuesser(partOfSpeechGuesser);
 
-        splitter.setPartOfSpeechGuesser( partOfSpeechGuesser );
+    //  Create default word tokenizer.
 
-                                //  Create default word tokenizer.
+    WordTokenizer tokenizer = new DefaultWordTokenizer();
 
-        WordTokenizer tokenizer = new DefaultWordTokenizer();
+    //  Split input text into sentences
+    //  and words.
 
-                                //  Split input text into sentences
-                                //  and words.
+    List<List<String>> sentences = splitter.extractSentences(sampleText, tokenizer);
+    //  Get sentence start and end
+    //  offsets in input text.
 
-        List<List<String>> sentences    =
-            splitter.extractSentences
-            (
-                sampleText ,
-                tokenizer
-            );
-                                //  Get sentence start and end
-                                //  offsets in input text.
+    int[] sentenceOffsets = splitter.findSentenceOffsets(sampleText, sentences);
 
-        int[] sentenceOffsets   =
-            splitter.findSentenceOffsets( sampleText , sentences );
+    //  Loop over sentences.
 
-                                //  Loop over sentences.
+    for (int i = 0; i < sentences.size(); i++) {
+      //  Get start and end offset of
+      //  sentence text.  Note:  the
+      //  end is the end + 1 since that
+      //  is what substring wants.
 
-        for ( int i = 0 ; i < sentences.size() ; i++ )
-        {
-                                //  Get start and end offset of
-                                //  sentence text.  Note:  the
-                                //  end is the end + 1 since that
-                                //  is what substring wants.
+      int start = sentenceOffsets[i];
+      int end = sentenceOffsets[i + 1];
 
-            int start       = sentenceOffsets[ i ];
-            int end         = sentenceOffsets[ i + 1 ];
+      //  Get sentence text.
 
-                                //  Get sentence text.
+      String sentence = sampleText.substring(start, end);
 
-            String sentence =
-                sampleText.substring( start , end );
+      //  Display sentence number,
+      //  start, end, and text.
 
-                                //  Display sentence number,
-                                //  start, end, and text.
+      printOut.println(i + " [" + start + "," + (end - 1) + "]: " + sentence);
 
-            printOut.println(
-                i + " [" + start + "," + ( end - 1 ) + "]: " + sentence );
+      //  Get word tokens in this sentence.
 
-                                //  Get word tokens in this sentence.
+      List words = sentences.get(i);
 
-            List words  = sentences.get( i );
+      //  Get offsets for each word token
+      //  relative to this sentence.
 
-                                //  Get offsets for each word token
-                                //  relative to this sentence.
+      int[] wordOffsets = tokenizer.findWordOffsets(sentence, words);
 
-            int[] wordOffsets   =
-                tokenizer.findWordOffsets( sentence , words  );
+      //  Loop over word tokens.
 
-                                //  Loop over word tokens.
+      for (int j = 0; j < words.size(); j++) {
+        //  Get start and end offset of
+        //  this word token.  Note:  the
+        //  end is the end + 1 since that
+        //  is what substring wants.
 
-            for ( int j = 0 ; j < words.size() ; j++ )
-            {
-                                //  Get start and end offset of
-                                //  this word token.  Note:  the
-                                //  end is the end + 1 since that
-                                //  is what substring wants.
+        start = wordOffsets[j];
+        end = wordOffsets[j] + words.get(j).toString().length();
 
-                start   = wordOffsets[ j ];
-                end     =
-                    wordOffsets[ j ] + words.get( j ).toString().length();
+        //  Display token number,
+        //  start, end, and text.
 
-                                //  Display token number,
-                                //  start, end, and text.
-
-                printOut.println
-                (
-                    "          " + j + " [" + start + "," +
-                    ( end - 1 ) + "]: " +
-                    sentence.substring( start , end )
-                );
-            }
-        }
+        printOut.println(
+            "          "
+                + j
+                + " ["
+                + start
+                + ","
+                + (end - 1)
+                + "]: "
+                + sentence.substring(start, end));
+      }
     }
+  }
 }
 
 /*
@@ -257,6 +214,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

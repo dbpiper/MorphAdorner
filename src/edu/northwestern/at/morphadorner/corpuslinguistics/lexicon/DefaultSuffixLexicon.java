@@ -2,38 +2,22 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lexicon;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
+import java.io.*;
+import java.util.*;
 
-/** DefaultSuffixLexicon: Suffix lexicon which uses NUPOS tags.
- */
+/** DefaultSuffixLexicon: Suffix lexicon which uses NUPOS tags. */
+public class DefaultSuffixLexicon extends DefaultLexicon implements Lexicon {
+  /** Resource path to default (NUPOS) suffix lexicon. */
+  protected static final String defaultSuffixLexiconPath = "resources/nupossuffix.lex";
 
-public class DefaultSuffixLexicon extends DefaultLexicon implements Lexicon
-{
-    /** Resource path to default (NUPOS) suffix lexicon. */
-
-    protected static final String defaultSuffixLexiconPath  =
-        "resources/nupossuffix.lex";
-
-    /** Create an empty lexicon.
-     */
-
-    public DefaultSuffixLexicon()
-        throws IOException
-    {
-                                //  Create empty suffix lexicon.
-        super();
-                                //  Load default suffix lexicon.
-        loadLexicon
-        (
-            DefaultSuffixLexicon.class.getResource(
-                defaultSuffixLexiconPath ) ,
-            "utf-8"
-        );
-    }
+  /** Create an empty lexicon. */
+  public DefaultSuffixLexicon() throws IOException {
+    //  Create empty suffix lexicon.
+    super();
+    //  Load default suffix lexicon.
+    loadLexicon(DefaultSuffixLexicon.class.getResource(defaultSuffixLexiconPath), "utf-8");
+  }
 }
 
 /*
@@ -76,6 +60,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

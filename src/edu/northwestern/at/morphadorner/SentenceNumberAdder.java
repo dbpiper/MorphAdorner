@@ -2,358 +2,281 @@ package edu.northwestern.at.morphadorner;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-
-/** Add word numbers, sentence numbers, and sentence milestones to adorned text.
+/**
+ * Add word numbers, sentence numbers, and sentence milestones to adorned text.
  *
- *  <p>
- *  Reads an adorned XML file and adds word and sentence numbers
- *  numbers to each <w> and <pc> tag using a list of SentenceAndWordNumber
- *  entries.  Also adds <milestone> elements for sentences.
- *  </p>
+ * <p>Reads an adorned XML file and adds word and sentence numbers numbers to each <w> and <pc> tag
+ * using a list of SentenceAndWordNumber entries. Also adds <milestone> elements for sentences.
  */
+public class SentenceNumberAdder {
+  /** Line separator. */
+  protected static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-public class SentenceNumberAdder
-{
-    /** Line separator. */
+  /** Milestone formats. */
+  protected static String milestoneFormat =
+      "%s<milestone unit=\"sentence\" n=\"%s\" position=\"%s\"/>";
 
-    protected static final String LINE_SEPARATOR =
-        System.getProperty( "line.separator" );
+  protected static String milestoneWithPathFormat =
+      "%s<milestone unit=\"sentence\" n=\"%s\" position="
+          + "\"%s\" "
+          + WordAttributeNames.p
+          + "=\"%s\"/>";
 
-    /** Milestone formats. */
+  /**
+   * Add sentence and word numbers to adorned output.
+   *
+   * @param inputFileName Adorned input file name.
+   * @param outputFileName Updated adorned output file name.
+   * @param sortedWords Sentence and word number data.
+   * @param morphAdornerSettings MorphAdorner settings.
+   */
+  public SentenceNumberAdder(
+      String inputFileName,
+      String outputFileName,
+      SortedArrayList<SentenceAndWordNumber> sortedWords,
+      MorphAdornerSettings morphAdornerSettings) {
+    //  Perform conversion.
+    try {
+      //  Open input file.
 
-    protected static String milestoneFormat =
-        "%s<milestone unit=\"sentence\" n=\"%s\" position=\"%s\"/>";
+      UnicodeReader streamReader =
+          new UnicodeReader(new FileInputStream(new File(inputFileName)), "utf-8");
 
-    protected static String milestoneWithPathFormat =
-        "%s<milestone unit=\"sentence\" n=\"%s\" position=" +
-        "\"%s\" " + WordAttributeNames.p + "=\"%s\"/>";
+      BufferedReader in = new BufferedReader(streamReader);
 
-    /** Add sentence and word numbers to adorned output.
-     *
-     *  @param  inputFileName           Adorned input file name.
-     *  @param  outputFileName          Updated adorned output file name.
-     *  @param  sortedWords             Sentence and word number data.
-     *  @param  morphAdornerSettings    MorphAdorner settings.
-     */
+      //  Open output file for adorned
+      //  text with word and sentence numbers
+      //  added.
 
-    public SentenceNumberAdder
-    (
-        String inputFileName ,
-        String outputFileName ,
-        SortedArrayList<SentenceAndWordNumber> sortedWords ,
-        MorphAdornerSettings morphAdornerSettings
-    )
-    {
-                                //  Perform conversion.
-        try
-        {
-                                //  Open input file.
+      FileOutputStream outputStream = new FileOutputStream(outputFileName, false);
 
-            UnicodeReader streamReader  =
-                new UnicodeReader
-                (
-                    new FileInputStream( new File( inputFileName ) ) ,
-                    "utf-8"
-                );
+      BufferedOutputStream bufferedStream = new BufferedOutputStream(outputStream);
 
-            BufferedReader in   = new BufferedReader( streamReader );
+      OutputStreamWriter writer = new OutputStreamWriter(bufferedStream, "utf-8");
 
-                                //  Open output file for adorned
-                                //  text with word and sentence numbers
-                                //  added.
+      PrintWriter printWriter = new PrintWriter(writer);
 
-            FileOutputStream outputStream           =
-                new FileOutputStream( outputFileName , false );
+      //  Read first line of input file.
 
-            BufferedOutputStream bufferedStream =
-                new BufferedOutputStream( outputStream );
+      String line = in.readLine();
 
-            OutputStreamWriter writer   =
-                new OutputStreamWriter( bufferedStream , "utf-8" );
+      boolean needLine = true;
 
-            PrintWriter printWriter     = new PrintWriter( writer );
+      int wIndex = -1;
 
-                                //  Read first line of input file.
+      SentenceAndWordNumber lookupSWN = new SentenceAndWordNumber("", 0, "", false);
 
-            String line         = in.readLine();
+      //  Loop over adorned input file.
 
-            boolean needLine    = true;
+      int totalWords = 0;
+      int lookedUpWords = 0;
 
-            int wIndex          = -1;
+      while (line != null) {
+        //  Only process non-empty lines.
 
-            SentenceAndWordNumber lookupSWN =
-                new SentenceAndWordNumber( "" , 0 , "" , false );
+        if (line.trim().length() > 0) {
+          //  Does input line contain <w> tag?
 
-                                //  Loop over adorned input file.
+          int wPos = line.indexOf("<w ");
 
-            int totalWords      = 0;
-            int lookedUpWords   = 0;
+          //  If line contains <w> tag ...
 
-            while ( line != null )
-            {
-                                //  Only process non-empty lines.
+          if (wPos >= 0) {
+            totalWords++;
 
-                if ( line.trim().length() > 0 )
-                {
-                                //  Does input line contain <w> tag?
+            //  Split <w> text into  attributes
+            //  and word text.
 
-                    int wPos    = line.indexOf( "<w " );
+            String[] wValues = WordAttributePatterns.wReplacer.matchGroups(line);
 
-                                //  If line contains <w> tag ...
+            //  Extract word ID.
 
-                    if ( wPos >= 0 )
-                    {
-                        totalWords++;
+            String[] idValues =
+                WordAttributePatterns.idReplacer.matchGroups(wValues[WordAttributePatterns.ATTRS]);
 
-                                //  Split <w> text into  attributes
-                                //  and word text.
+            String id = idValues[WordAttributePatterns.IDVALUE];
 
-                        String[] wValues    =
-                            WordAttributePatterns.wReplacer.matchGroups(
-                                line );
+            //  Extract path.
 
-                                //  Extract word ID.
+            String[] pathValues =
+                WordAttributePatterns.pathReplacer.matchGroups(
+                    wValues[WordAttributePatterns.ATTRS]);
 
-                        String[] idValues   =
-                            WordAttributePatterns.idReplacer.matchGroups(
-                                wValues[ WordAttributePatterns.ATTRS ] );
+            String path = "";
 
-                        String id   =
-                            idValues[ WordAttributePatterns.IDVALUE ];
-
-                                //  Extract path.
-
-                        String[] pathValues =
-                            WordAttributePatterns.pathReplacer.matchGroups(
-                                wValues[ WordAttributePatterns.ATTRS ] );
-
-                        String path = "";
-
-                        if ( pathValues != null )
-                        {
-                            path    =
-                                pathValues[ WordAttributePatterns.PATHVALUE ];
-                        }
-                                //  Get the word text.
-
-                        String wordText =
-                            wValues[ WordAttributePatterns.WORD ];
-
-                                //  Get sentence and word numbers.
-                                //  Most of the time the next entry
-                                //  in the sortedWords list will be
-                                //  the one we want if the word IDs
-                                //  are in reading context order.
-                                //  If not -- the word IDs don't match --
-                                //  do a lookup for the word ID.
-
-                        SentenceAndWordNumber swn   =
-                            sortedWords.get( ++wIndex );
-
-                        if ( !swn.getID().equals( id ) )
-                        {
-                            lookupSWN.setID( id );
-
-                            wIndex  = sortedWords.indexOf( lookupSWN );
-
-                            swn     = sortedWords.get( wIndex );
-
-                            lookedUpWords++;
-                        }
-
-                        int sentenceNumber  = swn.getSentenceNumber();
-                        int wordNumber      = swn.getWordNumber();
-                        boolean isEOS       = swn.getEOS();
-                        boolean isFirstPart = swn.isFirstPart();
-                        boolean isLastPart  = swn.isLastPart();
-
-                                //  Output start sentence milestone
-                                //  if requested and this is the first
-                                //  word in a sentence.
-
-                        if  (   ( wordNumber == 1 ) && isFirstPart &&
-                                morphAdornerSettings.outputSentenceBoundaryMilestones
-                            )
-                        {
-                            printWriter.println
-                            (
-                                makeMilestone
-                                (
-                                    "start" ,
-                                    sentenceNumber ,
-                                    wValues[ WordAttributePatterns.LEFT ] ,
-                                    path
-                                )
-                            );
-                        }
-                                //  Generate updated <w> tag
-                                //  and add word and sentence numbers.
-
-                        StringBuilder sb    = new StringBuilder();
-
-                        sb.append( wValues[ WordAttributePatterns.LEFT ] );
-                        sb.append( "<w " );
-                        sb.append( wValues[ WordAttributePatterns.ATTRS ] );
-
-                        if ( morphAdornerSettings.outputSentenceNumber )
-                        {
-                            sb.append( " " );
-                            sb.append( morphAdornerSettings.outputSentenceNumberAttribute );
-                            sb.append( "=\"" );
-                            sb.append( sentenceNumber );
-                            sb.append( "\"" );
-                        }
-
-                        if ( morphAdornerSettings.outputWordNumber )
-                        {
-                            sb.append( " " );
-                            sb.append( morphAdornerSettings.outputWordNumberAttribute );
-                            sb.append( "=\"" );
-                            sb.append( wordNumber );
-                            sb.append( "\"" );
-                        }
-
-                        sb.append( ">" );
-                        sb.append( wValues[ WordAttributePatterns.WORD ] );
-                        sb.append( "</w>" );
-                        sb.append( wValues[ WordAttributePatterns.RIGHT ] );
-
-                        printWriter.println( sb );
-
-                                //  Output end sentence milestone
-                                //  if requested and this was the last
-                                //  word in a sentence.
-
-                        if  (   isEOS && isLastPart &&
-                                morphAdornerSettings.outputSentenceBoundaryMilestones
-                            )
-                        {
-                                //  Before emitting the milestone,
-                                //  output any <c> elements that appear
-                                //  after the last word in the sentence.
-
-                            line    = in.readLine();
-
-                            while   (   ( line != null ) &&
-                                        line.trim().startsWith( "<c>" )
-                                    )
-                            {
-                                printWriter.println( line );
-
-                                line    = in.readLine();
-                            }
-
-                            needLine    = false;
-
-                                //  Now emit the milestone for the end
-                                //  of the sentence.
-
-                            printWriter.println
-                            (
-                                makeMilestone
-                                (
-                                    "end" ,
-                                    sentenceNumber ,
-                                    wValues[ WordAttributePatterns.LEFT ] ,
-                                    path
-                                )
-                            );
-                        }
-                    }
-                    else
-                    {
-                                //  Output adorned line.
-
-                        printWriter.println( line );
-                    }
-                }
-                                //  Read next input line.
-
-                if ( needLine )
-                {
-                    line    = in.readLine();
-                }
-
-                needLine    = true;
+            if (pathValues != null) {
+              path = pathValues[WordAttributePatterns.PATHVALUE];
             }
-                                //  Close input file.
-            in.close();
-                                //  Close derived adorned file.
+            //  Get the word text.
 
-            printWriter.close();
-/*
-            System.err.println
-            (
-                "Total words=" + totalWords +
-                ", looked up words=" + lookedUpWords
-            );
-*/
+            String wordText = wValues[WordAttributePatterns.WORD];
+
+            //  Get sentence and word numbers.
+            //  Most of the time the next entry
+            //  in the sortedWords list will be
+            //  the one we want if the word IDs
+            //  are in reading context order.
+            //  If not -- the word IDs don't match --
+            //  do a lookup for the word ID.
+
+            SentenceAndWordNumber swn = sortedWords.get(++wIndex);
+
+            if (!swn.getID().equals(id)) {
+              lookupSWN.setID(id);
+
+              wIndex = sortedWords.indexOf(lookupSWN);
+
+              swn = sortedWords.get(wIndex);
+
+              lookedUpWords++;
+            }
+
+            int sentenceNumber = swn.getSentenceNumber();
+            int wordNumber = swn.getWordNumber();
+            boolean isEOS = swn.getEOS();
+            boolean isFirstPart = swn.isFirstPart();
+            boolean isLastPart = swn.isLastPart();
+
+            //  Output start sentence milestone
+            //  if requested and this is the first
+            //  word in a sentence.
+
+            if ((wordNumber == 1)
+                && isFirstPart
+                && morphAdornerSettings.outputSentenceBoundaryMilestones) {
+              printWriter.println(
+                  makeMilestone(
+                      "start", sentenceNumber, wValues[WordAttributePatterns.LEFT], path));
+            }
+            //  Generate updated <w> tag
+            //  and add word and sentence numbers.
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.append(wValues[WordAttributePatterns.LEFT]);
+            sb.append("<w ");
+            sb.append(wValues[WordAttributePatterns.ATTRS]);
+
+            if (morphAdornerSettings.outputSentenceNumber) {
+              sb.append(" ");
+              sb.append(morphAdornerSettings.outputSentenceNumberAttribute);
+              sb.append("=\"");
+              sb.append(sentenceNumber);
+              sb.append("\"");
+            }
+
+            if (morphAdornerSettings.outputWordNumber) {
+              sb.append(" ");
+              sb.append(morphAdornerSettings.outputWordNumberAttribute);
+              sb.append("=\"");
+              sb.append(wordNumber);
+              sb.append("\"");
+            }
+
+            sb.append(">");
+            sb.append(wValues[WordAttributePatterns.WORD]);
+            sb.append("</w>");
+            sb.append(wValues[WordAttributePatterns.RIGHT]);
+
+            printWriter.println(sb);
+
+            //  Output end sentence milestone
+            //  if requested and this was the last
+            //  word in a sentence.
+
+            if (isEOS && isLastPart && morphAdornerSettings.outputSentenceBoundaryMilestones) {
+              //  Before emitting the milestone,
+              //  output any <c> elements that appear
+              //  after the last word in the sentence.
+
+              line = in.readLine();
+
+              while ((line != null) && line.trim().startsWith("<c>")) {
+                printWriter.println(line);
+
+                line = in.readLine();
+              }
+
+              needLine = false;
+
+              //  Now emit the milestone for the end
+              //  of the sentence.
+
+              printWriter.println(
+                  makeMilestone("end", sentenceNumber, wValues[WordAttributePatterns.LEFT], path));
+            }
+          } else {
+            //  Output adorned line.
+
+            printWriter.println(line);
+          }
         }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
+        //  Read next input line.
+
+        if (needLine) {
+          line = in.readLine();
         }
+
+        needLine = true;
+      }
+      //  Close input file.
+      in.close();
+      //  Close derived adorned file.
+
+      printWriter.close();
+      /*
+                  System.err.println
+                  (
+                      "Total words=" + totalWords +
+                      ", looked up words=" + lookedUpWords
+                  );
+      */
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Make a milestone marker for a sentence.
+   *
+   * @param position Position ("start" or "end").
+   * @param number The sentence number.
+   * @param indent Leading indentation.
+   * @param path Associated word path.
+   */
+  protected String makeMilestone(String position, int number, String indent, String path) {
+    //  Create "p=" attribute for milestone
+    //  from path for associated word.
+
+    String sentencePath = "";
+
+    if ((path != null) && (path.length() > 0)) {
+      sentencePath = path;
+
+      int lastSlash = sentencePath.lastIndexOf("\\");
+
+      if (lastSlash >= 0) {
+        sentencePath = sentencePath.substring(0, lastSlash);
+      }
     }
 
-    /** Make a milestone marker for a sentence.
-     *
-     *  @param  position    Position ("start" or "end").
-     *  @param  number      The sentence number.
-     *  @param  indent      Leading indentation.
-     *  @param  path        Associated word path.
-     */
+    StringBuilder sb = new StringBuilder();
 
-    protected String makeMilestone
-    (
-        String position ,
-        int number ,
-        String indent ,
-        String path
-    )
-    {
-                                //  Create "p=" attribute for milestone
-                                //  from path for associated word.
-
-        String sentencePath = "";
-
-        if ( ( path != null ) && ( path.length() > 0 ) )
-        {
-            sentencePath    = path;
-
-            int lastSlash   = sentencePath.lastIndexOf( "\\" );
-
-            if ( lastSlash >= 0 )
-            {
-                sentencePath    = sentencePath.substring( 0 , lastSlash );
-            }
-        }
-
-        StringBuilder sb    = new StringBuilder();
-
-        if ( sentencePath.length() > 0 )
-        {
-            new Formatter( sb ).format
-            (
-                milestoneWithPathFormat ,
-                new Object[]{ indent , number + "" , position , sentencePath }
-            );
-        }
-        else
-        {
-            new Formatter( sb ).format
-            (
-                milestoneFormat ,
-                new Object[]{ indent , number + "" , position }
-            );
-        }
-
-        return sb.toString();
+    if (sentencePath.length() > 0) {
+      new Formatter(sb)
+          .format(
+              milestoneWithPathFormat, new Object[] {indent, number + "", position, sentencePath});
+    } else {
+      new Formatter(sb).format(milestoneFormat, new Object[] {indent, number + "", position});
     }
+
+    return sb.toString();
+  }
 }
 
 /*
@@ -396,6 +319,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

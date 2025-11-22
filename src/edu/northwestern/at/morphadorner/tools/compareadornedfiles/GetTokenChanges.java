@@ -2,168 +2,120 @@ package edu.northwestern.at.morphadorner.tools.compareadornedfiles;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-
-/** Get changes in tokens from one set of adorned files to another.
+/**
+ * Get changes in tokens from one set of adorned files to another.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  java edu.northwestern.at.morphadorner.tools.compareadornedfiles.GetTokenChanges
- *      origfilesdirectory  updatedfilesdirectory changelogfilesdirectory<br />
- *  <br />
- *  origfiledirectory       -- Directory containing original TEI XML files.<br />
- *  updatedfilesdirectory   -- Directory containing updated TEI XML files.br />
- *  changelogfilesdirectory -- Directory to receive change log files.
- *  </p>
+ * <p>java edu.northwestern.at.morphadorner.tools.compareadornedfiles.GetTokenChanges
+ * origfilesdirectory updatedfilesdirectory changelogfilesdirectory<br>
+ * <br>
+ * origfiledirectory -- Directory containing original TEI XML files.<br>
+ * updatedfilesdirectory -- Directory containing updated TEI XML files.br /> changelogfilesdirectory
+ * -- Directory to receive change log files.
  *
- *  <p>
- *  For each pair of matching files in (origfiledirectory, updatedfilesdirectory)
- *  a change log file is written to changelogfilesdirectory.  The change log
- *  is written in the format specified by CompareAdornedFiles.  Only
- *  token-based changes are recorded in the change log file.
- *  </p>
+ * <p>For each pair of matching files in (origfiledirectory, updatedfilesdirectory) a change log
+ * file is written to changelogfilesdirectory. The change log is written in the format specified by
+ * CompareAdornedFiles. Only token-based changes are recorded in the change log file.
  */
+public class GetTokenChanges {
+  /** Input directory containing old adorned files. */
+  protected static String oldAdornedFilesDirectory;
 
-public class GetTokenChanges
-{
-    /** Input directory containing old adorned files. */
+  /** Input directory containing new adorned files. */
+  protected static String newAdornedFilesDirectory;
 
-    protected static String oldAdornedFilesDirectory;
+  /** Output directory to receive change files. */
+  protected static String changeFilesDirectory;
 
-    /** Input directory containing new adorned files. */
+  /**
+   * Main program.
+   *
+   * @param args Command line arguments.
+   */
+  public static void main(String[] args) {
+    try {
+      getTokenChanges(args);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-    protected static String newAdornedFilesDirectory;
+  /**
+   * Get token changes for batch of adorned files.
+   *
+   * @param args Command line arguments.
+   */
+  public static void getTokenChanges(String[] args) throws Exception {
+    //  Allow utf-8 output standard output.
 
-    /** Output directory to receive change files. */
+    PrintStream printStream = new PrintStream(new BufferedOutputStream(System.out), true, "utf-8");
+    //  Make sure we have enough arguments.
 
-    protected static String changeFilesDirectory;
+    if (args.length < 3) {
+      printStream.println("Not enough parameters.");
+      System.exit(1);
+    }
+    //  Get old adorned files directory.
 
-    /** Main program.
-     *
-     *  @param  args    Command line arguments.
-     */
+    oldAdornedFilesDirectory = args[0];
 
-    public static void main( String[] args )
-    {
-        try
-        {
-            getTokenChanges( args );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+    //  Get updated adorned files directory.
+
+    newAdornedFilesDirectory = args[1];
+
+    //  Get output change files directory.
+
+    changeFilesDirectory = args[2];
+
+    //  Get list of old adorned files.
+
+    String wildcard = oldAdornedFilesDirectory + File.separator + "*.xml";
+
+    String[] oldAdornedFileNames = FileNameUtils.expandFileNameWildcards(new String[] {wildcard});
+
+    int nOld = oldAdornedFileNames.length;
+
+    printStream.println(
+        "There are "
+            + Formatters.formatIntegerWithCommas(nOld)
+            + StringUtils.pluralize(nOld, " file ", " files ")
+            + " to process.");
+    //  Get changes between each old file
+    //  and the corresponding new file.
+
+    for (int i = 0; i < oldAdornedFileNames.length; i++) {
+      //  Get next old adorned file name.
+
+      String oldAdornedFileName = oldAdornedFileNames[i];
+
+      String strippedFileName = FileNameUtils.stripPathName(oldAdornedFileName);
+
+      //  Get corresponding updated  adorned
+      //  file name.
+
+      String newAdornedFileName =
+          new File(newAdornedFilesDirectory, strippedFileName).getCanonicalPath();
+
+      //  Get name of output token change file.
+
+      String changeFileName =
+          new File(changeFilesDirectory, "changes-" + strippedFileName).getCanonicalPath();
+
+      //  Compare the old and new adorned files
+      //  and generate the changes.
+
+      new CompareAdornedFiles(oldAdornedFileName, newAdornedFileName, changeFileName, printStream);
+      //  Suggest garbage collection.
+      System.gc();
     }
 
-    /** Get token changes for batch of adorned files.
-     *
-     *  @param  args    Command line arguments.
-     */
-
-    public static void getTokenChanges( String[] args )
-        throws Exception
-    {
-                                //  Allow utf-8 output standard output.
-
-        PrintStream printStream     =
-            new PrintStream
-            (
-                new BufferedOutputStream( System.out ) ,
-                true ,
-                "utf-8"
-            );
-                                //  Make sure we have enough arguments.
-
-        if ( args.length < 3 )
-        {
-            printStream.println( "Not enough parameters." );
-            System.exit( 1 );
-        }
-                                //  Get old adorned files directory.
-
-        oldAdornedFilesDirectory    = args[ 0 ];
-
-                                //  Get updated adorned files directory.
-
-        newAdornedFilesDirectory    = args[ 1 ];
-
-                                //  Get output change files directory.
-
-        changeFilesDirectory        = args[ 2 ];
-
-                                //  Get list of old adorned files.
-
-        String wildcard =
-            oldAdornedFilesDirectory + File.separator + "*.xml";
-
-        String[] oldAdornedFileNames    =
-            FileNameUtils.expandFileNameWildcards
-            (
-                new String[]{ wildcard }
-            );
-
-        int nOld    = oldAdornedFileNames.length;
-
-        printStream.println
-        (
-            "There are " +
-            Formatters.formatIntegerWithCommas( nOld ) +
-            StringUtils.pluralize( nOld , " file " , " files " ) +
-            " to process."
-        );
-                                //  Get changes between each old file
-                                //  and the corresponding new file.
-
-        for ( int i = 0 ; i < oldAdornedFileNames.length ; i++ )
-        {
-                                //  Get next old adorned file name.
-
-            String oldAdornedFileName   = oldAdornedFileNames[ i ] ;
-
-            String strippedFileName =
-                FileNameUtils.stripPathName( oldAdornedFileName );
-
-                                //  Get corresponding updated  adorned
-                                //  file name.
-
-            String newAdornedFileName   =
-                new File
-                (
-                    newAdornedFilesDirectory ,
-                    strippedFileName
-                ).getCanonicalPath();
-
-                                //  Get name of output token change file.
-
-            String changeFileName       =
-                new File
-                (
-                    changeFilesDirectory ,
-                    "changes-" + strippedFileName
-                ).getCanonicalPath();
-
-                                //  Compare the old and new adorned files
-                                //  and generate the changes.
-
-            new CompareAdornedFiles
-            (
-                oldAdornedFileName ,
-                newAdornedFileName ,
-                changeFileName ,
-                printStream
-            );
-                                //  Suggest garbage collection.
-            System.gc();
-        }
-
-        printStream.println( "Finished processing." );
-    }
+    printStream.println("Finished processing.");
+  }
 }
 
 /*
@@ -206,6 +158,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

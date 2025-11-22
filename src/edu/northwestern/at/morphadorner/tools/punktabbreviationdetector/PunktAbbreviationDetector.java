@@ -2,244 +2,174 @@ package edu.northwestern.at.morphadorner.tools.punktabbreviationdetector;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.text.*;
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-
 import edu.northwestern.at.utils.CharUtils;
 import edu.northwestern.at.utils.FileNameUtils;
 import edu.northwestern.at.utils.FileUtils;
 import edu.northwestern.at.utils.SetUtils;
 import edu.northwestern.at.utils.StringUtils;
+import java.io.*;
+import java.text.*;
+import java.util.*;
 
-/** Find abbreviations in a set of texts using Punkt algorithm.
+/**
+ * Find abbreviations in a set of texts using Punkt algorithm.
  *
- *  <p>
- *  <code>
+ * <p><code>
  *  java -Xmx512m edu.northwestern.at.morphadorner.tools.punktabbreviationdetector.PunktAbbreviationDetector
  *      isolangcode abbrevs.txt text1.txt text2.txt ...
  *  </code>
- *  </p>
  *
- *  <ul>
- *  <li>
- *  <strong>isolangcode</strong> specifies the two or three character
- *  ISO language code in which the texts to be analyzed are written.
- *  </li>
- *
- *  <li>
- *  <strong>abbrevs.txt</strong> specifies the name of the output file
- *  to receive the abbreviations extracted from the texts.
- *  </li>
- *
- *  <li>
- *  <strong>text1 text2 ... </strong> specify the names of utf-8 encoded
- *  text files from which to extract potential abbreviations.
- *  </li>
- *  </ul>
+ * <ul>
+ *   <li><strong>isolangcode</strong> specifies the two or three character ISO language code in
+ *       which the texts to be analyzed are written.
+ *   <li><strong>abbrevs.txt</strong> specifies the name of the output file to receive the
+ *       abbreviations extracted from the texts.
+ *   <li><strong>text1 text2 ... </strong> specify the names of utf-8 encoded text files from which
+ *       to extract potential abbreviations.
+ * </ul>
  */
+public class PunktAbbreviationDetector {
+  /** # params before input file specs. */
+  protected static final int INITPARAMS = 2;
 
-public class PunktAbbreviationDetector
-{
-    /** # params before input file specs. */
+  /** Wrapper for printStream to allow utf-8 output. */
+  protected static PrintStream printStream;
 
-    protected static final int INITPARAMS   = 2;
+  /** Main program. */
+  public static void main(String[] args) throws IOException {
+    long startTime = System.currentTimeMillis();
 
-    /** Wrapper for printStream to allow utf-8 output. */
+    //  Allow utf-8 output to printStream .
+    printStream = new PrintStream(new BufferedOutputStream(System.out), true, "utf-8");
+    //  Pick up language of input texts.
 
-    protected static PrintStream printStream;
+    String languageCode = args[0];
 
-    /** Main program. */
+    printStream.println("Language code: " + languageCode);
 
-    public static void main( String[] args )
-        throws IOException
-    {
-        long startTime  = System.currentTimeMillis();
+    Locale locale = languageCodeToLocale(languageCode);
 
-                                //  Allow utf-8 output to printStream .
-        printStream =
-            new PrintStream
-            (
-                new BufferedOutputStream( System.out ) ,
-                true ,
-                "utf-8"
-            );
-                                //  Pick up language of input texts.
+    printStream.println("Language: " + locale.getDisplayLanguage());
 
-        String languageCode = args[ 0 ];
+    //  Create tokenizer for specified
+    //  language.
 
-        printStream.println( "Language code: " + languageCode );
+    ICU4JBreakIteratorWordTokenizer tokenizer = new ICU4JBreakIteratorWordTokenizer(locale);
 
-        Locale locale   = languageCodeToLocale( languageCode );
+    //  Treat whitespace as a token.
 
-        printStream.println( "Language: " + locale.getDisplayLanguage() );
+    tokenizer.setStoreWhitespaceTokens(true);
+    tokenizer.setMergeWhitespaceTokens(true);
 
-                                //  Create tokenizer for specified
-                                //  language.
+    //  Don't split token around periods.
 
-        ICU4JBreakIteratorWordTokenizer tokenizer   =
-            new ICU4JBreakIteratorWordTokenizer( locale );
+    tokenizer.setSplitAroundPeriods(false);
 
-                                //  Treat whitespace as a token.
+    //  Pick up name of abbreviations
+    //  output file.
 
-        tokenizer.setStoreWhitespaceTokens( true );
-        tokenizer.setMergeWhitespaceTokens( true );
+    String abbrevsFileName = args[1];
 
-                                //  Don't split token around periods.
+    //  Create counter to hold count
+    //  information about tokens and periods.
 
-        tokenizer.setSplitAroundPeriods( false );
+    PunktTokenCounter tokenCounter = new PunktTokenCounter(0.3D, false);
 
-                                //  Pick up name of abbreviations
-                                //  output file.
+    //  Get file name/file wildcard specs.
 
-        String abbrevsFileName  = args[ 1 ];
+    String[] wildCards = new String[args.length - INITPARAMS];
 
-                                //  Create counter to hold count
-                                //  information about tokens and periods.
-
-        PunktTokenCounter tokenCounter =
-            new PunktTokenCounter( 0.3D , false );
-
-                                //  Get file name/file wildcard specs.
-
-        String[] wildCards  = new String[ args.length - INITPARAMS ];
-
-        for ( int i = INITPARAMS ; i < args.length ; i++ )
-        {
-            wildCards[ i - INITPARAMS ] = args[ i ];
-        }
-                                //  Expand wildcards to list of
-                                //  file names.
-        String[] fileNames  =
-            FileNameUtils.expandFileNameWildcards( wildCards );
-
-        printStream.println
-        (
-            "There are " +
-            StringUtils.formatNumberWithCommas( fileNames.length ) +
-            " files to process."
-        );
-                                //  No tokens read yet.
-        long tokensRead = 0;
-                                //  Process input files.
-
-        for ( int i = 0 ; i < fileNames.length ; i++ )
-        {
-                                //  Read text from next input file.
-            String text =
-                FileUtils.readTextFile( fileNames[ i ] , "utf-8" );
-
-                                //  Extract tokens from text.
-
-            List<String> tokens = tokenizer.extractWords( text );
-
-                                //  Process each token.
-
-            for ( int j = 0 ; j < tokens.size() ; j++ )
-            {
-                tokenCounter.count( makePunktToken( tokens.get( j ) ) );
-
-                tokensRead++;
-            }
-        }
-                                //  Report processing completed.
-        long processingTime =
-            ( System.currentTimeMillis() - startTime + 999 ) / 1000;
-
-        printStream.println
-        (
-            "\nProcessing completed in " +
-            StringUtils.formatNumberWithCommas( processingTime ) +
-            " seconds."
-        );
-
-        printStream.println
-        (
-            "\n" + StringUtils.formatNumberWithCommas( tokensRead ) +
-            " tokens extracted."
-        );
-
-        printStream.println();
-
-        printStream.println
-        (
-            "There were " +
-            StringUtils.formatNumberWithCommas
-            (
-                tokenCounter.getCandidates().size()
-            ) + " candidates."
-        );
-
-        printStream.println
-        (
-            "There are " +
-            StringUtils.formatNumberWithCommas
-            (
-                tokenCounter.getAbbreviations().size()
-            ) + " abbreviations."
-        );
-                                //  Save abbreviations to specified file.
-        SetUtils.saveSet
-        (
-            new TreeSet<String>( tokenCounter.getAbbreviations() ) ,
-            abbrevsFileName ,
-            "utf-8"
-        );
+    for (int i = INITPARAMS; i < args.length; i++) {
+      wildCards[i - INITPARAMS] = args[i];
     }
+    //  Expand wildcards to list of
+    //  file names.
+    String[] fileNames = FileNameUtils.expandFileNameWildcards(wildCards);
 
-    /** Get a Java Locale from an ISO language code.
-     *
-     *  @param  languageCode    The ISO language code.
-     *
-     *  @return                 The Java locale corresponding to
-     *                          the ISO language code.
-     */
+    printStream.println(
+        "There are " + StringUtils.formatNumberWithCommas(fileNames.length) + " files to process.");
+    //  No tokens read yet.
+    long tokensRead = 0;
+    //  Process input files.
 
-    public static Locale languageCodeToLocale( String languageCode )
-    {
-//      return new Locale.Builder().setLanguage( languageCode ).build();
-        return new Locale( languageCode );
+    for (int i = 0; i < fileNames.length; i++) {
+      //  Read text from next input file.
+      String text = FileUtils.readTextFile(fileNames[i], "utf-8");
+
+      //  Extract tokens from text.
+
+      List<String> tokens = tokenizer.extractWords(text);
+
+      //  Process each token.
+
+      for (int j = 0; j < tokens.size(); j++) {
+        tokenCounter.count(makePunktToken(tokens.get(j)));
+
+        tokensRead++;
+      }
     }
+    //  Report processing completed.
+    long processingTime = (System.currentTimeMillis() - startTime + 999) / 1000;
 
-    /** Create Punkt token from a string.
-     *
-     *  @param  token   The token.
-     */
+    printStream.println(
+        "\nProcessing completed in "
+            + StringUtils.formatNumberWithCommas(processingTime)
+            + " seconds.");
 
-    public static PunktToken makePunktToken( String token )
-    {
-                                //  Determine token type.
+    printStream.println(
+        "\n" + StringUtils.formatNumberWithCommas(tokensRead) + " tokens extracted.");
 
-        char ch = token.charAt( 0 );
+    printStream.println();
 
-        if ( Character.isWhitespace( ch ) )
-        {
-            return new PunktToken( token , PunktTokenType.WHITESPACE );
-        }
+    printStream.println(
+        "There were "
+            + StringUtils.formatNumberWithCommas(tokenCounter.getCandidates().size())
+            + " candidates.");
 
-        else if ( Character.isDigit( ch ) )
-        {
-            return new PunktToken( token , PunktTokenType.NUMBER );
-        }
+    printStream.println(
+        "There are "
+            + StringUtils.formatNumberWithCommas(tokenCounter.getAbbreviations().size())
+            + " abbreviations.");
+    //  Save abbreviations to specified file.
+    SetUtils.saveSet(
+        new TreeSet<String>(tokenCounter.getAbbreviations()), abbrevsFileName, "utf-8");
+  }
 
-        else if ( CharUtils.isPunctuationOrSymbol( token ) )
-        {
-            return new PunktToken( token , PunktTokenType.NONWORD );
-        }
+  /**
+   * Get a Java Locale from an ISO language code.
+   *
+   * @param languageCode The ISO language code.
+   * @return The Java locale corresponding to the ISO language code.
+   */
+  public static Locale languageCodeToLocale(String languageCode) {
+    //      return new Locale.Builder().setLanguage( languageCode ).build();
+    return new Locale(languageCode);
+  }
 
-        else
-        {
-            return new PunktToken( token , PunktTokenType.WORD );
-        }
+  /**
+   * Create Punkt token from a string.
+   *
+   * @param token The token.
+   */
+  public static PunktToken makePunktToken(String token) {
+    //  Determine token type.
+
+    char ch = token.charAt(0);
+
+    if (Character.isWhitespace(ch)) {
+      return new PunktToken(token, PunktTokenType.WHITESPACE);
+    } else if (Character.isDigit(ch)) {
+      return new PunktToken(token, PunktTokenType.NUMBER);
+    } else if (CharUtils.isPunctuationOrSymbol(token)) {
+      return new PunktToken(token, PunktTokenType.NONWORD);
+    } else {
+      return new PunktToken(token, PunktTokenType.WORD);
     }
+  }
 
-    /** Allow overrides but not instantiation. */
-
-    protected PunktAbbreviationDetector()
-    {
-    }
+  /** Allow overrides but not instantiation. */
+  protected PunktAbbreviationDetector() {}
 }
 
 /*
@@ -282,6 +212,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

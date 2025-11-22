@@ -2,32 +2,31 @@ package edu.northwestern.at.morphadorner.tools.addpseudopages;
 
 /*  Please see the license information at the end of this file. */
 
+import com.megginson.sax.*;
+import edu.northwestern.at.morphadorner.*;
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
-
-import com.megginson.sax.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.morphadorner.*;
-import edu.northwestern.at.morphadorner.tools.*;
-
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
-
-/** Add pseudopages to an adorned file.
+/**
+ * Add pseudopages to an adorned file.
  *
- *  <p>
- *  Usage:
- *  </p>
- *  <blockquote>
- *  <pre>
+ * <p>Usage:
+ *
+ * <blockquote>
+ *
+ * <pre>
  *  java edu.northwestern.at.morphadorner.tools.addpseudopages.AddPseudoPages input.xml output.xml pseudopagesize pageendingdivtypes
  *  </pre>
- *  </blockquote>
- *  <table>
+ *
+ * </blockquote>
+ *
+ * <table>
  *  <tr>
  *  <td>input.xml</td><td>Input MorphAdornerd xml file.</td>
  *  </tr>
@@ -48,139 +47,102 @@ import edu.northwestern.at.utils.xml.*;
  *  </td>
  *  </tr>
  *  </table>
- *  <p>
- *  The derived adorned output file <em>output.xml</em> has pseudopage milestone
- *  elements added approximately every <em>pseudopagesize</em> words.
- *  No distinction is made between main and paratext when generating
- *  the pseudopages.  Each pseudopage starts with a milestone of the form:
- *  </p>
- *  <p>
- *  <blockquote>
- *  &lt;milestone unit="pseudopage" n="<em>n</em>" position="start"&gt;&lt;/milestone&gt;
- *  </blockquote>
- *  </p>
- *  <p>
- *  and ends with a milestone element of the form:
- *  </p>
- *  <p>
- *  <blockquote>
- *  &lt;milestone unit="pseudopage" n="<em>n</em>" position="end"&gt;&lt;/milestone&gt;
- *  </blockquote>
- *  </p>
- *  <p>
- *  The <em>n</em> is the pseudopage number.
- *  </p>
+ *
+ * <p>The derived adorned output file <em>output.xml</em> has pseudopage milestone elements added
+ * approximately every <em>pseudopagesize</em> words. No distinction is made between main and
+ * paratext when generating the pseudopages. Each pseudopage starts with a milestone of the form:
+ *
+ * <p>
+ *
+ * <blockquote>
+ *
+ * &lt;milestone unit="pseudopage" n="<em>n</em>" position="start"&gt;&lt;/milestone&gt;
+ *
+ * </blockquote>
+ *
+ * <p>and ends with a milestone element of the form:
+ *
+ * <p>
+ *
+ * <blockquote>
+ *
+ * &lt;milestone unit="pseudopage" n="<em>n</em>" position="end"&gt;&lt;/milestone&gt;
+ *
+ * </blockquote>
+ *
+ * <p>The <em>n</em> is the pseudopage number.
  */
+public class AddPseudoPages {
+  /**
+   * Add pseudopage milestones to an adorned file.
+   *
+   * @param xmlInputFileName Input XML file.
+   * @param xmlOutputFileName Output XML file.
+   * @param pseudoPageSize Number of words in a pseudopage.
+   * @param pageEndingDivTypes div types that end a pseudopage.
+   */
+  public AddPseudoPages(
+      String xmlInputFileName,
+      String xmlOutputFileName,
+      int pseudoPageSize,
+      String pageEndingDivTypes) {
+    try {
+      XMLFilter filter =
+          new PseudoPageAdderFilter(
+              XMLReaderFactory.createXMLReader(), pseudoPageSize, pageEndingDivTypes);
 
-public class AddPseudoPages
-{
-    /** Add pseudopage milestones to an adorned file.
-     *
-     *  @param  xmlInputFileName    Input XML file.
-     *  @param  xmlOutputFileName   Output XML file.
-     *  @param  pseudoPageSize      Number of words in a pseudopage.
-     *  @param  pageEndingDivTypes  div types that end a pseudopage.
-     */
+      long startTime = System.currentTimeMillis();
 
-    public AddPseudoPages
-    (
-        String xmlInputFileName ,
-        String xmlOutputFileName ,
-        int pseudoPageSize ,
-        String pageEndingDivTypes
-    )
-    {
-        try
-        {
-            XMLFilter filter    =
-                new PseudoPageAdderFilter
-                (
-                    XMLReaderFactory.createXMLReader() ,
-                    pseudoPageSize ,
-                    pageEndingDivTypes
-                );
+      //  Add/update pseudopage milestones.
 
-            long startTime      = System.currentTimeMillis();
+      new FilterAdornedFile(xmlInputFileName, xmlOutputFileName, filter);
 
-                                //  Add/update pseudopage milestones.
+      long endTime = (System.currentTimeMillis() - startTime + 999) / 1000;
 
-            new FilterAdornedFile
-            (
-                xmlInputFileName ,
-                xmlOutputFileName ,
-                filter
-            );
+      System.out.println(
+          "PseudoPage milestones added in "
+              + Formatters.formatLongWithCommas(endTime)
+              + " seconds.");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-            long endTime        =
-                ( System.currentTimeMillis() - startTime + 999 ) / 1000;
+  /** Main program. */
+  public static void main(String args[]) {
+    //  Default parameter values.
 
-            System.out.println
-            (
-                "PseudoPage milestones added in " +
-                Formatters.formatLongWithCommas( endTime ) + " seconds."
-            );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+    String pageEndingDivTypes = "volume chapter sermon";
+    int pseudoPageSize = 300;
+
+    //  Get parameter values.
+
+    if (args.length < 2) {
+      displayUsage();
+
+      System.exit(0);
     }
 
-    /** Main program.
-     */
-
-    public static void main( String args[] )
-    {
-                                //  Default parameter values.
-
-        String pageEndingDivTypes   = "volume chapter sermon";
-        int pseudoPageSize          = 300;
-
-                                //  Get parameter values.
-
-        if ( args.length < 2 )
-        {
-            displayUsage();
-
-            System.exit( 0 );
-        }
-
-        if ( args.length >= 3 )
-        {
-            pseudoPageSize  = Integer.parseInt( args[ 2 ] );
-        }
-
-        if ( args.length >= 4 )
-        {
-            pageEndingDivTypes  = args[ 3 ];
-        }
-                                //  Add pseudopage milestones.
-        try
-        {
-            new AddPseudoPages
-            (
-                args[ 0 ] ,
-                args[ 1 ] ,
-                pseudoPageSize ,
-                pageEndingDivTypes
-            );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+    if (args.length >= 3) {
+      pseudoPageSize = Integer.parseInt(args[2]);
     }
 
-    /** Display usage.
-     */
-
-    protected static void displayUsage()
-    {
-        System.out.println
-        (
-            "Usage: java AddPseudoPages infile outfile pseudoPageSize pageEndingDivTypes"
-        );
+    if (args.length >= 4) {
+      pageEndingDivTypes = args[3];
     }
+    //  Add pseudopage milestones.
+    try {
+      new AddPseudoPages(args[0], args[1], pseudoPageSize, pageEndingDivTypes);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  /** Display usage. */
+  protected static void displayUsage() {
+    System.out.println(
+        "Usage: java AddPseudoPages infile outfile pseudoPageSize pageEndingDivTypes");
+  }
 }
 
 /*
@@ -223,6 +185,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

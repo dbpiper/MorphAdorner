@@ -4,53 +4,31 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
 
-/** Post tokenizer for EEBO texts.
+/**
+ * Post tokenizer for EEBO texts.
  *
- *  <p>
- *  This post tokenizer processes tokens extracted from EEBO corpus texts.
- *  It removes soft hyphens and regularizes some EEBO specific tagging.
- *  This can be used for either original format EEBO texts or EEBO texts
- *  in TEIAnalytics format.
- *  </p>
+ * <p>This post tokenizer processes tokens extracted from EEBO corpus texts. It removes soft hyphens
+ * and regularizes some EEBO specific tagging. This can be used for either original format EEBO
+ * texts or EEBO texts in TEIAnalytics format.
  */
+public class EEBOPostTokenizer extends AbstractPostTokenizer implements PostTokenizer {
+  /** Create an EEBO PostTokenizer. */
+  public EEBOPostTokenizer() {}
 
-public class EEBOPostTokenizer
-    extends AbstractPostTokenizer
-    implements PostTokenizer
-{
-    /** Create an EEBO PostTokenizer.
-     */
-
-    public EEBOPostTokenizer()
-    {
-    }
-
-    /** Process a token after tokenization.
-     *
-     *  @param  token   The token to process after tokenization.
-     *
-     *  @return         Array of two strings.
-     *                  [0] = the token minimally processed.
-     *                  [1] = the token maximally processed.
-     *
-     *  <p>
-     *  The minimally processed token is typically results in an original
-     *  spelling.
-     *  </p>
-     *  <p>
-     *  The maximally processed token typically results in a
-     *  partially or completely standardized spelling.
-     *  </p>
-     *
-     *  <p>
-     *  These may be identical.
-     *  </p>
-     */
-
-    public String[] postTokenize( String token )
-    {
-        return EnglishDecruftifier.decruftify2( token );
-    }
+  /**
+   * Process a token after tokenization.
+   *
+   * @param token The token to process after tokenization.
+   * @return Array of two strings. [0] = the token minimally processed. [1] = the token maximally
+   *     processed.
+   *     <p>The minimally processed token is typically results in an original spelling.
+   *     <p>The maximally processed token typically results in a partially or completely
+   *     standardized spelling.
+   *     <p>These may be identical.
+   */
+  public String[] postTokenize(String token) {
+    return EnglishDecruftifier.decruftify2(token);
+  }
 }
 
 /*
@@ -93,6 +71,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

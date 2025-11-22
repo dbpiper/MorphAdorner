@@ -2,30 +2,24 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector.pluralizer;
 
 /*  Please see the license information at the end of this file. */
 
-/** Defines an interface for finding the plural form of a noun or pronoun.
- */
+/** Defines an interface for finding the plural form of a noun or pronoun. */
+public interface Pluralizer {
+  /**
+   * Pluralize a noun or pronoun.
+   *
+   * @param nounOrPronoun The singular form of the noun or pronoun.
+   * @return The plural form of the noun or pronoun.
+   */
+  public String pluralize(String nounOrPronoun);
 
-public interface Pluralizer
-{
-    /** Pluralize a noun or pronoun.
-     *
-     *  @param  nounOrPronoun   The singular form of the noun or pronoun.
-     *
-     *  @return                 The plural form of the noun or pronoun.
-     */
-
-    public String pluralize( String nounOrPronoun );
-
-    /** Pluralize a noun or pronoun.
-     *
-     *  @param  nounOrPronoun   The singular form of the noun or pronoun.
-     *  @param  number          The number for the noun or pronoun.
-     *
-     *  @return         The form of the noun or pronoun for the specified
-     *                  number.
-     */
-
-    public String pluralize( String nounOrPronoun , int number );
+  /**
+   * Pluralize a noun or pronoun.
+   *
+   * @param nounOrPronoun The singular form of the noun or pronoun.
+   * @param number The number for the noun or pronoun.
+   * @return The form of the noun or pronoun for the specified number.
+   */
+  public String pluralize(String nounOrPronoun, int number);
 }
 
 /*
@@ -68,6 +62,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

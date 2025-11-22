@@ -2,28 +2,20 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.c
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
+import java.util.*;
 
-/** Default contextual smoother.
+/**
+ * Default contextual smoother.
  *
- *  <p>
- *  The default contextual smoother is an additive smoother which
- *  uses 0.001 as the additive smoothing constant.
+ * <p>The default contextual smoother is an additive smoother which uses 0.001 as the additive
+ * smoothing constant.
  */
-
-public class DefaultContextualSmoother
-    extends AdditiveContextualSmoother
-    implements ContextualSmoother
-{
-    /** Create an additive contextual smoother.
-     */
-
-    public DefaultContextualSmoother()
-    {
-    }
+public class DefaultContextualSmoother extends AdditiveContextualSmoother
+    implements ContextualSmoother {
+  /** Create an additive contextual smoother. */
+  public DefaultContextualSmoother() {}
 }
 
 /*
@@ -66,6 +58,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

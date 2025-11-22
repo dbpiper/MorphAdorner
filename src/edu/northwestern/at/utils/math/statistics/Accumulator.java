@@ -4,192 +4,156 @@ package edu.northwestern.at.utils.math.statistics;
 
 import java.util.*;
 
-/** Accumulate basic statistical information for a set of doubles.
+/**
+ * Accumulate basic statistical information for a set of doubles.
  *
- *  <p>
- *  Accumulates the following quantities.
- *  </p>
+ * <p>Accumulates the following quantities.
  *
- *  <ul>
- *  <li>Count</li>
- *  <li>Maximum</li>
- *  <li>Minimum</li>
- *  <li>Mean</li>
- *  <li>Sum of squares</li>
- *  </ul>
+ * <ul>
+ *   <li>Count
+ *   <li>Maximum
+ *   <li>Minimum
+ *   <li>Mean
+ *   <li>Sum of squares
+ * </ul>
  *
- *  <p>
- *  Returns these values as well as the variance and standard deviation.
- *  </p>
+ * <p>Returns these values as well as the variance and standard deviation.
  */
+public class Accumulator {
+  /** Count of elements. */
+  protected long count = 0;
 
-public class Accumulator
-{
-    /** Count of elements. */
+  /** Mean of elements. */
+  protected double mean = 0.0D;
 
-    protected long count        = 0;
+  /** Sum of squares of elements. */
+  protected double sumOfSquares = 0.0D;
 
-    /** Mean of elements. */
+  /** Minimum of elements. */
+  protected double minimum = Double.POSITIVE_INFINITY;
 
-    protected double mean       = 0.0D;
+  /** Maximum of elements. */
+  protected double maximum = Double.NEGATIVE_INFINITY;
 
-    /** Sum of squares of elements. */
+  /** Create an empty accumulator. */
+  public Accumulator() {}
 
-    protected double sumOfSquares   = 0.0D;
+  /**
+   * Add a value to the accumulation.
+   *
+   * @param value The value to add.
+   */
+  public void addValue(double value) {
+    //  Increment count of values.
+    count++;
 
-    /** Minimum of elements. */
+    double prevMean = mean;
 
-    protected double minimum    = Double.POSITIVE_INFINITY;
+    //  Incrementally update
+    //  mean and sum of squares.
 
-    /** Maximum of elements. */
+    mean += (value - mean) / (double) count;
+    sumOfSquares += (value - mean) * (value - prevMean);
 
-    protected double maximum    = Double.NEGATIVE_INFINITY;
+    //  Update minimum and maximum.
 
-    /** Create an empty accumulator.
-     */
+    if (minimum > value) minimum = value;
+    if (maximum < value) maximum = value;
+  }
 
-    public Accumulator()
-    {
+  /**
+   * Add collection of values to the accumulation.
+   *
+   * @param values The collection of values to add.
+   */
+  public void addValues(Collection<Double> values) {
+    if (values != null) {
+      Iterator<Double> iterator = values.iterator();
+
+      while (iterator.hasNext()) {
+        double value = iterator.next();
+        addValue(value);
+      }
     }
+  }
 
-    /** Add a value to the accumulation.
-     *
-     *  @param  value   The value to add.
-     */
-
-    public void addValue( double value )
-    {
-                                //  Increment count of values.
-        count++;
-
-        double prevMean = mean;
-
-                                //  Incrementally update
-                                //  mean and sum of squares.
-
-        mean            += ( value - mean ) / (double)count;
-        sumOfSquares    +=
-            ( value - mean ) * ( value - prevMean );
-
-                                //  Update minimum and maximum.
-
-        if ( minimum > value ) minimum = value;
-        if ( maximum < value ) maximum = value;
+  /**
+   * Add array of values to the accumulation.
+   *
+   * @param values The collection of values to add.
+   */
+  public void addValues(double[] values) {
+    if (values != null) {
+      for (int i = 0; i < values.length; i++) {
+        addValue(values[i]);
+      }
     }
+  }
 
-    /** Add collection of values to the accumulation.
-     *
-     *  @param  values  The collection of values to add.
-     */
+  /**
+   * Return count.
+   *
+   * @return Count of elements as a long.
+   */
+  public long getCount() {
+    return count;
+  }
 
-    public void addValues( Collection<Double> values )
-    {
-        if ( values != null )
-        {
-            Iterator<Double> iterator   = values.iterator();
+  /**
+   * Return maximum.
+   *
+   * @return Maximum of elements.
+   */
+  public double getMaximum() {
+    return maximum;
+  }
 
-            while ( iterator.hasNext() )
-            {
-                double value    = iterator.next();
-                addValue( value );
-            }
-        }
-    }
+  /**
+   * Return minimum.
+   *
+   * @return Minimum of elements.
+   */
+  public double getMinimum() {
+    return minimum;
+  }
 
-    /** Add array of values to the accumulation.
-     *
-     *  @param  values  The collection of values to add.
-     */
+  /**
+   * Return mean.
+   *
+   * @return Mean of elements.
+   */
+  public double getMean() {
+    return mean;
+  }
 
-    public void addValues( double[] values )
-    {
-        if ( values != null )
-        {
-            for ( int i = 0 ; i < values.length ; i++ )
-            {
-                addValue( values[ i ] );
-            }
-        }
-    }
+  /**
+   * Return variance.
+   *
+   * @return Variance of elements.
+   *     <p>The variance is the sum of squares divided by the number of values.
+   */
+  public double getVariance() {
+    return sumOfSquares / (double) count;
+  }
 
-    /** Return count.
-     *
-     *  @return     Count of elements as a long.
-     */
+  /**
+   * Return standard deviation.
+   *
+   * @return Standard deviation of elements.
+   *     <p>The standard deviation is the square root of the variance.
+   */
+  public double getStandardDeviation() {
+    return Math.sqrt(getVariance());
+  }
 
-    public long getCount()
-    {
-        return count;
-    }
-
-    /** Return maximum.
-     *
-     *  @return     Maximum of elements.
-     */
-
-    public double getMaximum()
-    {
-        return maximum;
-    }
-
-    /** Return minimum.
-     *
-     *  @return     Minimum of elements.
-     */
-
-    public double getMinimum()
-    {
-        return minimum;
-    }
-
-    /** Return mean.
-     *
-     *  @return     Mean of elements.
-     */
-
-    public double getMean()
-    {
-        return mean;
-    }
-
-    /** Return variance.
-     *
-     *  @return     Variance of elements.
-     *
-     *  <p>
-     *  The variance is the sum of squares divided by the
-     *  number of values.
-     *  </p>
-     */
-
-    public double getVariance()
-    {
-        return sumOfSquares / (double)count;
-    }
-
-    /** Return standard deviation.
-     *
-     *  @return     Standard deviation of elements.
-     *
-     *  <p>
-     *  The standard deviation is the square root of the variance.
-     *  </p>
-     */
-
-    public double getStandardDeviation()
-    {
-        return Math.sqrt( getVariance() );
-    }
-
-    /** Return sum of squares.
-     *
-     *  @return     Sum of squares of elements.
-     */
-
-    public double getSumOfSquares()
-    {
-        return sumOfSquares;
-    }
+  /**
+   * Return sum of squares.
+   *
+   * @return Sum of squares of elements.
+   */
+  public double getSumOfSquares() {
+    return sumOfSquares;
+  }
 }
 
 /*
@@ -232,5 +196,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

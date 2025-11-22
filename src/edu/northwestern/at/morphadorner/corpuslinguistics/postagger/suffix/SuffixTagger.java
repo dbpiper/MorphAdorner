@@ -2,87 +2,68 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.suffix;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** Suffix Part of Speech tagger.
+/**
+ * Suffix Part of Speech tagger.
  *
- *  <p>
- *  The suffix part of speech tagger uses a suffix wordLexicon to assign
- *  a part of speech tag to a spelling
- *  based upon the most common part of speech for found for other words
- *  with the same last few characters of the spelling.
- *  </p>
+ * <p>The suffix part of speech tagger uses a suffix wordLexicon to assign a part of speech tag to a
+ * spelling based upon the most common part of speech for found for other words with the same last
+ * few characters of the spelling.
  */
+public class SuffixTagger extends UnigramTagger implements PartOfSpeechTagger, CanTagOneWord {
+  /** Create a suffix tagger. */
+  public SuffixTagger() {}
 
-public class SuffixTagger extends UnigramTagger
-    implements PartOfSpeechTagger, CanTagOneWord
-{
-    /** Create a suffix tagger.
-     */
+  /**
+   * Tag a single word.
+   *
+   * @param word The word.
+   * @return The part of speech for the word.
+   */
+  public String tagWord(String word) {
+    String result = "";
+    //  If punctuation or symbol, return that
+    //  unchanged.
 
-    public SuffixTagger()
-    {
-    }
+    if (CharUtils.isPunctuationOrSymbol(word)) {
+      result = word;
+    } else {
+      //  Try suffixes of length four down to
+      //  one to assign part of speech tag.
 
-    /** Tag a single word.
-     *
-     *  @param  word    The word.
-     *
-     *  @return         The part of speech for the word.
-     */
+      int l = word.length();
 
-    public String tagWord( String word )
-    {
-        String result   = "";
-                                //  If punctuation or symbol, return that
-                                //  unchanged.
+      for (int i = Math.min(10, l); i > 0; i--) {
+        String suffix = word.substring(l - i, l);
 
-        if ( CharUtils.isPunctuationOrSymbol( word ) )
-        {
-            result  = word;
+        if (lexicon.getEntryCount(suffix) > 0) {
+          result = lexicon.getLargestCategory(word);
+          break;
         }
-        else
-        {
-                                //  Try suffixes of length four down to
-                                //  one to assign part of speech tag.
+      }
 
-            int l   = word.length();
-
-            for ( int i = Math.min( 10 , l ) ; i > 0 ; i-- )
-            {
-                String suffix   = word.substring( l - i , l );
-
-                if ( lexicon.getEntryCount( suffix ) > 0 )
-                {
-                    result  = lexicon.getLargestCategory( word );
-                    break;
-                }
-            }
-
-            if ( result.length() == 0 )
-            {
-                result  = lexicon.getPartOfSpeechTags().getSingularNounTag();
-            }
-        }
-
-        return result;
+      if (result.length() == 0) {
+        result = lexicon.getPartOfSpeechTags().getSingularNounTag();
+      }
     }
 
-    /** Return tagger description.
-     *
-     *  @return     Tagger description.
-     */
+    return result;
+  }
 
-    public String toString()
-    {
-        return "Suffix tagger";
-    }
+  /**
+   * Return tagger description.
+   *
+   * @return Tagger description.
+   */
+  public String toString() {
+    return "Suffix tagger";
+  }
 }
 
 /*
@@ -125,6 +106,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

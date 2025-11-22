@@ -2,49 +2,40 @@ package edu.northwestern.at.morphadorner;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import java.io.*;
 import java.util.Map;
-
 import javax.xml.parsers.ParserConfigurationException;
-
-import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import org.xml.sax.*;
 
-/** Interface for writing an adorned XML file with added ID fields.
- */
-
-public interface MorphAdornerXMLWriter
-{
-    /** Write XML output.
-     *
-     *  @param  inFile          The XML input file.
-     *  @param  outFile         The XML output file.
-     *  @param  maxID           The maximum ID value in the input file.
-     *  @param  posTags         The part of speech tags.
-     *  @param  splitWords      The map of (word ID, # of word parts)
-     *                          for multipart words.
-     *  @param  totalWords      Total words.
-     *  @param  totalPageBreaks Total page breaks.
-     *  @param  adorner         The adorner.
-     *  @param  tokenizingOnly  true if only performing tokenization.
-     *
-     *  @throws             IOException, SAXException
-     * @throws ParserConfigurationException
-     */
-
-    public void writeXML
-    (
-        String inFile ,
-        String outFile ,
-        int maxID ,
-        PartOfSpeechTags posTags ,
-        Map<Integer, Integer> splitWords ,
-        int totalWords ,
-        int totalPageBreaks ,
-        MorphAdorner adorner ,
-        boolean tokenizingOnly
-    )
-        throws IOException, SAXException, ParserConfigurationException;
+/** Interface for writing an adorned XML file with added ID fields. */
+public interface MorphAdornerXMLWriter {
+  /**
+   * Write XML output.
+   *
+   * @param inFile The XML input file.
+   * @param outFile The XML output file.
+   * @param maxID The maximum ID value in the input file.
+   * @param posTags The part of speech tags.
+   * @param splitWords The map of (word ID, # of word parts) for multipart words.
+   * @param totalWords Total words.
+   * @param totalPageBreaks Total page breaks.
+   * @param adorner The adorner.
+   * @param tokenizingOnly true if only performing tokenization.
+   * @throws IOException, SAXException
+   * @throws ParserConfigurationException
+   */
+  public void writeXML(
+      String inFile,
+      String outFile,
+      int maxID,
+      PartOfSpeechTags posTags,
+      Map<Integer, Integer> splitWords,
+      int totalWords,
+      int totalPageBreaks,
+      MorphAdorner adorner,
+      boolean tokenizingOnly)
+      throws IOException, SAXException, ParserConfigurationException;
 }
 
 /*
@@ -87,6 +78,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

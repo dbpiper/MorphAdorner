@@ -3,28 +3,24 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector;
 /*  Please see the license information at the end of this file. */
 
 /** Grammatical verb tenses. */
+public enum VerbTense {
+  PRESENT("present"),
+  PRESENT_PARTICIPLE("present_participle"),
+  PAST("past"),
+  PAST_PARTICIPLE("past_participle"),
+  PERFECT("perfect"),
+  PAST_PERFECT("past_perfect"),
+  PAST_PERFECT_PARTICIPLE("past_perfect_participle");
 
-public enum VerbTense
-{
-    PRESENT ( "present" ) ,
-    PRESENT_PARTICIPLE ( "present_participle" ) ,
-    PAST ( "past" ) ,
-    PAST_PARTICIPLE ( "past_participle" ) ,
-    PERFECT ( "perfect" ) ,
-    PAST_PERFECT ( "past_perfect" ) ,
-    PAST_PERFECT_PARTICIPLE ( "past_perfect_participle" );
+  protected final String toStringValue;
 
-    protected final String toStringValue;
+  VerbTense(String toStringValue) {
+    this.toStringValue = toStringValue;
+  }
 
-    VerbTense( String toStringValue )
-    {
-        this.toStringValue  = toStringValue;
-    }
-
-    public String toString()
-    {
-        return toStringValue;
-    }
+  public String toString() {
+    return toStringValue;
+  }
 }
 
 /*
@@ -67,6 +63,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

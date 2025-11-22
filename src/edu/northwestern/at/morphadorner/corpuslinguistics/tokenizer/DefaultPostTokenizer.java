@@ -4,56 +4,29 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 import edu.northwestern.at.utils.*;
 
-/** Default post tokenizer which processes tokens after extraction.
- */
+/** Default post tokenizer which processes tokens after extraction. */
+public class DefaultPostTokenizer extends AbstractPostTokenizer implements PostTokenizer {
+  /** Create a default postTokenizer. */
+  public DefaultPostTokenizer() {
+    super();
+  }
 
-public class DefaultPostTokenizer
-    extends AbstractPostTokenizer
-    implements PostTokenizer
-{
-    /** Create a default postTokenizer.
-     */
+  /**
+   * Process a token after tokenization.
+   *
+   * @param token The token to process after tokenization.
+   * @return Array of two strings. [0] = the token minimally processed. [1] = the token maximally
+   *     processed.
+   *     <p>The minimally processed token is typically results in an original spelling.
+   *     <p>The maximally processed token typically results in a partially or completely
+   *     standardized spelling.
+   *     <p>These may be identical.
+   */
+  public String[] postTokenize(String token) {
+    String fixedToken = StringUtils.replaceAll(token, CharUtils.CHAR_FAKE_SOFT_HYPHEN_STRING, "");
 
-    public DefaultPostTokenizer()
-    {
-        super();
-    }
-
-    /** Process a token after tokenization.
-     *
-     *  @param  token   The token to process after tokenization.
-     *
-     *  @return         Array of two strings.
-     *                  [0] = the token minimally processed.
-     *                  [1] = the token maximally processed.
-     *
-     *  <p>
-     *  The minimally processed token is typically results in an original
-     *  spelling.
-     *  </p>
-     *  <p>
-     *  The maximally processed token typically results in a
-     *  partially or completely standardized spelling.
-     *  </p>
-     *
-     *  <p>
-     *  These may be identical.
-     *  </p>
-     *
-     */
-
-    public String[] postTokenize( String token )
-    {
-        String fixedToken   =
-            StringUtils.replaceAll
-            (
-                token ,
-                CharUtils.CHAR_FAKE_SOFT_HYPHEN_STRING ,
-                ""
-            );
-
-        return new String[]{ fixedToken , fixedToken };
-    }
+    return new String[] {fixedToken, fixedToken};
+  }
 }
 
 /*
@@ -96,6 +69,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

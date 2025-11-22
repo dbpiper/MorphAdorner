@@ -2,142 +2,107 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.propernounr
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
+import java.util.*;
 
-/** A proper noun retagger.
+/**
+ * A proper noun retagger.
  *
- *  <p>
- *  This retagger applies a short list of rules to improve tagging
- *  of proper nouns.
- *  </p>
+ * <p>This retagger applies a short list of rules to improve tagging of proper nouns.
  */
+public class ProperNounRetagger extends UnigramTagger implements PartOfSpeechRetagger {
+  /** Part of speech tags. */
+  protected static PartOfSpeechTags posTags;
 
-public class ProperNounRetagger
-    extends UnigramTagger
-    implements PartOfSpeechRetagger
-{
-    /** Part of speech tags. */
+  /** Create proper noun retagger. */
+  public ProperNounRetagger() {
+    super();
+  }
 
-    protected static PartOfSpeechTags posTags;
+  /**
+   * Retag a sentence.
+   *
+   * @param sentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
+   * @return The sentence with words retagged.
+   */
+  public <T extends AdornedWord> List<T> retagSentence(List<T> sentence) {
+    //  Get noun part of speech tags
+    //  if we don't already have them.
 
-    /** Create proper noun retagger.
-     */
-
-    public ProperNounRetagger()
-    {
-        super();
+    if (posTags == null) {
+      posTags = getLexicon().getPartOfSpeechTags();
     }
+    //  Examine all words in sentence to
+    //  see if we should change nouns
+    //  to proper nouns.  We do this
+    //  if a noun has an initial capital letter.
+    //  Note that we skip the first word of
+    //  the sentence since the capitalization
+    //  check is uninformative in this case.
+    //  We also change proper nouns to
+    //  common nouns when the word is not
+    //  capitalized.
 
-    /** Retag a sentence.
-     *
-     *  @param  sentence    The sentence as an
-     *                      {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
-     *
-     *  @return             The sentence with words retagged.
-     */
+    for (int i = 1; i < sentence.size(); i++) {
+      //  Get next word in sentence.
 
-    public<T extends AdornedWord> List<T> retagSentence
-    (
-        List<T> sentence
-    )
-    {
-                                //  Get noun part of speech tags
-                                //  if we don't already have them.
+      AdornedWord adornedWord = sentence.get(i);
 
-        if ( posTags == null )
-        {
-            posTags = getLexicon().getPartOfSpeechTags();
+      //  Get spelling.
+
+      String spelling = adornedWord.getSpelling();
+
+      //  Is spelling capitalized?
+
+      boolean isCapitalized = Character.isUpperCase(spelling.charAt(0));
+
+      //  See if word is a proper noun.
+      //  Change it to a common noun if it
+      //  is not capitalized.
+
+      if (!isCapitalized) {
+        String partsOfSpeech = adornedWord.getPartsOfSpeech();
+
+        if (posTags.isProperNounTag(partsOfSpeech)) {
+          adornedWord.setPartsOfSpeech(posTags.getCorrespondingCommonNounTag(partsOfSpeech));
+        } else if (posTags.isProperAdjectiveTag(partsOfSpeech)) {
+          adornedWord.setPartsOfSpeech(posTags.getAdjectiveTag());
         }
-                                //  Examine all words in sentence to
-                                //  see if we should change nouns
-                                //  to proper nouns.  We do this
-                                //  if a noun has an initial capital letter.
-                                //  Note that we skip the first word of
-                                //  the sentence since the capitalization
-                                //  check is uninformative in this case.
-                                //  We also change proper nouns to
-                                //  common nouns when the word is not
-                                //  capitalized.
-
-        for ( int i = 1 ; i < sentence.size() ; i++ )
-        {
-                                //  Get next word in sentence.
-
-            AdornedWord adornedWord = sentence.get( i );
-
-                                //  Get spelling.
-
-            String spelling         = adornedWord.getSpelling();
-
-                                //  Is spelling capitalized?
-
-            boolean isCapitalized   =
-                Character.isUpperCase( spelling.charAt( 0 ) );
-
-                                //  See if word is a proper noun.
-                                //  Change it to a common noun if it
-                                //  is not capitalized.
-
-            if ( !isCapitalized  )
-            {
-                String partsOfSpeech    = adornedWord.getPartsOfSpeech();
-
-                if ( posTags.isProperNounTag( partsOfSpeech ) )
-                {
-                    adornedWord.setPartsOfSpeech
-                    (
-                        posTags.getCorrespondingCommonNounTag(
-                            partsOfSpeech )
-                    );
-                }
-                else if ( posTags.isProperAdjectiveTag( partsOfSpeech ) )
-                {
-                    adornedWord.setPartsOfSpeech( posTags.getAdjectiveTag() );
-                }
-            }
-        }
-                                //  Return updated sentence.
-        return sentence;
+      }
     }
+    //  Return updated sentence.
+    return sentence;
+  }
 
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @return     true if retagger can add or delete words.
-     */
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @return true if retagger can add or delete words.
+   */
+  public boolean getCanAddOrDeleteWords() {
+    return false;
+  }
 
-    public boolean getCanAddOrDeleteWords()
-    {
-        return false;
-    }
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @param canAddOrDeleteWords true if retagger can add or delete words.
+   *     <p>Ignored here.
+   */
+  public void setCanAddOrDeleteWords(boolean canAddOrDeleteWords) {}
 
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @param  canAddOrDeleteWords     true if retagger can add or
-     *                                  delete words.
-     *
-     *  <p>
-     *  Ignored here.
-     *  </p>
-     */
-
-    public void setCanAddOrDeleteWords( boolean canAddOrDeleteWords )
-    {
-    }
-
-    /** Return retagger description.
-     *
-     *  @return     Retagger description.
-     */
-
-    public String toString()
-    {
-        return "Proper noun retagger";
-    }
+  /**
+   * Return retagger description.
+   *
+   * @return Retagger description.
+   */
+  public String toString() {
+    return "Proper noun retagger";
+  }
 }
 
 /*
@@ -180,6 +145,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

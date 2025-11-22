@@ -2,37 +2,27 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inputter;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.text.*;
-
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.html.*;
+import java.io.*;
+import java.text.*;
+import java.util.*;
 
-/** XML Text inputter which stored XML text in compressed form.
+/**
+ * XML Text inputter which stored XML text in compressed form.
  *
- *  <p>
- *  Leaves xml/html tags intact.  Stores XML segments in GZIPped
- *  format to lower memory requirements.
- *  </p>
+ * <p>Leaves xml/html tags intact. Stores XML segments in GZIPped format to lower memory
+ * requirements.
  */
+public class CompressedXMLTextInputter extends XMLTextInputter implements TextInputter {
+  /** Create compressed XML text inputter. */
+  public CompressedXMLTextInputter() {
+    super();
 
-public class CompressedXMLTextInputter
-    extends XMLTextInputter
-    implements TextInputter
-{
-    /** Create compressed XML text inputter. */
+    splitText = true;
 
-    public CompressedXMLTextInputter()
-    {
-        super();
-
-        splitText   = true;
-
-        segmentMap  = new CompressedHashMap<String, Object>();
-    }
+    segmentMap = new CompressedHashMap<String, Object>();
+  }
 }
 
 /*
@@ -75,6 +65,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

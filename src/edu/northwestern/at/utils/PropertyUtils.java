@@ -6,153 +6,106 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-/** Read and write properties files.
- */
+/** Read and write properties files. */
+public class PropertyUtils {
+  /**
+   * Load properties from a specified file.
+   *
+   * @param propertiesFileName File name of properties file to read.
+   * @return Properties object with keys and values as read from properties file.
+   * @throws FileNotFoundException if properties file not found.
+   * @throws IOException if properties file cannot be read.
+   */
+  public static Properties loadProperties(String propertiesFileName)
+      throws IOException, FileNotFoundException {
+    Properties properties = new Properties();
 
-public class PropertyUtils
-{
-    /** Load properties from a specified file.
-     *
-     *  @param  propertiesFileName  File name of properties file to read.
-     *
-     *  @return Properties object with keys and values as read from
-     *          properties file.
-     *
-     *  @throws FileNotFoundException if properties file not found.
-     *  @throws IOException if properties file cannot be read.
-     */
+    InputStream propertiesInputStream = new FileInputStream(propertiesFileName);
 
-    public static Properties loadProperties( String propertiesFileName )
-        throws IOException, FileNotFoundException
-    {
-        Properties properties = new Properties();
+    properties.load(propertiesInputStream);
 
-        InputStream propertiesInputStream   =
-            new FileInputStream( propertiesFileName );
+    propertiesInputStream.close();
 
-        properties.load( propertiesInputStream );
+    return properties;
+  }
 
-        propertiesInputStream.close();
+  /**
+   * Load properties from a specified URL.
+   *
+   * @param propertiesURL URL of properties file to read.
+   * @return Properties object with keys and values as read from properties URL.
+   * @throws IOException if properties file cannot be read.
+   */
+  public static Properties loadProperties(URL propertiesURL)
+      throws IOException, FileNotFoundException {
+    Properties properties = new Properties();
 
-        return properties;
+    if (propertiesURL != null) {
+      InputStream propertiesInputStream = propertiesURL.openStream();
+
+      properties.load(propertiesInputStream);
+
+      propertiesInputStream.close();
     }
 
-    /** Load properties from a specified URL.
-     *
-     *  @param  propertiesURL   URL of properties file to read.
-     *
-     *  @return Properties object with keys and values as read from
-     *          properties URL.
-     *
-     *  @throws IOException if properties file cannot be read.
-     */
+    return properties;
+  }
 
-    public static Properties loadProperties( URL propertiesURL )
-        throws IOException, FileNotFoundException
-    {
-        Properties properties = new Properties();
+  /**
+   * Save properties to a specified file.
+   *
+   * @param properties Properties collection to save.
+   * @param propertiesFileName Name of file to save to.
+   * @param header Header line describing properties.
+   * @throws IOException if properties file cannot be saved.
+   */
+  public static void saveProperties(Properties properties, String propertiesFileName, String header)
+      throws IOException {
+    FileOutputStream propertiesFile = new FileOutputStream(propertiesFileName);
 
-        if ( propertiesURL != null )
-        {
-            InputStream propertiesInputStream   =
-                propertiesURL.openStream();
+    properties.store(propertiesFile, header);
 
-            properties.load( propertiesInputStream );
+    propertiesFile.flush();
+    propertiesFile.close();
+  }
 
-            propertiesInputStream.close();
-        }
+  /**
+   * Load properties from a string.
+   *
+   * @param propertiesString String containing properties to read.
+   * @return Properties object with keys and values as read from properties string.
+   * @throws IOException if properties cannot be read from string.
+   */
+  public static Properties loadPropertiesFromString(String propertiesString) throws IOException {
+    Properties properties = new Properties();
 
-        return properties;
-    }
+    properties.load(new ByteArrayInputStream(propertiesString.getBytes("ISO-8859-1")));
 
-    /** Save properties to a specified file.
-     *
-     *  @param  properties              Properties collection to save.
-     *  @param  propertiesFileName      Name of file to save to.
-     *  @param  header                  Header line describing properties.
-     *
-     *  @throws IOException if properties file cannot be saved.
-     */
+    return properties;
+  }
 
-    public static void saveProperties
-    (
-        Properties properties,
-        String propertiesFileName,
-        String header
-    )
-        throws IOException
-    {
-        FileOutputStream propertiesFile =
-            new FileOutputStream( propertiesFileName );
+  /**
+   * Saves properties to a specified string.
+   *
+   * @param properties -- properties collection to save.
+   * @param header -- header line describing properties.
+   * @throws IOException if properties cannot be saved to string.
+   */
+  public static void savePropertiesToString(
+      Properties properties, String propertiesString, String header) throws IOException {
+    ByteArrayOutputStream propertiesOutputStream = new ByteArrayOutputStream();
 
-        properties.store( propertiesFile , header );
+    properties.store(propertiesOutputStream, header);
 
-        propertiesFile.flush();
-        propertiesFile.close();
-    }
+    propertiesOutputStream.flush();
 
-   /**  Load properties from a string.
-    *
-    *   @param  propertiesString    String containing properties to read.
-    *
-    *   @return Properties object with keys and values as read from
-    *           properties string.
-    *
-    *   @throws IOException if properties cannot be read from string.
-    */
+    propertiesString = propertiesOutputStream.toString();
 
-    public static Properties loadPropertiesFromString
-    (
-        String propertiesString
-    )
-        throws IOException
-    {
-        Properties properties = new Properties();
+    propertiesOutputStream.close();
+  }
 
-        properties.load
-        (
-            new ByteArrayInputStream
-            (
-                propertiesString.getBytes( "ISO-8859-1" )
-            )
-        );
-
-        return properties;
-    }
-
-    /** Saves properties to a specified string.
-     *
-     *  @param     properties         -- properties collection to save.
-     *  @param     header             -- header line describing properties.
-     *
-     *  @throws     IOException if properties cannot be saved to string.
-     */
-
-    public static void savePropertiesToString
-    (
-        Properties properties,
-        String propertiesString,
-        String header
-    )
-        throws IOException
-    {
-        ByteArrayOutputStream propertiesOutputStream    =
-            new ByteArrayOutputStream();
-
-        properties.store( propertiesOutputStream , header );
-
-        propertiesOutputStream.flush();
-
-        propertiesString = propertiesOutputStream.toString();
-
-        propertiesOutputStream.close();
-    }
-
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected PropertyUtils()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected PropertyUtils() {}
 }
 
 /*
@@ -195,6 +148,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

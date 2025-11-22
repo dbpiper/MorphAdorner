@@ -2,34 +2,24 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inputter;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.text.*;
-
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.html.*;
+import java.io.*;
+import java.text.*;
+import java.util.*;
 
-/** Text inputter which reads text from a URL.
+/**
+ * Text inputter which reads text from a URL.
  *
- *  <p>
- *  Leaves xml/html tags intact.
- *  </p>
+ * <p>Leaves xml/html tags intact.
  */
+public class SimpleXMLTextInputter extends XMLTextInputter implements TextInputter {
+  /** Create simple XML text inputter. */
+  public SimpleXMLTextInputter() {
+    super();
 
-public class SimpleXMLTextInputter
-    extends XMLTextInputter
-    implements TextInputter
-{
-    /** Create simple XML text inputter. */
-
-    public SimpleXMLTextInputter()
-    {
-        super();
-
-        splitText   = false;
-    }
+    splitText = false;
+  }
 }
 
 /*
@@ -72,6 +62,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

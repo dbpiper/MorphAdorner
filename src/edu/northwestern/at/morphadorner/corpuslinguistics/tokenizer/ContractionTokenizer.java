@@ -2,95 +2,79 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import edu.northwestern.at.utils.ListFactory;
+import java.util.*;
 
-/** Split text containing contraction into separate tokens.
- */
+/** Split text containing contraction into separate tokens. */
+public class ContractionTokenizer extends AbstractWordTokenizer implements WordTokenizer {
+  /** Create a contraction tokenizer. */
+  public ContractionTokenizer() {}
 
-public class ContractionTokenizer
-    extends AbstractWordTokenizer
-    implements WordTokenizer
-{
-    /** Create a contraction tokenizer.
-     */
+  public static String prepareTextForTokenization(String str) {
+    str = str.replaceAll("([^'])' ", "$1 ' ");
+    str = str.replaceAll("'([sSmMdD]) ", " '$1 ");
+    str = str.replaceAll("'ll ", " 'll ");
+    str = str.replaceAll("'re ", " 're ");
+    str = str.replaceAll("'ve ", " 've ");
+    str = str.replaceAll("n't ", " n't ");
+    str = str.replaceAll("'t ", " 't ");
+    str = str.replaceAll("'s ", " 's ");
+    str = str.replaceAll("'LL ", " 'LL ");
+    str = str.replaceAll("'RE ", " 'RE ");
+    str = str.replaceAll("'VE ", " 'VE ");
+    str = str.replaceAll("N'T ", " N'T ");
+    str = str.replaceAll("'T ", " 'T ");
+    str = str.replaceAll("'S ", " 'S ");
 
-    public ContractionTokenizer()
-    {
+    str = str.replaceAll(" ([Cc])annot ", " $1an not ");
+    str = str.replaceAll(" ([Dd])'ye ", " $1' ye ");
+    str = str.replaceAll(" ([Gg])imme ", " $1im me ");
+    str = str.replaceAll(" ([Gg])onna ", " $1on na ");
+    str = str.replaceAll(" ([Gg])otta ", " $1ot ta ");
+    str = str.replaceAll(" ([Ll])emme ", " $1em me ");
+    str = str.replaceAll(" ([Mm])ore'n ", " $1ore 'n ");
+    str = str.replaceAll(" '([Tt])is ", " '$1 is ");
+    str = str.replaceAll(" '([Tt])was ", " '$1 was ");
+    str = str.replaceAll(" ([Ww])anna ", " $1an na ");
+
+    str = str.trim();
+
+    return str;
+  }
+
+  /**
+   * Break text into word tokens.
+   *
+   * @param text Text to break into word tokens.
+   * @return List of word tokens.
+   *     <p>Word tokens may be words, numbers, punctuation, etc.
+   */
+  public List<String> extractWords(String text) {
+    //  Holds list of tokenized words.
+
+    List<String> result = ListFactory.createNewList();
+
+    //  Prepare text for tokenization
+    //  by splitting words and punctuation
+    //  according to Penn Treebank rules.
+
+    String fixedText = prepareTextForTokenization(text);
+
+    //  All we have to do now is pick
+    //  up the individual "words" which
+    //  are separated by one or more blanks.
+    //  Use a StringTokenizer for this.
+
+    StringTokenizer tokenizer = new StringTokenizer(fixedText);
+
+    //  Add each token to the results list.
+
+    while (tokenizer.hasMoreTokens()) {
+      result.add(tokenizer.nextToken());
     }
-
-    public static String prepareTextForTokenization( String str )
-    {
-        str = str.replaceAll("([^'])' ", "$1 ' ");
-        str = str.replaceAll("'([sSmMdD]) ", " '$1 ");
-        str = str.replaceAll("'ll ", " 'll ");
-        str = str.replaceAll("'re ", " 're ");
-        str = str.replaceAll("'ve ", " 've ");
-        str = str.replaceAll("n't ", " n't ");
-        str = str.replaceAll("'t ", " 't ");
-        str = str.replaceAll("'s ", " 's ");
-        str = str.replaceAll("'LL ", " 'LL ");
-        str = str.replaceAll("'RE ", " 'RE ");
-        str = str.replaceAll("'VE ", " 'VE ");
-        str = str.replaceAll("N'T ", " N'T ");
-        str = str.replaceAll("'T ", " 'T ");
-        str = str.replaceAll("'S ", " 'S ");
-
-        str = str.replaceAll(" ([Cc])annot ", " $1an not ");
-        str = str.replaceAll(" ([Dd])'ye ", " $1' ye ");
-        str = str.replaceAll(" ([Gg])imme ", " $1im me ");
-        str = str.replaceAll(" ([Gg])onna ", " $1on na ");
-        str = str.replaceAll(" ([Gg])otta ", " $1ot ta ");
-        str = str.replaceAll(" ([Ll])emme ", " $1em me ");
-        str = str.replaceAll(" ([Mm])ore'n ", " $1ore 'n ");
-        str = str.replaceAll(" '([Tt])is ", " '$1 is ");
-        str = str.replaceAll(" '([Tt])was ", " '$1 was ");
-        str = str.replaceAll(" ([Ww])anna ", " $1an na ");
-
-        str = str.trim();
-
-        return str;
-    }
-
-    /** Break text into word tokens.
-     *
-     *  @param  text            Text to break into word tokens.
-     *
-     *  @return                 List of word tokens.
-     *
-     *  <p>
-     *  Word tokens may be words, numbers, punctuation, etc.
-     *  </p>
-     */
-
-     public List<String> extractWords( String text )
-     {
-                                //  Holds list of tokenized words.
-
-        List<String> result = ListFactory.createNewList();
-
-                                //  Prepare text for tokenization
-                                //  by splitting words and punctuation
-                                //  according to Penn Treebank rules.
-
-        String fixedText    = prepareTextForTokenization( text );
-
-                                //  All we have to do now is pick
-                                //  up the individual "words" which
-                                //  are separated by one or more blanks.
-                                //  Use a StringTokenizer for this.
-
-        StringTokenizer tokenizer   = new StringTokenizer( fixedText );
-
-                                //  Add each token to the results list.
-
-        while ( tokenizer.hasMoreTokens() )
-        {
-            result.add( tokenizer.nextToken() );
-        }
-                                //  Return tokenizer list of words.
-        return result;
-    }
+    //  Return tokenizer list of words.
+    return result;
+  }
 }
 
 /*
@@ -133,5 +117,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

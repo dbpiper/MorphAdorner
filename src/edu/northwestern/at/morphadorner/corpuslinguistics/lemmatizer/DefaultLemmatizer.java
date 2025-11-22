@@ -2,22 +2,16 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import java.util.*;
 
-/** Default Lemmatizer is the English lemmatizer.
- */
-
-public class DefaultLemmatizer extends EnglishLemmatizer
-{
-    /** Create default lemmatizer. */
-
-    public DefaultLemmatizer() throws Exception
-    {
-        super();
-    }
+/** Default Lemmatizer is the English lemmatizer. */
+public class DefaultLemmatizer extends EnglishLemmatizer {
+  /** Create default lemmatizer. */
+  public DefaultLemmatizer() throws Exception {
+    super();
+  }
 }
 
 /*
@@ -60,6 +54,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

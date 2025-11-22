@@ -5,92 +5,70 @@ package edu.northwestern.at.morphadorner.tools.compareadornedfiles;
 import java.io.*;
 import java.util.*;
 
-/** Records a token-level change in an adorned file.
- */
+/** Records a token-level change in an adorned file. */
+public class WordChange {
+  /**
+   * ID for word changed.
+   *
+   * <p>The ID is usually provided by the xml:id attribute. A "*" means the change applies to all
+   * words.
+   */
+  public String id;
 
-public class WordChange
-{
-    /** ID for word changed.
-     *
-     *  <p>
-     *  The ID is usually provided by the xml:id attribute.
-     *  A "*" means the change applies to all words.
-     *  </p>
-     */
+  /** Type of change: addition, deletion, or modification. */
+  public WordChangeType changeType;
 
-    public String id;
+  /** Field to which change is applied: text or attribute. */
+  public FieldType fieldType;
 
-    /** Type of change:  addition, deletion, or modification.
-     */
+  /** Name of field for attribute (empty if word text). */
+  public String attributeName;
 
-    public WordChangeType changeType;
+  /** Old field value. */
+  public String oldValue;
 
-    /** Field to which change is applied: text or attribute.
-     */
+  /** New field value. */
+  public String newValue;
 
-    public FieldType fieldType;
+  /** Sibling to determine parent element when adding a word. */
+  public String siblingID;
 
-    /** Name of field for attribute (empty if word text).
-     */
+  /** If word is preceded by a blank element. */
+  public boolean blankPrecedes;
 
-    public String attributeName;
+  /** Create empty word change. */
+  public WordChange() {}
 
-    /** Old field value. */
-
-    public String oldValue;
-
-    /** New field value. */
-
-    public String newValue;
-
-    /** Sibling to determine parent element when adding a word. */
-
-    public String siblingID;
-
-    /** If word is preceded by a blank element. */
-
-    public boolean blankPrecedes;
-
-    /** Create empty word change. */
-
-    public WordChange()
-    {
-    }
-
-    /** Create fully populated word change.
-     *
-     *  @param  id              ID (usually xml:id) of word to change.
-     *  @param  changeType      Type of change (addition, deletion,
-     *                          modification).
-     *  @param  fieldType       Type of field to change (text or attribute).
-     *  @param  attributeName   Name of attribute (empty if not attribute).
-     *  @param  oldValue        Old value of field.
-     *  @param  newValue        New value of field.
-     *  @param  siblingID       Word ID of sibling when adding new word.
-     *  @param  blankPrecedes   Word is preceded by a blank element.
-     */
-
-    public WordChange
-    (
-        String id ,
-        WordChangeType changeType ,
-        FieldType fieldType ,
-        String attributeName ,
-        String oldValue ,
-        String newValue ,
-        String siblingID ,
-        boolean blankPrecedes
-    )
-    {
-        this.id             = id;
-        this.changeType     = changeType;
-        this.fieldType      = fieldType;
-        this.attributeName  = attributeName;
-        this.oldValue       = oldValue;
-        this.newValue       = newValue;
-        this.siblingID      = siblingID;
-        this.blankPrecedes  = blankPrecedes;
-    }
+  /**
+   * Create fully populated word change.
+   *
+   * @param id ID (usually xml:id) of word to change.
+   * @param changeType Type of change (addition, deletion, modification).
+   * @param fieldType Type of field to change (text or attribute).
+   * @param attributeName Name of attribute (empty if not attribute).
+   * @param oldValue Old value of field.
+   * @param newValue New value of field.
+   * @param siblingID Word ID of sibling when adding new word.
+   * @param blankPrecedes Word is preceded by a blank element.
+   */
+  public WordChange(
+      String id,
+      WordChangeType changeType,
+      FieldType fieldType,
+      String attributeName,
+      String oldValue,
+      String newValue,
+      String siblingID,
+      boolean blankPrecedes) {
+    this.id = id;
+    this.changeType = changeType;
+    this.fieldType = fieldType;
+    this.attributeName = attributeName;
+    this.oldValue = oldValue;
+    this.newValue = newValue;
+    this.siblingID = siblingID;
+    this.blankPrecedes = blankPrecedes;
+  }
 }
 
 /*
@@ -133,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

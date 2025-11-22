@@ -5,100 +5,70 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namestandardizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** NameStandardizer factory.
- */
+/** NameStandardizer factory. */
+public class NameStandardizerFactory {
+  /**
+   * Get a name standardizer.
+   *
+   * @return The name standardizer.
+   */
+  public static NameStandardizer newNameStandardizer() {
+    String className = System.getProperty("namestandardizer.class");
 
-public class NameStandardizerFactory
-{
-    /** Get a name standardizer.
-     *
-     *  @return     The name standardizer.
-     */
-
-    public static NameStandardizer newNameStandardizer()
-    {
-        String className    =
-            System.getProperty( "namestandardizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultNameStandardizer";
-        }
-
-        return newNameStandardizer( className );
+    if (className == null) {
+      className = "DefaultNameStandardizer";
     }
 
-    /** Get a name standardizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The name standardizer.
-     */
+    return newNameStandardizer(className);
+  }
 
-    public static NameStandardizer newNameStandardizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a name standardizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The name standardizer.
+   */
+  public static NameStandardizer newNameStandardizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "namestandardizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultNameStandardizer";
-        }
-
-        return newNameStandardizer( className );
+    if (properties != null) {
+      className = properties.getProperty("namestandardizer.class");
     }
 
-    /** Get a name standardizer of a specified class name.
-     *
-     *  @param  className   Class name for the name standardizer.
-     *
-     *  @return             The name standardizer.
-     */
-
-    public static NameStandardizer newNameStandardizer( String className )
-    {
-        NameStandardizer nameStandardizer   = null;
-
-        try
-        {
-            nameStandardizer    =
-                (NameStandardizer)Class.forName(
-                    className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    NameStandardizerFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                nameStandardizer    =
-                    (NameStandardizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create name standardizer of class " +
-                    fixedClassName + ", using default." );
-
-                nameStandardizer    = new DefaultNameStandardizer();
-            }
-        }
-
-        return nameStandardizer;
+    if (className == null) {
+      className = "DefaultNameStandardizer";
     }
+
+    return newNameStandardizer(className);
+  }
+
+  /**
+   * Get a name standardizer of a specified class name.
+   *
+   * @param className Class name for the name standardizer.
+   * @return The name standardizer.
+   */
+  public static NameStandardizer newNameStandardizer(String className) {
+    NameStandardizer nameStandardizer = null;
+
+    try {
+      nameStandardizer = (NameStandardizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(NameStandardizerFactory.class.getName()) + "." + className;
+
+      try {
+        nameStandardizer = (NameStandardizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create name standardizer of class " + fixedClassName + ", using default.");
+
+        nameStandardizer = new DefaultNameStandardizer();
+      }
+    }
+
+    return nameStandardizer;
+  }
 }
 
 /*
@@ -141,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

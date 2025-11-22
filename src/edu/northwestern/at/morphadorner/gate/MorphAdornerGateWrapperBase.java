@@ -2,17 +2,6 @@ package edu.northwestern.at.morphadorner.gate;
 
 /*  Please see the license information at the end of this file. */
 
-import gate.*;
-import gate.creole.*;
-import gate.util.*;
-import gate.event.*;
-
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.text.NumberFormat;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
@@ -22,392 +11,268 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import gate.*;
+import gate.creole.*;
+import gate.event.*;
+import gate.util.*;
+import java.io.*;
+import java.util.*;
 
-/** Base class for Gate wrappers for MorphAdorner.
-*/
-
+/** Base class for Gate wrappers for MorphAdorner. */
 @SuppressWarnings("unchecked")
-abstract public class MorphAdornerGateWrapperBase
-    extends AbstractLanguageAnalyser
-{
-    public static final String
-        TAG_DOCUMENT_PARAMETER_NAME = "document";
+public abstract class MorphAdornerGateWrapperBase extends AbstractLanguageAnalyser {
+  public static final String TAG_DOCUMENT_PARAMETER_NAME = "document";
 
-    public static final String
-        TAG_INPUT_AS_PARAMETER_NAME = "inputASName";
+  public static final String TAG_INPUT_AS_PARAMETER_NAME = "inputASName";
 
-    public static final String
-        TAG_OUTPUT_AS_PARAMETER_NAME = "outputASName";
+  public static final String TAG_OUTPUT_AS_PARAMETER_NAME = "outputASName";
 
-    public static final String
-        BASE_TOKEN_ANNOTATION_TYPE_PARAMETER_NAME =
-            "baseTokenAnnotationType";
+  public static final String BASE_TOKEN_ANNOTATION_TYPE_PARAMETER_NAME = "baseTokenAnnotationType";
 
-    public static final String
-        BASE_SENTENCE_ANNOTATION_TYPE_PARAMETER_NAME =
-            "baseSentenceAnnotationType";
+  public static final String BASE_SENTENCE_ANNOTATION_TYPE_PARAMETER_NAME =
+      "baseSentenceAnnotationType";
 
-    public static final String
-        TOKEN_LEMMA_FEATURE_NAME    = "lemma";
+  public static final String TOKEN_LEMMA_FEATURE_NAME = "lemma";
 
-    public static final String
-        TOKEN_SPELLING_FEATURE_NAME = "spelling";
+  public static final String TOKEN_SPELLING_FEATURE_NAME = "spelling";
 
-    public static final String
-        TOKEN_STANDARD_SPELLING_FEATURE_NAME    = "standard";
+  public static final String TOKEN_STANDARD_SPELLING_FEATURE_NAME = "standard";
 
-    /** Input annotation name. */
+  /** Input annotation name. */
+  protected String inputASName;
 
-    protected String inputASName;
+  /** Output annotation name. */
+  protected String outputASName;
 
-    /** Output annotation name. */
+  /** Output anotation type. */
+  protected String outputAnnotationType;
 
-    protected String outputASName;
+  /** Base annotation type for tokens. */
+  protected String baseTokenAnnotationType;
 
-    /** Output anotation type. */
+  /** Base annotation type for sentences. */
+  protected String baseSentenceAnnotationType;
 
-    protected String outputAnnotationType;
+  /** Document encoding. */
+  protected String encoding;
 
-    /** Base annotation type for tokens. */
+  /** Word lexicon. */
+  protected Lexicon wordLexicon;
 
-    protected String baseTokenAnnotationType;
+  /** Suffix lexicon. */
+  protected Lexicon suffixLexicon;
 
-    /** Base annotation type for sentences. */
+  /** Part of speech guesser. */
+  protected PartOfSpeechGuesser guesser;
 
-    protected String baseSentenceAnnotationType;
+  /** Spelling tokenizer for lemmatization. */
+  protected WordTokenizer spellingTokenizer = new PennTreebankTokenizer();
 
-    /** Document encoding. */
+  /** Standard spellings URL. */
+  protected String spellingsURL = "data/standardspellings.txt";
 
-    protected String encoding;
+  /** Alternate spellings URL. */
+  protected String alternateSpellingsURL = "data/ncfmergedspellingpairs.tab";
 
-    /** Word lexicon. */
+  /** Part of speech tag separator. */
+  protected static String tagSeparator = "|";
 
-    protected Lexicon wordLexicon;
+  /*  Lemmata separator. */
 
-    /** Suffix lexicon. */
+  protected static String lemmaSeparator = "|";
 
-    protected Lexicon suffixLexicon;
+  /** Gate wrapper for MorphAdorner. */
+  public MorphAdornerGateWrapperBase() {}
 
-    /** Part of speech guesser. */
+  /** Initialize resources. */
+  public Resource init() throws ResourceInstantiationException {
+    return super.init();
+  }
 
-    protected PartOfSpeechGuesser guesser;
+  /** Check for required Gate resources. */
+  public void checkGateResources() throws ResourceInstantiationException {
+    //  Make sure we have
+    //  token annotation type.
 
-    /** Spelling tokenizer for lemmatization.
-     */
-
-    protected WordTokenizer spellingTokenizer   =
-        new PennTreebankTokenizer();
-
-    /** Standard spellings URL. */
-
-    protected String spellingsURL   =
-        "data/standardspellings.txt";
-
-    /** Alternate spellings URL. */
-
-    protected String alternateSpellingsURL  =
-        "data/ncfmergedspellingpairs.tab";
-
-    /** Part of speech tag separator. */
-
-    protected static String tagSeparator    = "|";
-
-    /*  Lemmata separator. */
-
-    protected static String lemmaSeparator  = "|";
-
-    /** Gate wrapper for MorphAdorner. */
-
-    public MorphAdornerGateWrapperBase()
-    {
+    if ((baseTokenAnnotationType == null) || (baseTokenAnnotationType.trim().length() == 0)) {
+      throw new ResourceInstantiationException("No base Token Annotation Type provided!");
     }
+    //  Make sure we have
+    //  sentence annotation type.
 
-    /** Initialize resources. */
-
-    public Resource init()
-        throws ResourceInstantiationException
-    {
-        return super.init();
+    if ((baseSentenceAnnotationType == null) || (baseSentenceAnnotationType.trim().length() == 0)) {
+      throw new ResourceInstantiationException("No base Sentence Annotation Type provided!");
     }
+  }
 
-    /** Check for required Gate resources.
-     */
+  /** Perform adornment. */
+  public void execute() throws ExecutionException {
+    super.execute();
+  }
 
-    public void checkGateResources()
-        throws ResourceInstantiationException
-    {
-                                //  Make sure we have
-                                //  token annotation type.
+  /** Get lexicons. */
+  protected void getLexicons() throws ResourceInstantiationException {
+    try {
+      wordLexicon = new DefaultWordLexicon();
+      suffixLexicon = new DefaultSuffixLexicon();
+    } catch (Exception e) {
+      throw new ResourceInstantiationException(e.getMessage());
+    }
+  }
 
-        if  (   ( baseTokenAnnotationType == null ) ||
-                ( baseTokenAnnotationType.trim().length() == 0 )
-            )
-        {
-            throw new ResourceInstantiationException(
-                "No base Token Annotation Type provided!" );
+  /**
+   * Get part of speech guesser.
+   *
+   * <p>Note: Must call getLexicons() first!
+   */
+  protected void getPartOfSpeechGuesser() throws ResourceInstantiationException {
+    //  Get part of speech guesser.
+
+    guesser = new DefaultPartOfSpeechGuesser();
+
+    //  Set lexicons into guesser.
+
+    guesser.setWordLexicon(wordLexicon);
+    guesser.setSuffixLexicon(suffixLexicon);
+  }
+
+  /** Common initialization. */
+  protected void commonInit() throws ResourceInstantiationException {
+    //  Check for needed Gate
+    //  resources.
+
+    checkGateResources();
+
+    //  Get lexicons.
+    getLexicons();
+    //  Get part of speech guesser.
+
+    getPartOfSpeechGuesser();
+  }
+
+  public void setInputASName(String newInputASName) {
+    inputASName = newInputASName;
+  }
+
+  public String getInputASName() {
+    return inputASName;
+  }
+
+  public String getEncoding() {
+    return this.encoding;
+  }
+
+  public String getBaseTokenAnnotationType() {
+    return this.baseTokenAnnotationType;
+  }
+
+  public String getBaseSentenceAnnotationType() {
+    return this.baseSentenceAnnotationType;
+  }
+
+  public String getOutputAnnotationType() {
+    return this.outputAnnotationType;
+  }
+
+  public void setBaseTokenAnnotationType(String baseTokenAnnotationType) {
+    this.baseTokenAnnotationType = baseTokenAnnotationType;
+  }
+
+  public void setBaseSentenceAnnotationType(String baseSentenceAnnotationtype) {
+    this.baseSentenceAnnotationType = baseSentenceAnnotationtype;
+  }
+
+  public void setEncoding(String encoding) {
+    this.encoding = encoding;
+  }
+
+  public void setOutputAnnotationType(String outputAnnotationType) {
+    this.outputAnnotationType = outputAnnotationType;
+  }
+
+  public String getOutputASName() {
+    return this.outputASName;
+  }
+
+  public void setOutputASName(String outputASName) {
+    this.outputASName = outputASName;
+  }
+
+  protected void addFeatures(Annotation annot, String featureName, String featureValue)
+      throws GateRuntimeException {
+    String tempIASN = (inputASName == null) ? "" : inputASName;
+
+    String tempOASN = (outputASName == null) ? "" : outputASName;
+
+    if (outputAnnotationType.equals(baseTokenAnnotationType) && tempIASN.equals(tempOASN)) {
+      annot.getFeatures().put(featureName, featureValue);
+      return;
+    } else {
+      int start = annot.getStartNode().getOffset().intValue();
+      int end = annot.getEndNode().getOffset().intValue();
+
+      //  Get the annotations of type
+      //  outputAnnotationType .
+
+      AnnotationSet outputAS =
+          (outputASName == null)
+              ? document.getAnnotations()
+              : document.getAnnotations(outputASName);
+
+      AnnotationSet annotations = outputAS.get(outputAnnotationType);
+
+      if ((annotations == null) || (annotations.size() == 0)) {
+        //  Add new annotation.
+
+        FeatureMap features = Factory.newFeatureMap();
+        features.put(featureName, featureValue);
+
+        try {
+          outputAS.add(new Long(start), new Long(end), outputAnnotationType, features);
+        } catch (Exception e) {
+          throw new GateRuntimeException("Invalid Offsets");
         }
-                                //  Make sure we have
-                                //  sentence annotation type.
+      } else {
+        //  Search for the annotation if there is
+        //  one with the same start and
+        //  end offsets.
 
-        if  (   ( baseSentenceAnnotationType == null ) ||
-                ( baseSentenceAnnotationType.trim().length() == 0 )
-            )
-        {
-            throw new ResourceInstantiationException(
-                "No base Sentence Annotation Type provided!" );
+        ArrayList tempList = new ArrayList(annotations.get());
+
+        boolean found = false;
+
+        for (int i = 0; i < tempList.size(); i++) {
+          Annotation annotation = (Annotation) tempList.get(i);
+
+          int nodeStart = annotation.getStartNode().getOffset().intValue();
+
+          int nodeEnd = annotation.getEndNode().getOffset().intValue();
+
+          if ((nodeStart == start) && (nodeEnd == end)) {
+            //  This is the one.
+
+            annotation.getFeatures().put(featureName, featureValue);
+
+            found = true;
+            break;
+          }
         }
-    }
 
-    /** Perform adornment. */
+        if (!found) {
+          //  Add new annotation.
 
-    public void execute()
-        throws ExecutionException
-    {
-        super.execute();
-    }
+          FeatureMap features = Factory.newFeatureMap();
+          features.put(featureName, featureValue);
 
-    /** Get lexicons.
-     */
-
-    protected void getLexicons()
-        throws ResourceInstantiationException
-    {
-        try
-        {
-            wordLexicon = new DefaultWordLexicon();
-            suffixLexicon   = new DefaultSuffixLexicon();
+          try {
+            outputAS.add(new Long(start), new Long(end), outputAnnotationType, features);
+          } catch (Exception e) {
+            throw new GateRuntimeException("Invalid Offsets");
+          }
         }
-        catch ( Exception e )
-        {
-            throw new ResourceInstantiationException(
-                e.getMessage() );
-        }
+      }
     }
-
-    /** Get part of speech guesser.
-     *
-     *  <p>
-     *  Note:  Must call getLexicons() first!
-     *  </p>
-     */
-
-    protected void getPartOfSpeechGuesser()
-        throws ResourceInstantiationException
-    {
-                                //  Get part of speech guesser.
-
-        guesser = new DefaultPartOfSpeechGuesser();
-
-                                //  Set lexicons into guesser.
-
-        guesser.setWordLexicon( wordLexicon );
-        guesser.setSuffixLexicon( suffixLexicon );
-    }
-
-    /** Common initialization. */
-
-    protected void commonInit()
-        throws ResourceInstantiationException
-    {
-                                //  Check for needed Gate
-                                //  resources.
-
-        checkGateResources();
-
-                                //  Get lexicons.
-        getLexicons();
-                                //  Get part of speech guesser.
-
-        getPartOfSpeechGuesser();
-    }
-
-    public void setInputASName( String newInputASName )
-    {
-        inputASName = newInputASName;
-    }
-
-    public String getInputASName()
-    {
-        return inputASName;
-    }
-
-    public String getEncoding()
-    {
-        return this.encoding;
-    }
-
-    public String getBaseTokenAnnotationType()
-    {
-        return this.baseTokenAnnotationType;
-    }
-
-    public String getBaseSentenceAnnotationType()
-    {
-        return this.baseSentenceAnnotationType;
-    }
-
-    public String getOutputAnnotationType()
-    {
-        return this.outputAnnotationType;
-    }
-
-    public void setBaseTokenAnnotationType
-    (
-        String baseTokenAnnotationType
-    )
-    {
-        this.baseTokenAnnotationType    = baseTokenAnnotationType;
-    }
-
-    public void setBaseSentenceAnnotationType
-    (
-        String baseSentenceAnnotationtype
-    )
-    {
-        this.baseSentenceAnnotationType = baseSentenceAnnotationtype;
-    }
-
-    public void setEncoding( String encoding )
-    {
-        this.encoding   = encoding;
-    }
-
-    public void setOutputAnnotationType( String outputAnnotationType )
-    {
-        this.outputAnnotationType   = outputAnnotationType;
-    }
-
-    public String getOutputASName()
-    {
-        return this.outputASName;
-    }
-
-    public void setOutputASName( String outputASName )
-    {
-        this.outputASName   = outputASName;
-    }
-
-    protected void addFeatures
-    (
-        Annotation annot ,
-        String featureName ,
-        String featureValue
-    )
-        throws GateRuntimeException
-    {
-        String tempIASN =
-            ( inputASName == null ) ? "" : inputASName;
-
-        String tempOASN =
-            ( outputASName == null ) ? "" : outputASName;
-
-        if  (   outputAnnotationType.equals(
-                    baseTokenAnnotationType ) &&
-                tempIASN.equals( tempOASN )
-            )
-        {
-            annot.getFeatures().put( featureName , featureValue );
-            return;
-        }
-        else
-        {
-            int start   = annot.getStartNode().getOffset().intValue();
-            int end     = annot.getEndNode().getOffset().intValue();
-
-                                //  Get the annotations of type
-                                //  outputAnnotationType .
-
-            AnnotationSet outputAS =
-                ( outputASName == null ) ?
-                    document.getAnnotations() :
-                    document.getAnnotations( outputASName );
-
-            AnnotationSet annotations   =
-                outputAS.get( outputAnnotationType );
-
-            if ( ( annotations == null ) || ( annotations.size() == 0 ) )
-            {
-                                //  Add new annotation.
-
-                FeatureMap features = Factory.newFeatureMap();
-                features.put( featureName , featureValue );
-
-                try
-                {
-                    outputAS.add
-                    (
-                        new Long( start ) ,
-                        new Long( end ) ,
-                        outputAnnotationType ,
-                        features
-                    );
-                }
-                catch ( Exception e )
-                {
-                    throw new GateRuntimeException( "Invalid Offsets" );
-                }
-            }
-            else
-            {
-                                //  Search for the annotation if there is
-                                //  one with the same start and
-                                //  end offsets.
-
-                ArrayList tempList  = new ArrayList( annotations.get() );
-
-                boolean found       = false;
-
-                for ( int i = 0 ; i < tempList.size() ; i++ )
-                {
-                    Annotation annotation   = (Annotation)tempList.get( i );
-
-                    int nodeStart   =
-                        annotation.getStartNode().getOffset().intValue();
-
-                    int nodeEnd     =
-                        annotation.getEndNode().getOffset().intValue();
-
-                    if ( ( nodeStart == start ) && ( nodeEnd == end ) )
-                    {
-                                //  This is the one.
-
-                        annotation.getFeatures().put
-                        (
-                            featureName ,
-                            featureValue
-                        );
-
-                        found = true;
-                        break;
-                    }
-                }
-
-                if( !found )
-                {
-                                //  Add new annotation.
-
-                    FeatureMap features = Factory.newFeatureMap();
-                    features.put( featureName , featureValue );
-
-                    try
-                    {
-                        outputAS.add
-                        (
-                            new Long( start ) ,
-                            new Long( end ) ,
-                            outputAnnotationType ,
-                            features
-                        );
-                    }
-                    catch( Exception e )
-                    {
-                        throw new GateRuntimeException(
-                            "Invalid Offsets" );
-                    }
-                }
-            }
-        }
-    }
+  }
 }
 
 /*
@@ -450,6 +315,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

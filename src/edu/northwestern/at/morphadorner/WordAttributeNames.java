@@ -2,120 +2,95 @@ package edu.northwestern.at.morphadorner;
 
 /*  Please see the license information at the end of this file. */
 
-/** MorphAdorner attribute names.
+/**
+ * MorphAdorner attribute names.
  *
- *  <p>
- *  This class provides the default names for part of speech attributes
- *  in adorned files.  The attributes have both long names and short
- *  names.  The short names are the same as the default value for
- *  the attribute name.  For example, the long attribute name for a
- *  lemma is "lemma", but the short name is "lem", which is also the
- *  default attribute value name.
- *  </p>
+ * <p>This class provides the default names for part of speech attributes in adorned files. The
+ * attributes have both long names and short names. The short names are the same as the default
+ * value for the attribute name. For example, the long attribute name for a lemma is "lemma", but
+ * the short name is "lem", which is also the default attribute value name.
  */
+public class WordAttributeNames {
+  /** ----- Long names. ----- */
 
-public class WordAttributeNames
-{
-    /** ----- Long names. ----- */
+  /** Word ID attribute. This should not be changed. */
+  public static String wordID = "xml:id";
 
-    /** Word ID attribute.  This should not be changed. */
+  /** Sentence number attribute. */
+  public static String sentenceNumber = "sn";
 
-    public static String wordID             = "xml:id";
+  /** Word number attribute. */
+  public static String wordNumber = "wn";
 
-    /** Sentence number attribute. */
+  /** Spelling attribute. */
+  public static String spelling = "spe";
 
-    public static String sentenceNumber     = "sn";
+  /** Original token attribute. */
+  public static String originalToken = "tok";
 
-    /** Word number attribute. */
+  /** Part of speech tag attribute. */
+  public static String partOfSpeech = "pos";
 
-    public static String wordNumber         = "wn";
+  /** TEI P5 part of speech tag attribute. */
+  public static String teiPartOfSpeech = "ana";
 
-    /** Spelling attribute. */
+  /** Lemma attribute. */
+  public static String lemma = "lem";
 
-    public static String spelling           = "spe";
+  /** TEI P5 lemma attribute. */
+  public static String teiLemma = "lemma";
 
-    /** Original token attribute. */
+  /** Standard spelling attribute. */
+  public static String standardSpelling = "reg";
 
-    public static String originalToken      = "tok";
+  /** Left KWIC index attribute. */
+  public static String leftKWIC = "kl";
 
-    /** Part of speech tag attribute. */
+  /** Right KWIC index attribute. */
+  public static String rightKWIC = "rl";
 
-    public static String partOfSpeech       = "pos";
+  /** End of sentence flag attribute. */
+  public static String eosFlag = "eos";
 
-    /** TEI P5 part of speech tag attribute. */
+  /** Word ordinal attribute. */
+  public static String wordOrdinal = "ord";
 
-    public static String teiPartOfSpeech    = "ana";
+  /** Path attribute. */
+  public static String path = "p";
 
-    /** Lemma attribute. */
+  /** Label. */
+  public static String label = "n";
 
-    public static String lemma              = "lem";
+  /** Part number. This should not be changed. */
+  public static String part = "part";
 
-    /** TEI P5 lemma attribute. */
+  /** Unit. */
+  public static String unit = "unit";
 
-    public static String teiLemma           = "lemma";
+  /** Rend. */
+  public static String rend = "rend";
 
-    /** Standard spelling attribute. */
+  /** Tyoe. */
+  public static String type = "type";
 
-    public static String standardSpelling   = "reg";
+  /** ----- Short names. ----- */
+  public static String id = wordID;
 
-    /** Left KWIC index attribute. */
-
-    public static String leftKWIC           = "kl";
-
-    /** Right KWIC index attribute. */
-
-    public static String rightKWIC          = "rl";
-
-    /** End of sentence flag attribute. */
-
-    public static String eosFlag            = "eos";
-
-    /** Word ordinal attribute. */
-
-    public static String wordOrdinal        = "ord";
-
-    /** Path attribute. */
-
-    public static String path               = "p";
-
-    /** Label.  */
-
-    public static String label              = "n";
-
-    /** Part number.  This should not be changed. */
-
-    public static String part               = "part";
-
-    /** Unit. */
-
-    public static String unit               = "unit";
-
-    /** Rend. */
-
-    public static String rend               = "rend";
-
-    /** Tyoe. */
-
-    public static String type               = "type";
-
-    /** ----- Short names. ----- */
-
-    public static String id     = wordID;
-    public static String sn     = sentenceNumber;
-    public static String wn     = wordNumber;
-    public static String spe    = spelling;
-    public static String tok    = originalToken;
-    public static String pos    = partOfSpeech;
-    public static String teiPos = teiPartOfSpeech;
-    public static String lem    = lemma;
-    public static String teiLem = teiLemma;
-    public static String reg    = standardSpelling;
-    public static String kl     = leftKWIC;
-    public static String kr     = rightKWIC;
-    public static String eos    = eosFlag;
-    public static String ord    = wordOrdinal;
-    public static String p      = path;
-    public static String n      = label;
+  public static String sn = sentenceNumber;
+  public static String wn = wordNumber;
+  public static String spe = spelling;
+  public static String tok = originalToken;
+  public static String pos = partOfSpeech;
+  public static String teiPos = teiPartOfSpeech;
+  public static String lem = lemma;
+  public static String teiLem = teiLemma;
+  public static String reg = standardSpelling;
+  public static String kl = leftKWIC;
+  public static String kr = rightKWIC;
+  public static String eos = eosFlag;
+  public static String ord = wordOrdinal;
+  public static String p = path;
+  public static String n = label;
 }
 
 /*
@@ -158,6 +133,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

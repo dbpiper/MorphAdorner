@@ -4,92 +4,65 @@ package edu.northwestern.at.utils.servlets;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
-import java.io.IOException;
 
-/** Extends HttpServlet to map a get request to a post request.
- */
+/** Extends HttpServlet to map a get request to a post request. */
+public class XHttpServlet extends HttpServlet {
+  /** Map servlet get to servlet post. */
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, java.io.IOException {
+    doPost(request, response);
+  }
 
-public class XHttpServlet extends HttpServlet
-{
-    /** Map servlet get to servlet post.
-     */
+  /**
+   * Create redirect URL with title, success, and failure strings.
+   *
+   * @param response Servlet response object.
+   * @param url Base URL (JSP page or servlet name).
+   * @param title Title text.
+   * @param success Success message text.
+   * @param failure Failure message text.
+   */
+  public String createRedirectURL(
+      HttpServletResponse response, String url, String title, String success, String failure) {
+    StringBuffer sb = new StringBuffer();
 
-    protected void doGet
-    (
-        HttpServletRequest request,
-        HttpServletResponse response
-    )
-        throws ServletException, java.io.IOException
-    {
-        doPost( request , response );
+    sb.append(url);
+    boolean needsQuestion = true;
+
+    if ((title != null) && (title.length() > 0)) {
+      sb.append("?");
+      sb.append("title=");
+      sb.append(title);
+
+      needsQuestion = false;
     }
 
-    /** Create redirect URL with title, success, and failure strings.
-     *
-     *  @param  response    Servlet response object.
-     *  @param  url         Base URL (JSP page or servlet name).
-     *  @param  title       Title text.
-     *  @param  success     Success message text.
-     *  @param  failure     Failure message text.
-     */
+    if ((success != null) && (success.length() > 0)) {
+      if (needsQuestion) {
+        sb.append("?");
+        needsQuestion = false;
+      } else {
+        sb.append("&");
+      }
 
-    public String createRedirectURL
-    (
-        HttpServletResponse response ,
-        String url ,
-        String title ,
-        String success ,
-        String failure
-    )
-    {
-        StringBuffer sb = new StringBuffer();
-
-        sb.append( url );
-        boolean needsQuestion = true;
-
-        if ( ( title != null ) && ( title.length() > 0 ) )
-        {
-            sb.append( "?" );
-            sb.append( "title=" );
-            sb.append( title );
-
-            needsQuestion = false;
-        }
-
-        if ( ( success != null ) && ( success.length() > 0 ) )
-        {
-            if ( needsQuestion )
-            {
-                sb.append( "?" );
-                needsQuestion = false;
-            }
-            else
-            {
-                sb.append( "&" );
-            }
-
-            sb.append( "success=" );
-            sb.append( success );
-        }
-
-        if ( ( failure != null ) && ( failure.length() > 0 ) )
-        {
-            if ( needsQuestion )
-            {
-                sb.append( "?" );
-                needsQuestion = false;
-            }
-            else
-            {
-                sb.append( "&" );
-            }
-
-            sb.append( "failure=" );
-            sb.append( failure );
-        }
-
-        return response.encodeRedirectURL( sb.toString() );
+      sb.append("success=");
+      sb.append(success);
     }
+
+    if ((failure != null) && (failure.length() > 0)) {
+      if (needsQuestion) {
+        sb.append("?");
+        needsQuestion = false;
+      } else {
+        sb.append("&");
+      }
+
+      sb.append("failure=");
+      sb.append(failure);
+    }
+
+    return response.encodeRedirectURL(sb.toString());
+  }
 }
 
 /*
@@ -132,6 +105,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

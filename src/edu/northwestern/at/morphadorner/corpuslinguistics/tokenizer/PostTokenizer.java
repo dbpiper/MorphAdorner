@@ -2,42 +2,23 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.StringTokenizer;
+/** Interface for processing an extracted token. */
+public interface PostTokenizer {
+  /**
+   * Process a token after tokenization.
+   *
+   * @param token The token to process after tokenization.
+   * @return Array of two strings. [0] = the token minimally processed. [1] = the token maximally
+   *     processed.
+   *     <p>The minimally processed token is typically results in an original spelling.
+   *     <p>The maximally processed token typically results in a partially or completely
+   *     standardized spelling.
+   *     <p>These may be identical.
+   */
+  public String[] postTokenize(String token);
 
-/** Interface for processing an extracted token.
- */
-
-public interface PostTokenizer
-{
-    /** Process a token after tokenization.
-     *
-     *  @param  token   The token to process after tokenization.
-     *
-     *  @return         Array of two strings.
-     *                  [0] = the token minimally processed.
-     *                  [1] = the token maximally processed.
-     *
-     *  <p>
-     *  The minimally processed token is typically results in an original
-     *  spelling.
-     *  </p>
-     *  <p>
-     *  The maximally processed token typically results in a
-     *  partially or completely standardized spelling.
-     *  </p>
-     *
-     *  <p>
-     *  These may be identical.
-     *  </p>
-     *
-     */
-
-    public String[] postTokenize( String token );
-
-    /** Close down the postTokenizer.
-     */
-
-    public void close();
+  /** Close down the postTokenizer. */
+  public void close();
 }
 
 /*
@@ -80,6 +61,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

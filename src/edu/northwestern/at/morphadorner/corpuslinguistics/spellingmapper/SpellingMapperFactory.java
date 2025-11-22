@@ -5,99 +5,70 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingmapper;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** SpellingMapper factory.
- */
+/** SpellingMapper factory. */
+public class SpellingMapperFactory {
+  /**
+   * Get a spelling mapper.
+   *
+   * @return The spelling mapper.
+   */
+  public static SpellingMapper newSpellingMapper() {
+    String className = System.getProperty("spellingmapper.class");
 
-public class SpellingMapperFactory
-{
-    /** Get a spelling mapper.
-     *
-     *  @return     The spelling mapper.
-     */
-
-    public static SpellingMapper newSpellingMapper()
-    {
-        String className    = System.getProperty( "spellingmapper.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultSpellingMapper";
-        }
-
-        return newSpellingMapper( className );
+    if (className == null) {
+      className = "DefaultSpellingMapper";
     }
 
-    /** Get a spelling mapper.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The spelling mapper.
-     */
+    return newSpellingMapper(className);
+  }
 
-    public static SpellingMapper newSpellingMapper
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a spelling mapper.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The spelling mapper.
+   */
+  public static SpellingMapper newSpellingMapper(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "spellingmapper.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultSpellingMapper";
-        }
-
-        return newSpellingMapper( className );
+    if (properties != null) {
+      className = properties.getProperty("spellingmapper.class");
     }
 
-    /** Get a spellingMapper of a specified class name.
-     *
-     *  @param  className   Class name for the spellingMapper.
-     *
-     *  @return             The spellingMapper.
-     */
-
-    public static SpellingMapper newSpellingMapper( String className )
-    {
-        SpellingMapper spellingMapper   = null;
-
-        try
-        {
-            spellingMapper  =
-                (SpellingMapper)Class.forName(
-                    className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    SpellingMapperFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                spellingMapper  =
-                    (SpellingMapper)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create spelling mapper of class " +
-                    fixedClassName + ", using default." );
-
-                spellingMapper  = new DefaultSpellingMapper();
-            }
-        }
-
-        return spellingMapper;
+    if (className == null) {
+      className = "DefaultSpellingMapper";
     }
+
+    return newSpellingMapper(className);
+  }
+
+  /**
+   * Get a spellingMapper of a specified class name.
+   *
+   * @param className Class name for the spellingMapper.
+   * @return The spellingMapper.
+   */
+  public static SpellingMapper newSpellingMapper(String className) {
+    SpellingMapper spellingMapper = null;
+
+    try {
+      spellingMapper = (SpellingMapper) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(SpellingMapperFactory.class.getName()) + "." + className;
+
+      try {
+        spellingMapper = (SpellingMapper) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create spelling mapper of class " + fixedClassName + ", using default.");
+
+        spellingMapper = new DefaultSpellingMapper();
+      }
+    }
+
+    return spellingMapper;
+  }
 }
 
 /*
@@ -140,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

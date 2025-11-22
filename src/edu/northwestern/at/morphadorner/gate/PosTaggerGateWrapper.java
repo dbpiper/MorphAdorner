@@ -2,18 +2,6 @@ package edu.northwestern.at.morphadorner.gate;
 
 /*  Please see the license information at the end of this file. */
 
-import gate.*;
-import gate.creole.*;
-import gate.util.*;
-import gate.event.*;
-
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.text.NumberFormat;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
@@ -21,499 +9,328 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import gate.*;
+import gate.creole.*;
+import gate.event.*;
+import gate.util.*;
+import java.io.*;
+import java.text.NumberFormat;
+import java.util.*;
 
-/** Gate wrapper for default MorphAdorner morphological adorner.
-*/
-
+/** Gate wrapper for default MorphAdorner morphological adorner. */
 @SuppressWarnings("unchecked")
-public class PosTaggerGateWrapper extends
-    MorphAdornerGateWrapperBase
-{
-    /** Part of speech tagger. */
+public class PosTaggerGateWrapper extends MorphAdornerGateWrapperBase {
+  /** Part of speech tagger. */
+  protected PartOfSpeechTagger partOfSpeechTagger = null;
 
-    protected PartOfSpeechTagger partOfSpeechTagger = null;
+  /** Part of speech tags used by tagger. */
+  protected PartOfSpeechTags partOfSpeechTags = null;
 
-    /** Part of speech tags used by tagger. */
+  /** Lemmatizer. */
+  protected Lemmatizer lemmatizer = null;
 
-    protected PartOfSpeechTags partOfSpeechTags     = null;
+  /** Spelling standardizer. */
+  protected SpellingStandardizer standardizer = null;
 
-    /** Lemmatizer. */
+  /** Spelling tokenizer for lemmatization. */
+  protected WordTokenizer spellingTokenizer = new PennTreebankTokenizer();
 
-    protected Lemmatizer lemmatizer = null;
+  /** Gate wrapper for MorphAdorner. */
+  public PosTaggerGateWrapper() {}
 
-    /** Spelling standardizer. */
+  /** Initialize resources. */
+  public Resource init() throws ResourceInstantiationException {
+    //  Perform common initialization.
+    commonInit();
 
-    protected SpellingStandardizer standardizer = null;
+    try {
+      //  Get default part of speech tagger.
 
-    /** Spelling tokenizer for lemmatization.
-     */
+      partOfSpeechTagger = new DefaultPartOfSpeechTagger();
 
-    protected WordTokenizer spellingTokenizer   =
-        new PennTreebankTokenizer();
+      //  Get default lemmatizer.
 
-    /** Gate wrapper for MorphAdorner. */
+      lemmatizer = new DefaultLemmatizer();
 
-    public PosTaggerGateWrapper()
-    {
+      //  Get spelling standardizer.
+
+      standardizer = new ExtendedSimpleSpellingStandardizer();
+
+      //  Load standard spellings.
+
+      standardizer.loadStandardSpellings(new File(spellingsURL).toURI().toURL(), "utf-8");
+      //  Load alternate spellings.
+
+      standardizer.loadAlternativeSpellings(
+          new File(alternateSpellingsURL).toURI().toURL(), "utf-8", "\t");
+      //  Get part of speech tags.
+
+      partOfSpeechTags = wordLexicon.getPartOfSpeechTags();
+    } catch (Exception e) {
+      throw new ResourceInstantiationException(e.getMessage());
     }
 
-    /** Initialize resources. */
+    return super.init();
+  }
 
-    public Resource init()
-        throws ResourceInstantiationException
-    {
-                                //  Perform common initialization.
-        commonInit();
-
-        try
-        {
-                                //  Get default part of speech tagger.
-
-            partOfSpeechTagger  = new DefaultPartOfSpeechTagger();
-
-                                //  Get default lemmatizer.
-
-            lemmatizer          = new DefaultLemmatizer();
-
-                                //  Get spelling standardizer.
-
-            standardizer        =
-                new ExtendedSimpleSpellingStandardizer();
-
-                                //  Load standard spellings.
-
-            standardizer.loadStandardSpellings
-            (
-                new File( spellingsURL ).toURI().toURL() ,
-                "utf-8"
-            );
-                                //  Load alternate spellings.
-
-            standardizer.loadAlternativeSpellings
-            (
-                new File( alternateSpellingsURL ).toURI().toURL() ,
-                "utf-8" ,
-                "\t"
-            );
-                                //  Get part of speech tags.
-
-            partOfSpeechTags    = wordLexicon.getPartOfSpeechTags();
-        }
-        catch ( Exception e )
-        {
-            throw new ResourceInstantiationException( e.getMessage() );
-        }
-
-        return super.init();
+  /** Perform adornment. */
+  public void execute() throws ExecutionException {
+    if (document == null) {
+      throw new GateRuntimeException("There is no document to process.");
     }
 
-    /** Perform adornment. */
+    if ((inputASName != null) && (inputASName.length() == 0)) {
+      inputASName = null;
+    }
 
-    public void execute()
-        throws ExecutionException
-    {
-        if ( document == null )
-        {
-            throw new GateRuntimeException
-            (
-                    "There is no document to process."
-            );
-        }
+    if ((baseSentenceAnnotationType == null) || (baseSentenceAnnotationType.trim().length() == 0)) {
+      throw new GateRuntimeException("No base Sentence Annotation Type provided.");
+    }
 
-        if ( ( inputASName != null ) && ( inputASName.length() == 0 ) )
-        {
-            inputASName = null;
-        }
+    AnnotationSet inputAS =
+        (inputASName == null) ? document.getAnnotations() : document.getAnnotations(inputASName);
 
-        if  (   ( baseSentenceAnnotationType == null ) ||
-                ( baseSentenceAnnotationType.trim().length() == 0 )
-            )
-        {
-            throw new GateRuntimeException(
-                "No base Sentence Annotation Type provided." );
-        }
+    if ((outputASName != null) && (outputASName.length() == 0)) {
+      outputASName = null;
+    }
 
-        AnnotationSet inputAS   =
-            ( inputASName == null ) ?
-                document.getAnnotations() :
-                document.getAnnotations( inputASName );
+    AnnotationSet outputAS =
+        (outputASName == null) ? document.getAnnotations() : document.getAnnotations(outputASName);
 
-        if  (   ( outputASName != null ) &&
-                ( outputASName.length() == 0 ) )
-        {
-            outputASName = null;
-        }
+    try {
+      document
+          .getFeatures()
+          .put("Number of tokens", new Integer(inputAS.get("Token").size()).toString());
+    } catch (NullPointerException e) {
+      throw new ExecutionException("You need to run a Tokenizer first!");
+    }
 
-        AnnotationSet outputAS =
-            ( outputASName == null ) ?
-                document.getAnnotations() :
-                document.getAnnotations( outputASName );
+    try {
+      document
+          .getFeatures()
+          .put("Number of sentences", new Integer(inputAS.get("Sentence").size()).toString());
 
-        try
-        {
-            document.getFeatures().put
-            (
-                "Number of tokens" ,
-                new Integer( inputAS.get( "Token" ).size()).toString()
-            );
-        }
-        catch( NullPointerException e )
-        {
-            throw new ExecutionException
-            (
-                "You need to run a Tokenizer first!"
-            );
-        }
+    } catch (NullPointerException e) {
+      throw new ExecutionException("You need to run a Sentence Splitter first.");
+    }
 
-        try
-        {
-            document.getFeatures().put
-            (
-                "Number of sentences" ,
-                new Integer( inputAS.get( "Sentence" ).size() ).toString()
-            );
+    AnnotationSet sentencesAS = inputAS.get(SENTENCE_ANNOTATION_TYPE);
 
-        }
-        catch( NullPointerException e )
-        {
-            throw new ExecutionException
-            (
-                "You need to run a Sentence Splitter first."
-            );
-        }
+    List sentenceForTagger = new ArrayList();
 
-        AnnotationSet sentencesAS   =
-            inputAS.get( SENTENCE_ANNOTATION_TYPE );
+    Comparator offsetComparator = new OffsetComparator();
 
-        List sentenceForTagger      = new ArrayList();
+    List sentencesList = new ArrayList(sentencesAS);
 
-        Comparator offsetComparator = new OffsetComparator();
+    Collections.sort(sentencesList, offsetComparator);
 
-        List sentencesList          = new ArrayList( sentencesAS );
+    List tokensList = new ArrayList(inputAS.get(TOKEN_ANNOTATION_TYPE));
 
-        Collections.sort( sentencesList , offsetComparator );
+    Collections.sort(tokensList, offsetComparator);
 
-        List tokensList             =
-            new ArrayList( inputAS.get( TOKEN_ANNOTATION_TYPE ) );
+    Iterator sentencesIter = sentencesList.iterator();
 
-        Collections.sort( tokensList , offsetComparator );
+    ListIterator tokensIter = tokensList.listIterator();
 
-        Iterator sentencesIter  = sentencesList.iterator();
+    List tokensInCurrentSentence = new ArrayList();
 
-        ListIterator tokensIter = tokensList.listIterator();
+    Annotation currentToken = (Annotation) tokensIter.next();
 
-        List tokensInCurrentSentence    = new ArrayList();
+    int sentIndex = 0;
 
-        Annotation currentToken         = (Annotation)tokensIter.next();
+    int sentCnt = sentencesAS.size();
 
-        int sentIndex                   = 0;
+    fireStatusChanged("Adorning " + sentCnt + " sentences in " + document.getName());
 
-        int sentCnt                     = sentencesAS.size();
+    fireProgressChanged(0);
 
-        fireStatusChanged
-        (
-            "Adorning " + sentCnt + " sentences in " +
-            document.getName()
-        );
+    long startTime = System.currentTimeMillis();
 
-        fireProgressChanged( 0 );
+    while (sentencesIter.hasNext()) {
+      Annotation currentSentence = (Annotation) sentencesIter.next();
 
-        long startTime  = System.currentTimeMillis();
+      tokensInCurrentSentence.clear();
 
-        while ( sentencesIter.hasNext() )
-        {
-            Annotation currentSentence  =
-                (Annotation)sentencesIter.next();
+      sentenceForTagger.clear();
 
-            tokensInCurrentSentence.clear();
+      while ((currentToken != null)
+          && (currentToken
+                  .getEndNode()
+                  .getOffset()
+                  .compareTo(currentSentence.getEndNode().getOffset())
+              <= 0)) {
+        tokensInCurrentSentence.add(currentToken);
 
-            sentenceForTagger.clear();
+        sentenceForTagger.add(currentToken.getFeatures().get(TOKEN_STRING_FEATURE_NAME));
 
-            while
-            (
-                ( currentToken != null ) &&
-                ( currentToken.getEndNode().getOffset().compareTo(
-                    currentSentence.getEndNode().getOffset() ) <= 0
-                )
-            )
-            {
-                tokensInCurrentSentence.add( currentToken );
+        currentToken = (Annotation) (tokensIter.hasNext() ? tokensIter.next() : null);
+      }
 
-                sentenceForTagger.add
-                (
-                    currentToken.getFeatures().
-                    get( TOKEN_STRING_FEATURE_NAME )
-                );
+      List taggerResults = partOfSpeechTagger.tagSentence(sentenceForTagger);
 
-                currentToken    =
-                    (Annotation)(tokensIter.hasNext() ?
-                        tokensIter.next() : null );
-            }
+      Iterator resIter = taggerResults.iterator();
 
-            List taggerResults  =
-                partOfSpeechTagger.tagSentence( sentenceForTagger );
+      Iterator tokIter = tokensInCurrentSentence.iterator();
 
-            Iterator resIter    = taggerResults.iterator();
-
-            Iterator tokIter    = tokensInCurrentSentence.iterator();
-
-            while ( resIter.hasNext() )
-            {
-                AdornedWord word    = (AdornedWord)resIter.next();
-                Annotation annotation   = (Annotation)tokIter.next();
-/*
-                addFeatures
-                (
-                    annotation ,
-                    TOKEN_CATEGORY_FEATURE_NAME,
-                    word.getPartsOfSpeech()
-                );
-*/
-                String partOfSpeechTag      = word.getPartsOfSpeech();
-                String correctedSpelling    = word.getSpelling();
-
-                                //  Get standardized spelling.
-
-                String standardizedSpelling =
-                    getStandardizedSpelling
-                    (
-                        correctedSpelling ,
-                        partOfSpeechTag
-                    );
-                                //  See if lexicon contains lemma.
-
-                String lemma    =
-                    wordLexicon.getLemma
-                    (
-                        correctedSpelling ,
-                        partOfSpeechTag
-                    );
-                                //  Lexicon does not contain lemma.
-                                //  Use lemmatizer.
-
-                if ( lemma.equals( "*" ) )
-                {
-                    lemma   =
-                        getLemma
+      while (resIter.hasNext()) {
+        AdornedWord word = (AdornedWord) resIter.next();
+        Annotation annotation = (Annotation) tokIter.next();
+        /*
+                        addFeatures
                         (
-                            lemmatizer ,
-                            standardizedSpelling ,
-                            partOfSpeechTag
+                            annotation ,
+                            TOKEN_CATEGORY_FEATURE_NAME,
+                            word.getPartsOfSpeech()
                         );
-                }
+        */
+        String partOfSpeechTag = word.getPartsOfSpeech();
+        String correctedSpelling = word.getSpelling();
 
-                annotation.getFeatures().put
-                (
-                    TOKEN_CATEGORY_FEATURE_NAME ,
-                    partOfSpeechTag
-                );
+        //  Get standardized spelling.
 
-                annotation.getFeatures().put
-                (
-                    TOKEN_LEMMA_FEATURE_NAME ,
-                    lemma
-                );
+        String standardizedSpelling = getStandardizedSpelling(correctedSpelling, partOfSpeechTag);
+        //  See if lexicon contains lemma.
 
-                annotation.getFeatures().put
-                (
-                    TOKEN_SPELLING_FEATURE_NAME ,
-                    correctedSpelling
-                );
+        String lemma = wordLexicon.getLemma(correctedSpelling, partOfSpeechTag);
+        //  Lexicon does not contain lemma.
+        //  Use lemmatizer.
 
-                annotation.getFeatures().put
-                (
-                    TOKEN_STANDARD_SPELLING_FEATURE_NAME ,
-                    standardizedSpelling
-                );
-            }
-
-            fireProcessFinished();
-
-            fireStatusChanged
-            (
-                document.getName() + " adorned in " +
-                    NumberFormat.getInstance().format(
-                    (double)( System.currentTimeMillis() -
-                        startTime) / 1000 ) +
-                    " seconds." );
+        if (lemma.equals("*")) {
+          lemma = getLemma(lemmatizer, standardizedSpelling, partOfSpeechTag);
         }
 
-        fireStatusChanged( "Adornment complete."  );
+        annotation.getFeatures().put(TOKEN_CATEGORY_FEATURE_NAME, partOfSpeechTag);
 
-        fireProgressChanged( 0 );
+        annotation.getFeatures().put(TOKEN_LEMMA_FEATURE_NAME, lemma);
+
+        annotation.getFeatures().put(TOKEN_SPELLING_FEATURE_NAME, correctedSpelling);
+
+        annotation.getFeatures().put(TOKEN_STANDARD_SPELLING_FEATURE_NAME, standardizedSpelling);
+      }
+
+      fireProcessFinished();
+
+      fireStatusChanged(
+          document.getName()
+              + " adorned in "
+              + NumberFormat.getInstance()
+                  .format((double) (System.currentTimeMillis() - startTime) / 1000)
+              + " seconds.");
     }
 
-    /** Get lemma (possibly compound) for a spelling.
-     *
-     *  @param  lemmatizer      The lemmatizer.
-     *  @param  spelling            The spelling.
-     *  @param  partOfSpeech    The part of speech tag.
-     *
-     *  @return                 Lemma for spelling.  May contain
-     *                              compound spelling in form
-     *                              "lemma1:lemma2:...".
-     */
+    fireStatusChanged("Adornment complete.");
 
-    protected String getLemma
-    (
-        Lemmatizer lemmatizer ,
-        String spelling ,
-        String partOfSpeech
-    )
-    {
-        String lemmata  = spelling;
+    fireProgressChanged(0);
+  }
 
-                                //  Get lemmatization word class
-                                //  for part of speech.
-        String lemmaClass   =
-            partOfSpeechTags.getLemmaWordClass( partOfSpeech );
+  /**
+   * Get lemma (possibly compound) for a spelling.
+   *
+   * @param lemmatizer The lemmatizer.
+   * @param spelling The spelling.
+   * @param partOfSpeech The part of speech tag.
+   * @return Lemma for spelling. May contain compound spelling in form "lemma1:lemma2:...".
+   */
+  protected String getLemma(Lemmatizer lemmatizer, String spelling, String partOfSpeech) {
+    String lemmata = spelling;
 
-                                //  Do not lemmatize words which
-                                //  should not be lemmatized,
-                                //  including proper names.
+    //  Get lemmatization word class
+    //  for part of speech.
+    String lemmaClass = partOfSpeechTags.getLemmaWordClass(partOfSpeech);
 
-        if  (   lemmatizer.cantLemmatize( spelling ) ||
-                lemmaClass.equals( "none" )
-            )
-        {
+    //  Do not lemmatize words which
+    //  should not be lemmatized,
+    //  including proper names.
+
+    if (lemmatizer.cantLemmatize(spelling) || lemmaClass.equals("none")) {
+    } else {
+      //  Extract individual word parts.
+      //  May be more than one for a
+      //  contraction.
+
+      List wordList = spellingTokenizer.extractWords(spelling);
+
+      //  If just one word part,
+      //  get its lemma.
+
+      if (!partOfSpeechTags.isCompoundTag(partOfSpeech) || (wordList.size() == 1)) {
+        if (lemmaClass.length() == 0) {
+          lemmata = lemmatizer.lemmatize(spelling, "compound");
+
+          if (lemmata.equals(spelling)) {
+            lemmata = lemmatizer.lemmatize(spelling);
+          }
+        } else {
+          lemmata = lemmatizer.lemmatize(spelling, lemmaClass);
         }
-        else
-        {
-                                //  Extract individual word parts.
-                                //  May be more than one for a
-                                //  contraction.
+      }
+      //  More than one word part.
+      //  Get lemma for each part and
+      //  concatenate them with the
+      //  lemma separator to form a
+      //  compound lemma.
+      else {
+        lemmata = "";
+        String lemmaPiece = "";
+        String[] posTags = partOfSpeechTags.splitTag(partOfSpeech);
 
-            List wordList   =
-                spellingTokenizer.extractWords( spelling );
+        if (posTags.length == wordList.size()) {
+          for (int i = 0; i < wordList.size(); i++) {
+            String wordPiece = (String) wordList.get(i);
 
-                                //  If just one word part,
-                                //  get its lemma.
-
-            if  (   !partOfSpeechTags.isCompoundTag( partOfSpeech ) ||
-                    ( wordList.size() == 1 )
-                )
-            {
-                if ( lemmaClass.length() == 0 )
-                {
-                    lemmata =
-                        lemmatizer.lemmatize( spelling , "compound" );
-
-                    if ( lemmata.equals( spelling ) )
-                    {
-                        lemmata = lemmatizer.lemmatize( spelling );
-                    }
-                }
-                else
-                {
-                    lemmata =
-                        lemmatizer.lemmatize( spelling , lemmaClass );
-                }
+            if (i > 0) {
+              lemmata = lemmata + lemmaSeparator;
             }
-                                //  More than one word part.
-                                //  Get lemma for each part and
-                                //  concatenate them with the
-                                //  lemma separator to form a
-                                //  compound lemma.
-            else
-            {
-                lemmata             = "";
-                String lemmaPiece   = "";
-                String[] posTags    =
-                    partOfSpeechTags.splitTag( partOfSpeech );
 
-                if ( posTags.length == wordList.size() )
-                {
-                    for ( int i = 0 ; i < wordList.size() ; i++ )
-                    {
-                        String wordPiece    = (String)wordList.get( i );
+            lemmaClass = partOfSpeechTags.getLemmaWordClass(posTags[i]);
 
-                        if ( i > 0 )
-                        {
-                            lemmata = lemmata + lemmaSeparator;
-                        }
+            lemmaPiece = lemmatizer.lemmatize(wordPiece, lemmaClass);
 
-                        lemmaClass  =
-                            partOfSpeechTags.getLemmaWordClass
-                            (
-                                posTags[ i ]
-                            );
-
-                        lemmaPiece  =
-                            lemmatizer.lemmatize
-                            (
-                                wordPiece ,
-                                lemmaClass
-                            );
-
-                        lemmata = lemmata + lemmaPiece;
-                    }
-                }
-            }
+            lemmata = lemmata + lemmaPiece;
+          }
         }
-                                //  Use spelling if lemmata not defined.
+      }
+    }
+    //  Use spelling if lemmata not defined.
 
-        if ( lemmata.equals( "*" ) )
-        {
-            lemmata = spelling;
-        }
-                                //  Force lemma to lowercase except
-                                //  for proper noun tagged word.
+    if (lemmata.equals("*")) {
+      lemmata = spelling;
+    }
+    //  Force lemma to lowercase except
+    //  for proper noun tagged word.
 
-        if ( lemmata.indexOf( lemmaSeparator ) < 0 )
-        {
-            if ( !partOfSpeechTags.isProperNounTag( partOfSpeech ) )
-            {
-                lemmata = lemmata.toLowerCase();
-            }
-        }
-
-        return lemmata;
+    if (lemmata.indexOf(lemmaSeparator) < 0) {
+      if (!partOfSpeechTags.isProperNounTag(partOfSpeech)) {
+        lemmata = lemmata.toLowerCase();
+      }
     }
 
-    /** Get standardized spelling.
-     *
-     *  @param  spelling        The spelling.
-     *  @param  partOfSpeech    The part of speech tag.
-     *
-     *  @return                 Standardized spelling.
-     */
+    return lemmata;
+  }
 
-    protected String getStandardizedSpelling
-    (
-        String spelling ,
-        String partOfSpeech
-    )
-    {
-        String result   = spelling;
+  /**
+   * Get standardized spelling.
+   *
+   * @param spelling The spelling.
+   * @param partOfSpeech The part of speech tag.
+   * @return Standardized spelling.
+   */
+  protected String getStandardizedSpelling(String spelling, String partOfSpeech) {
+    String result = spelling;
 
-        if ( partOfSpeechTags.isProperNounTag( partOfSpeech ) )
-        {
-        }
-        else if (   partOfSpeechTags.isNounTag( partOfSpeech )  &&
-                    CharUtils.hasInternalCaps( spelling ) )
-        {
-        }
-        else if ( partOfSpeechTags.isForeignWordTag( partOfSpeech ) )
-        {
-        }
-        else if ( partOfSpeechTags.isNumberTag( partOfSpeech ) )
-        {
-        }
-        else
-        {
-            result  =
-                standardizer.standardizeSpelling
-                (
-                    spelling ,
-                    partOfSpeechTags.getMajorWordClass
-                    (
-                        partOfSpeech
-                    )
-                );
-        }
-
-        return result;
+    if (partOfSpeechTags.isProperNounTag(partOfSpeech)) {
+    } else if (partOfSpeechTags.isNounTag(partOfSpeech) && CharUtils.hasInternalCaps(spelling)) {
+    } else if (partOfSpeechTags.isForeignWordTag(partOfSpeech)) {
+    } else if (partOfSpeechTags.isNumberTag(partOfSpeech)) {
+    } else {
+      result =
+          standardizer.standardizeSpelling(
+              spelling, partOfSpeechTags.getMajorWordClass(partOfSpeech));
     }
+
+    return result;
+  }
 }
 
 /*
@@ -556,6 +373,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

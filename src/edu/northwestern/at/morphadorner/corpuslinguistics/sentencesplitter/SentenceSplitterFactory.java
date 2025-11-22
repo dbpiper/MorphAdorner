@@ -2,103 +2,74 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter;
 
 /*  Please see the license information at the end of this file. */
 
-import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** SentenceSplitter factory.
- */
+/** SentenceSplitter factory. */
+public class SentenceSplitterFactory {
+  /**
+   * Get a sentence splitter.
+   *
+   * @return The sentenceExtractor.
+   */
+  public static SentenceSplitter newSentenceSplitter() {
+    String className = System.getProperty("sentencesplitter.class");
 
-public class SentenceSplitterFactory
-{
-    /** Get a sentence splitter.
-     *
-     *  @return     The sentenceExtractor.
-     */
-
-    public static SentenceSplitter newSentenceSplitter()
-    {
-        String className    =
-            System.getProperty( "sentencesplitter.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultSentenceSplitter";
-        }
-
-        return newSentenceSplitter( className );
+    if (className == null) {
+      className = "DefaultSentenceSplitter";
     }
 
-    /** Get a sentence splitter.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The sentenceExtractor.
-     */
+    return newSentenceSplitter(className);
+  }
 
-    public static SentenceSplitter newSentenceSplitter
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a sentence splitter.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The sentenceExtractor.
+   */
+  public static SentenceSplitter newSentenceSplitter(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "sentencesplitter.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultSentenceSplitter";
-        }
-
-        return newSentenceSplitter( className );
+    if (properties != null) {
+      className = properties.getProperty("sentencesplitter.class");
     }
 
-    /** Get a sentence splitter of a specified class name.
-     *
-     *  @param  className   Class name for the sentence splitter.
-     *
-     *  @return             The sentence splitter.
-     */
-
-    public static SentenceSplitter newSentenceSplitter( String className )
-    {
-        SentenceSplitter sentenceExtractor  = null;
-
-        try
-        {
-            sentenceExtractor   =
-                (SentenceSplitter)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    SentenceSplitterFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                sentenceExtractor   =
-                    (SentenceSplitter)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create sentence splitter of class " +
-                    fixedClassName + ", using default." );
-
-                sentenceExtractor   = new DefaultSentenceSplitter();
-            }
-        }
-
-        return sentenceExtractor;
+    if (className == null) {
+      className = "DefaultSentenceSplitter";
     }
+
+    return newSentenceSplitter(className);
+  }
+
+  /**
+   * Get a sentence splitter of a specified class name.
+   *
+   * @param className Class name for the sentence splitter.
+   * @return The sentence splitter.
+   */
+  public static SentenceSplitter newSentenceSplitter(String className) {
+    SentenceSplitter sentenceExtractor = null;
+
+    try {
+      sentenceExtractor = (SentenceSplitter) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(SentenceSplitterFactory.class.getName()) + "." + className;
+
+      try {
+        sentenceExtractor = (SentenceSplitter) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create sentence splitter of class " + fixedClassName + ", using default.");
+
+        sentenceExtractor = new DefaultSentenceSplitter();
+      }
+    }
+
+    return sentenceExtractor;
+  }
 }
 
 /*
@@ -141,6 +112,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

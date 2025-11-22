@@ -3,20 +3,14 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 /*  Please see the license information at the end of this file. */
 
 /** Word tokenizer that treats apostrophes as distinct from single quotes. */
+public class ApostrophesAreNotQuotesWordTokenizer extends DefaultWordTokenizer
+    implements WordTokenizer {
+  /** Create word tokenizer. */
+  public ApostrophesAreNotQuotesWordTokenizer() {
+    super();
 
-public class ApostrophesAreNotQuotesWordTokenizer
-    extends DefaultWordTokenizer
-    implements WordTokenizer
-{
-    /** Create word tokenizer.
-     */
-
-    public ApostrophesAreNotQuotesWordTokenizer()
-    {
-        super();
-
-        apostropheCanBeQuote    = false;
-    }
+    apostropheCanBeQuote = false;
+  }
 }
 
 /*
@@ -59,6 +53,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

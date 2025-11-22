@@ -1,417 +1,348 @@
 package edu.northwestern.at.utils.spellcheck;
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
-
-/** HashMapSpellingDictionary -- implements hash map based spelling dictionary.
+/**
+ * HashMapSpellingDictionary -- implements hash map based spelling dictionary.
  *
- *  <p>
- *  This class provides the basic methods for a spelling checker
- *  dictionary implemented using hash maps.
- *  </p>
+ * <p>This class provides the basic methods for a spelling checker dictionary implemented using hash
+ * maps.
  */
+public class HashMapSpellingDictionary implements SpellingDictionary {
+  /** The dictionary keyed by metaphone values. */
+  protected Map<String, List<String>> metaphoneDictionary = MapFactory.createNewMap();
 
-public class HashMapSpellingDictionary implements SpellingDictionary
-{
-    /** The dictionary keyed by metaphone values. */
+  /** Metaphone encoder instance. */
+  private DoubleMetaphone metaphone = new DoubleMetaphone();
 
-    protected Map<String, List<String>> metaphoneDictionary =
-        MapFactory.createNewMap();
+  /** Create HashMapSpellingDictionary. */
+  public HashMapSpellingDictionary() {}
 
-    /** Metaphone encoder instance. */
+  /**
+   * Reads the dictionary from a buffered reader.
+   *
+   * @param in The buffered reader.
+   * @throws IOException
+   */
+  public void read(BufferedReader in) throws IOException {
+    String word;
+    String metaphoneValue;
 
-    private DoubleMetaphone metaphone = new DoubleMetaphone();
+    // Read # of words in dictionary
 
-    /** Create HashMapSpellingDictionary. */
+    String sWords = in.readLine();
+    int nWords = new Integer(sWords).intValue();
 
-    public HashMapSpellingDictionary()
-    {
+    // Read # of metaphone values
+
+    String sMeta = in.readLine();
+    int nMeta = new Integer(sMeta).intValue();
+
+    // Set hash map capacities to match.
+
+    metaphoneDictionary = MapFactory.createNewMap();
+
+    // Pick up next metaphone value in
+    // dictionary.
+
+    while ((metaphoneValue = in.readLine()) != null) {
+      // Pick up the number of words having
+      // this metaphone value.
+
+      String sWordsThisMeta = in.readLine();
+
+      int nWordsThisMeta = new Integer(sWordsThisMeta).intValue();
+
+      // Read the words matching this
+      // metaphone value.
+
+      List<String> words = ListFactory.createNewList();
+
+      for (int i = 0; i < nWordsThisMeta; i++) {
+        word = in.readLine();
+
+        words.add(word);
+      }
+      // Make sure word list is sorted.
+      // We need this so that binary searches
+      // work later on when we lookup words.
+
+      Collections.sort(words);
+
+      // Add metaphone value.
+
+      metaphoneDictionary.put(metaphoneValue, words);
     }
 
-    /** Reads the dictionary from a buffered reader.
-     *
-     *  @param  in      The buffered reader.
-     *
-     *  @throws IOException
-     */
+    in.close();
+  }
 
-    public void read( BufferedReader in )
-        throws IOException
-    {
-        String word;
-        String metaphoneValue;
+  /**
+   * Counts words in the dictionary.
+   *
+   * @return The number of words in the dictionary.
+   */
+  public int wordCount() {
+    int result = 0;
 
-                                // Read # of words in dictionary
+    // Get list of metaphone values.
 
-        String sWords   = in.readLine();
-        int nWords      = new Integer( sWords ).intValue();
+    java.util.List<String> keys = ListFactory.createNewList(metaphoneDictionary.keySet());
 
-                                // Read # of metaphone values
+    // Loop over each metaphone value.
 
-        String sMeta    = in.readLine();
-        int nMeta       = new Integer( sMeta ).intValue();
+    for (String key : keys) {
+      // Get word list for this metaphone value.
 
-                                // Set hash map capacities to match.
+      List<String> words = metaphoneDictionary.get(key);
 
-        metaphoneDictionary = MapFactory.createNewMap();
+      // If not null, add # of words in this list
+      // to total.
 
-                                // Pick up next metaphone value in
-                                // dictionary.
-
-        while ( ( metaphoneValue = in.readLine() ) != null )
-        {
-                                // Pick up the number of words having
-                                // this metaphone value.
-
-            String sWordsThisMeta   = in.readLine();
-
-            int nWordsThisMeta      = new Integer( sWordsThisMeta ).intValue();
-
-                                // Read the words matching this
-                                // metaphone value.
-
-            List<String> words = ListFactory.createNewList();
-
-            for ( int i = 0; i < nWordsThisMeta; i++ )
-            {
-                word = in.readLine();
-
-                words.add( word );
-            }
-                                // Make sure word list is sorted.
-                                // We need this so that binary searches
-                                // work later on when we lookup words.
-
-            Collections.sort( words );
-
-                                // Add metaphone value.
-
-            metaphoneDictionary.put( metaphoneValue , words );
-        }
-
-        in.close();
+      if (words != null) {
+        result += words.size();
+      }
     }
 
-    /** Counts words in the dictionary.
-     *
-     *  @return     The number of words in the dictionary.
-     */
+    return result;
+  }
 
-    public int wordCount()
-    {
-        int result = 0;
+  /**
+   * Writes the dictionary to a buffered writer.
+   *
+   * @param out The buffered writer.
+   * @throws IOException
+   */
+  public void write(BufferedWriter out) throws IOException {
+    int nWords = wordCount();
+    int nMeta = metaphoneDictionary.size();
 
-                        // Get list of metaphone values.
+    // Output # of words and # of metaphone values.
 
-        java.util.List<String> keys =
-            ListFactory.createNewList( metaphoneDictionary.keySet() );
+    out.write(nWords + "\n");
+    out.write(nMeta + "\n");
 
-                        // Loop over each metaphone value.
+    // Get list of metaphone values.
 
-        for ( String key : keys )
-        {
-                        // Get word list for this metaphone value.
+    java.util.List<String> keys = ListFactory.createNewList(metaphoneDictionary.keySet());
 
-            List<String> words = metaphoneDictionary.get( key );
+    // Loop over each metaphone value.
 
-                        // If not null, add # of words in this list
-                        // to total.
+    for (String key : keys) {
+      // Get word list for this metaphone value.
 
-            if ( words != null )
-            {
-                result += words.size();
-            }
+      List<String> words = metaphoneDictionary.get(key);
+
+      // Output the metaphone value.
+
+      out.write(key + "\n");
+
+      // Output the number of words keyed to this
+      // metaphone value.
+
+      if (words == null) {
+        out.write("0\n");
+      } else {
+        // Output the words keyed to this metaphone value.
+
+        out.write(words.size() + "\n");
+
+        for (int i = 0; i < words.size(); i++) {
+          out.write(words.get(i) + "\n");
         }
-
-        return result;
+      }
     }
 
-    /** Writes the dictionary to a buffered writer.
-     *
-     *  @param  out     The buffered writer.
-     *
-     *  @throws IOException
-     */
+    out.close();
+  }
 
-    public void write( BufferedWriter out )
-        throws IOException
-    {
-        int nWords  = wordCount();
-        int nMeta   = metaphoneDictionary.size();
+  /**
+   * Lookup word in dictionary.
+   *
+   * @param word The word to lookup.
+   * @return True if the word was found in the dictionary.
+   *     <p><strong>Note:</strong>
+   *     <p>Any processing of the word (conversion to lower case, etc.) should be done before
+   *     calling this routine.
+   */
+  public boolean lookupWord(String word) {
+    // Consider null or empty word to be spelled
+    // correctly.
 
-                        // Output # of words and # of metaphone values.
+    if ((word == null) || (word.length() <= 0)) return true;
 
-        out.write( nWords + "\n" );
-        out.write( nMeta + "\n" );
+    // Get metaphone for word.
 
-                        // Get list of metaphone values.
+    String lowerCaseWord = word.toLowerCase();
+    String metaphoneValue = "";
 
-        java.util.List<String> keys =
-            ListFactory.createNewList( metaphoneDictionary.keySet() );
+    try {
+      metaphoneValue = metaphone.encode(lowerCaseWord);
+    } catch (Exception e) {
+      metaphoneValue = "";
+    }
+    // Get list of words for this metaphone value.
 
-                        // Loop over each metaphone value.
+    Set<String> words = getRelatedWords(metaphoneValue);
 
-        for ( String key : keys )
-        {
-                        // Get word list for this metaphone value.
+    // If none, this word can't be in the
+    // dictionary, so say it's not found.
 
-            List<String> words = metaphoneDictionary.get( key );
+    if (words == null) {
+      return false;
+    }
+    // See if the word is in the list of
+    // words for the metaphone value.  If not,
+    // it's not in the dictionary.
+    else {
+      return words.contains(lowerCaseWord);
+    }
+  }
 
-                        // Output the metaphone value.
+  /**
+   * Add a word to the dictionary.
+   *
+   * @param word The word to add to the dictionary.
+   * @return True if word added successfully.
+   */
+  private boolean addWordPrivate(String word) {
+    String lowerCaseWord = word.toLowerCase();
+    String metaphoneValue = "";
+    String metaphoneValue2 = "";
 
-            out.write( key + "\n" );
+    if (lookupWord(lowerCaseWord)) return false;
 
-                        // Output the number of words keyed to this
-                        // metaphone value.
-
-            if ( words == null )
-            {
-                out.write( "0\n" );
-            }
-            else
-            {
-                        // Output the words keyed to this metaphone value.
-
-                out.write( words.size() + "\n" );
-
-                for ( int i = 0; i < words.size(); i++ )
-                {
-                    out.write( words.get( i ) + "\n" );
-                }
-            }
-        }
-
-        out.close();
+    try {
+      metaphoneValue = metaphone.encode(lowerCaseWord);
+    } catch (Exception e) {
+      metaphoneValue = "";
     }
 
-    /** Lookup word in dictionary.
-     *
-     *  @param  word    The word to lookup.
-     *
-     *  @return         True if the word was found in the
-     *                  dictionary.
-     *
-     *  <p>
-     *  <strong>Note:</strong>
-     *  </p>
-     *
-     *  <p>
-     *  Any processing of the word (conversion to lower case, etc.)
-     *  should be done before calling this routine.
-     *  </p>
-     */
+    List<String> words = metaphoneDictionary.get(metaphoneValue);
 
-    public boolean lookupWord( String word )
-    {
-                            // Consider null or empty word to be spelled
-                            // correctly.
-
-        if ( ( word == null ) || ( word.length() <= 0 ) ) return true;
-
-                            // Get metaphone for word.
-
-        String lowerCaseWord    = word.toLowerCase();
-        String metaphoneValue   = "";
-
-        try
-        {
-            metaphoneValue = metaphone.encode( lowerCaseWord );
-        }
-        catch ( Exception e )
-        {
-            metaphoneValue = "";
-        }
-                            // Get list of words for this metaphone value.
-
-        Set<String> words = getRelatedWords( metaphoneValue );
-
-                            // If none, this word can't be in the
-                            // dictionary, so say it's not found.
-
-        if ( words == null )
-        {
-            return false;
-        }
-                            // See if the word is in the list of
-                            // words for the metaphone value.  If not,
-                            // it's not in the dictionary.
-        else
-        {
-            return words.contains( lowerCaseWord );
-        }
+    if (words == null) {
+      words = ListFactory.createNewList();
     }
 
-    /** Add a word to the dictionary.
-     *
-     *  @param  word        The word to add to the dictionary.
-     *
-     *  @return             True if word added successfully.
-     */
+    words.add(lowerCaseWord);
 
-    private boolean addWordPrivate( String word )
-    {
-        String lowerCaseWord    = word.toLowerCase();
-        String metaphoneValue   = "";
-        String metaphoneValue2  = "";
+    Collections.sort(words);
 
-        if ( lookupWord( lowerCaseWord ) ) return false;
+    metaphoneDictionary.put(metaphoneValue, words);
 
-        try
-        {
-            metaphoneValue = metaphone.encode( lowerCaseWord );
-        }
-        catch ( Exception e )
-        {
-            metaphoneValue = "";
-        }
-
-        List<String> words = metaphoneDictionary.get( metaphoneValue );
-
-        if ( words == null )
-        {
-            words = ListFactory.createNewList();
-        }
-
-        words.add( lowerCaseWord );
-
-        Collections.sort( words );
-
-        metaphoneDictionary.put( metaphoneValue , words );
-
-        try
-        {
-            metaphoneValue2 = metaphone.getAlternate();
-        }
-        catch ( Exception e )
-        {
-            metaphoneValue2 = "";
-        }
-
-        if ( !metaphoneValue2.equals( metaphoneValue ) )
-        {
-            words = metaphoneDictionary.get( metaphoneValue2 );
-
-            if ( words == null )
-            {
-                words = ListFactory.createNewList();
-            }
-
-            words.add( lowerCaseWord );
-
-            Collections.sort( words );
-
-            metaphoneDictionary.put( metaphoneValue2 , words );
-        }
-
-        return true;
+    try {
+      metaphoneValue2 = metaphone.getAlternate();
+    } catch (Exception e) {
+      metaphoneValue2 = "";
     }
 
-    /** Add a word to the dictionary.
-     *
-     *  @param  word        The word to add to the dictionary.
-     *
-     *  @return             True if word added successfully.
-     */
+    if (!metaphoneValue2.equals(metaphoneValue)) {
+      words = metaphoneDictionary.get(metaphoneValue2);
 
-    public boolean addWord( String word )
-    {
-        return addWordPrivate( word );
+      if (words == null) {
+        words = ListFactory.createNewList();
+      }
+
+      words.add(lowerCaseWord);
+
+      Collections.sort(words);
+
+      metaphoneDictionary.put(metaphoneValue2, words);
     }
 
-    /** Add multiple words to the dictionary.
-     *
-     *  @param  words       The words to add to the dictionary.
-     *
-     *  @return             True if all words added successfully.
-     */
+    return true;
+  }
 
-    public boolean addWords( String[] words )
-    {
-        boolean result = true;
+  /**
+   * Add a word to the dictionary.
+   *
+   * @param word The word to add to the dictionary.
+   * @return True if word added successfully.
+   */
+  public boolean addWord(String word) {
+    return addWordPrivate(word);
+  }
 
-        for ( int i = 0; i < words.length; i++ )
-        {
-            boolean added   = addWord( words[ i ] );
-            result          = result && added;
-        }
+  /**
+   * Add multiple words to the dictionary.
+   *
+   * @param words The words to add to the dictionary.
+   * @return True if all words added successfully.
+   */
+  public boolean addWords(String[] words) {
+    boolean result = true;
 
-        return result;
+    for (int i = 0; i < words.length; i++) {
+      boolean added = addWord(words[i]);
+      result = result && added;
     }
 
-    /** Get list of words with a specified metaphone value.
-     *
-     *  @param  metaphone   The metaphone value.
-     *
-     *  @return             Set of words with specified metaphone value.
-     *                      May be empty if no words with matching
-     *                      metaphone value found.
-     */
+    return result;
+  }
 
-    public Set<String> getRelatedWords( String metaphone )
-    {
-        Set<String> result  = SetFactory.createNewSet();
+  /**
+   * Get list of words with a specified metaphone value.
+   *
+   * @param metaphone The metaphone value.
+   * @return Set of words with specified metaphone value. May be empty if no words with matching
+   *     metaphone value found.
+   */
+  public Set<String> getRelatedWords(String metaphone) {
+    Set<String> result = SetFactory.createNewSet();
 
-        List<String> list = metaphoneDictionary.get( metaphone );
+    List<String> list = metaphoneDictionary.get(metaphone);
 
-        if ( list != null )
-        {
-            result.addAll( list );
-        }
-
-        return result;
+    if (list != null) {
+      result.addAll(list);
     }
 
-    /** Retrieves all words in dictionary.
-     *
-     *  @return     ArrayList of all words in dictionary.
-     */
+    return result;
+  }
 
-    public Set<String> getAllWords()
-    {
-        Set<String> result = new TreeSet<String>();
+  /**
+   * Retrieves all words in dictionary.
+   *
+   * @return ArrayList of all words in dictionary.
+   */
+  public Set<String> getAllWords() {
+    Set<String> result = new TreeSet<String>();
 
-                        // Get list of metaphone values.
+    // Get list of metaphone values.
 
-        java.util.List<String> keys =
-            ListFactory.createNewList( metaphoneDictionary.keySet() );
+    java.util.List<String> keys = ListFactory.createNewList(metaphoneDictionary.keySet());
 
-                        // Loop over each metaphone value.
+    // Loop over each metaphone value.
 
-        for ( String key : keys )
-        {
-                        // Get word list for this metaphone value.
+    for (String key : keys) {
+      // Get word list for this metaphone value.
 
-            List<String> words = metaphoneDictionary.get( key );
+      List<String> words = metaphoneDictionary.get(key);
 
-                        // If not null, add # of words in this list
-                        // to total.
+      // If not null, add # of words in this list
+      // to total.
 
-            if ( words != null )
-            {
-                result.addAll( words );
-            }
-        }
-
-        return result;
+      if (words != null) {
+        result.addAll(words);
+      }
     }
 
-    /** Retrieves number of words in dictionary.
-     *
-     *  @return     Number of words in dictionary.
-     */
+    return result;
+  }
 
-    public int getNumberOfWords()
-    {
-        return wordCount();
-    }
+  /**
+   * Retrieves number of words in dictionary.
+   *
+   * @return Number of words in dictionary.
+   */
+  public int getNumberOfWords() {
+    return wordCount();
+  }
 
-    /** Clear dictionary of all words and metaphone values. */
-
-    public void clear()
-    {
-        metaphoneDictionary.clear();
-    }
+  /** Clear dictionary of all words and metaphone values. */
+  public void clear() {
+    metaphoneDictionary.clear();
+  }
 }

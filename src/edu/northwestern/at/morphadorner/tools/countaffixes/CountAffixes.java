@@ -2,203 +2,150 @@ package edu.northwestern.at.morphadorner.tools.countaffixes;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.morphadorner.tools.*;
-
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
-
-/** Count affixes for unique words in MorphAdorner XML output.
+/**
+ * Count affixes for unique words in MorphAdorner XML output.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  java edu.northwestern.at.morphadorner.tools.countaffixes.CountAffixes input.xml prefixes.tab suffixes.tab<br />
- *  <br />
- *  input.xml -- input XML file produced as output by MorphAdorner.<br />
- *  prefixes.tab -- output tab-separated prefixes file described below.<br />
- *  suffixes.tab -- output tab-separated suffixes file described below.<br />
- *  </p>
+ * <p>java edu.northwestern.at.morphadorner.tools.countaffixes.CountAffixes input.xml prefixes.tab
+ * suffixes.tab<br>
+ * <br>
+ * input.xml -- input XML file produced as output by MorphAdorner.<br>
+ * prefixes.tab -- output tab-separated prefixes file described below.<br>
+ * suffixes.tab -- output tab-separated suffixes file described below.<br>
  *
- *  <p>
- *  Both the prefixes.tab and suffixes.tab output files contain two
- *  tab-separated columns.  The first column is a prefix or suffix string,
- *  respectively, and the second column contains the count of the number
- *  of times that prefix or suffix occurred in the unique words in the
- *  input.xml file.
- *  </p>
+ * <p>Both the prefixes.tab and suffixes.tab output files contain two tab-separated columns. The
+ * first column is a prefix or suffix string, respectively, and the second column contains the count
+ * of the number of times that prefix or suffix occurred in the unique words in the input.xml file.
  */
+public class CountAffixes {
+  /** Main program. */
+  public static void main(String[] args) {
+    //  Must have input file name and
+    //  two output file names to extract
+    //  affixes.
+    //
+    //  Display program usage if three
+    //  arguments are not provided.
 
-public class CountAffixes
-{
-    /** Main program. */
-
-    public static void main( String[] args )
-    {
-                                //  Must have input file name and
-                                //  two output file names to extract
-                                //  affixes.
-                                //
-                                //  Display program usage if three
-                                //  arguments are not provided.
-
-        if ( args.length >= 3 )
-        {
-            new CountAffixes( args );
-        }
-        else
-        {
-            displayUsage();
-            System.exit( 1 );
-        }
+    if (args.length >= 3) {
+      new CountAffixes(args);
+    } else {
+      displayUsage();
+      System.exit(1);
     }
+  }
 
-    /** Display brief program usage.
-     */
+  /** Display brief program usage. */
+  public static void displayUsage() {
+    System.out.println("Usage: ");
+    System.out.println("");
+    System.out.println(
+        "   java edu.northwestern.at.morphadorner.tool.countaffixes."
+            + "CountAffixes input.xml prefixes.tab suffixes.tab");
+    System.out.println("");
+    System.out.println("      input.xml -- input XML file");
+    System.out.println("      prefixes.tab -- output tab-separated " + "prefixes and counts file.");
+    System.out.println(
+        "      suiffixes.tab -- output tab-separated " + "suffixes and counts file.");
+  }
 
-    public static void displayUsage()
-    {
-        System.out.println( "Usage: " );
-        System.out.println( "" );
-        System.out.println(
-            "   java edu.northwestern.at.morphadorner.tool.countaffixes." +
-            "CountAffixes input.xml prefixes.tab suffixes.tab" );
-        System.out.println( "" );
-        System.out.println( "      input.xml -- input XML file" );
-        System.out.println( "      prefixes.tab -- output tab-separated " +
-            "prefixes and counts file." );
-        System.out.println( "      suiffixes.tab -- output tab-separated " +
-            "suffixes and counts file." );
-    }
+  /**
+   * Supervises count of affixes for word specified by XML "<w>" elements.
+   *
+   * @param args Command line arguments.
+   */
+  public CountAffixes(String[] args) {
+    //  Get input XML file name.
 
-    /** Supervises count of affixes for word specified by XML "<w>" elements.
-     *
-     *  @param  args    Command line arguments.
-     */
+    String xmlInputFileName = args[0];
 
-    public CountAffixes( String[] args )
-    {
-                                //  Get input XML file name.
+    //  Holds spellings and counts.
 
-        String xmlInputFileName         = args[ 0 ];
+    Map<String, Number> wordsMap = MapFactory.createNewMap();
 
-                                //  Holds spellings and counts.
+    //  Holds prefixes and counts.
 
-        Map<String,Number> wordsMap     = MapFactory.createNewMap();
+    Map<String, Number> prefixesMap = MapFactory.createNewMap();
 
-                                //  Holds prefixes and counts.
+    //  Holds prefixes and counts.
 
-        Map<String,Number> prefixesMap  = MapFactory.createNewMap();
+    Map<String, Number> suffixesMap = MapFactory.createNewMap();
 
-                                //  Holds prefixes and counts.
+    //  Holds suffixes and counts.
 
-        Map<String,Number> suffixesMap  = MapFactory.createNewMap();
+    //  Count affixes for each
+    //  word specified by a "<w>" element
+    //  in the input file.
+    try {
+      //  Read the adorned XML.
 
-                                //  Holds suffixes and counts.
+      AdornedXMLReader xmlReader = new AdornedXMLReader(xmlInputFileName);
 
-                                //  Count affixes for each
-                                //  word specified by a "<w>" element
-                                //  in the input file.
-        try
-        {
-                                //  Read the adorned XML.
+      //  We have collected information
+      //  about each "<w>" element in
+      //  the XML input.  For each of these,
+      //  we write a corresponding
+      //  tab-separated list of the
+      //  attribute values to the output file.
 
-            AdornedXMLReader xmlReader  =
-                new AdornedXMLReader( xmlInputFileName );
+      List<String> idList = xmlReader.getAdornedWordIDs();
 
-                                //  We have collected information
-                                //  about each "<w>" element in
-                                //  the XML input.  For each of these,
-                                //  we write a corresponding
-                                //  tab-separated list of the
-                                //  attribute values to the output file.
+      for (int wordOrd = 0; wordOrd < idList.size(); wordOrd++) {
+        //  Get next word's information.
 
-            List<String> idList = xmlReader.getAdornedWordIDs();
+        String id = idList.get(wordOrd);
 
-            for ( int wordOrd = 0 ; wordOrd < idList.size() ; wordOrd++ )
-            {
-                                //  Get next word's information.
+        ExtendedAdornedWord w = xmlReader.getExtendedAdornedWord(id);
 
-                String id       = idList.get( wordOrd );
+        //  Only need information from
+        //  last part of a multipart word.
 
-                ExtendedAdornedWord w       =
-                    xmlReader.getExtendedAdornedWord( id );
+        if (!w.isFirstPart()) continue;
 
-                                //  Only need information from
-                                //  last part of a multipart word.
+        //  Get lowercase form of corrected
+        //  original spelling.
 
-                if ( !w.isFirstPart() ) continue;
+        String spelling = w.getSpelling().toLowerCase();
 
-                                //  Get lowercase form of corrected
-                                //  original spelling.
+        //  Update count in word counts map.
 
-                String spelling = w.getSpelling().toLowerCase();
+        CountMapUtils.updateWordCountMap(spelling, 1, wordsMap);
+      }
+      //  Now for each unique word, extract
+      //  the prefixes and suffixes.
 
-                                //  Update count in word counts map.
+      for (String spelling : wordsMap.keySet()) {
+        //  Get prefixes.
 
-                CountMapUtils.updateWordCountMap( spelling , 1 , wordsMap );
-            }
-                                //  Now for each unique word, extract
-                                //  the prefixes and suffixes.
+        int l = spelling.length();
 
-            for ( String spelling : wordsMap.keySet() )
-            {
-                                //  Get prefixes.
+        for (int i = 0; i < l; i++) {
+          CountMapUtils.updateWordCountMap(spelling.substring(0, i + 1), 1, prefixesMap);
 
-                int l   = spelling.length();
-
-                for ( int i = 0 ; i < l ; i++ )
-                {
-                    CountMapUtils.updateWordCountMap
-                    (
-                        spelling.substring( 0 , i + 1 ) ,
-                        1 ,
-                        prefixesMap
-                    );
-
-                    CountMapUtils.updateWordCountMap
-                    (
-                        spelling.substring( i , l ) ,
-                        1 ,
-                        suffixesMap
-                    );
-                }
-            }
-                                //  Now we have a map of the
-                                //  words and their counts.
-                                //  Output prefixes and counts.
-
-            MapUtils.saveMap
-            (
-                new TreeMap<String, Number>( prefixesMap ) ,
-                args[ 1 ] ,
-                "\t" ,
-                "" ,
-                "utf-8"
-            );
-                                //  Output suffixes and counts.
-            MapUtils.saveMap
-            (
-                new TreeMap<String, Number>( suffixesMap ) ,
-                args[ 2 ] ,
-                "\t" ,
-                "" ,
-                "utf-8"
-            );
+          CountMapUtils.updateWordCountMap(spelling.substring(i, l), 1, suffixesMap);
         }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+      }
+      //  Now we have a map of the
+      //  words and their counts.
+      //  Output prefixes and counts.
+
+      MapUtils.saveMap(new TreeMap<String, Number>(prefixesMap), args[1], "\t", "", "utf-8");
+      //  Output suffixes and counts.
+      MapUtils.saveMap(new TreeMap<String, Number>(suffixesMap), args[2], "\t", "", "utf-8");
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
 }
 
 /*
@@ -241,6 +188,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

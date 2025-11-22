@@ -5,99 +5,70 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** PostTokenizer factory.
- */
+/** PostTokenizer factory. */
+public class PostTokenizerFactory {
+  /**
+   * Get a postTokenizer.
+   *
+   * @return The postTokenizer.
+   */
+  public static PostTokenizer newPostTokenizer() {
+    String className = System.getProperty("posttokenizer.class");
 
-public class PostTokenizerFactory
-{
-    /** Get a postTokenizer.
-     *
-     *  @return     The postTokenizer.
-     */
-
-    public static PostTokenizer newPostTokenizer()
-    {
-        String className    =
-            System.getProperty( "posttokenizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultPostTokenizer";
-        }
-
-        return newPostTokenizer( className );
+    if (className == null) {
+      className = "DefaultPostTokenizer";
     }
 
-    /** Get a postTokenizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The postTokenizer.
-     */
+    return newPostTokenizer(className);
+  }
 
-    public static PostTokenizer newPostTokenizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a postTokenizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The postTokenizer.
+   */
+  public static PostTokenizer newPostTokenizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "posttokenizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultPostTokenizer";
-        }
-
-        return newPostTokenizer( className );
+    if (properties != null) {
+      className = properties.getProperty("posttokenizer.class");
     }
 
-    /** Get a postTokenizer of a specified class name.
-     *
-     *  @param  className   Class name for the postTokenizer.
-     *
-     *  @return             The postTokenizer.
-     */
-
-    public static PostTokenizer newPostTokenizer( String className )
-    {
-        PostTokenizer postTokenizer = null;
-
-        try
-        {
-            postTokenizer   =
-                (PostTokenizer)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    PostTokenizerFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                postTokenizer   =
-                    (PostTokenizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create posttokenizer of class " +
-                    fixedClassName + ", using default." );
-
-                postTokenizer   = new DefaultPostTokenizer();
-            }
-        }
-
-        return postTokenizer;
+    if (className == null) {
+      className = "DefaultPostTokenizer";
     }
+
+    return newPostTokenizer(className);
+  }
+
+  /**
+   * Get a postTokenizer of a specified class name.
+   *
+   * @param className Class name for the postTokenizer.
+   * @return The postTokenizer.
+   */
+  public static PostTokenizer newPostTokenizer(String className) {
+    PostTokenizer postTokenizer = null;
+
+    try {
+      postTokenizer = (PostTokenizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(PostTokenizerFactory.class.getName()) + "." + className;
+
+      try {
+        postTokenizer = (PostTokenizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create posttokenizer of class " + fixedClassName + ", using default.");
+
+        postTokenizer = new DefaultPostTokenizer();
+      }
+    }
+
+    return postTokenizer;
+  }
 }
 
 /*
@@ -140,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

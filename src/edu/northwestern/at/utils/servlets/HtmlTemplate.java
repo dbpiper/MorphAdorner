@@ -2,150 +2,120 @@ package edu.northwestern.at.utils.servlets;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
-import edu.northwestern.at.utils.*;
+/** A simple HTML template manager for servlets. */
+public class HtmlTemplate {
+  /** Text of template. */
+  protected TextFile template = null;
 
-/** A simple HTML template manager for servlets.
- */
+  /**
+   * Create HtmlTemplate with specified template file name.
+   *
+   * @param templateFileName HTML template file name.
+   * @param encoding Character encoding for template.
+   */
+  public HtmlTemplate(String templateFileName, String encoding) {
+    template = new TextFile(templateFileName, encoding);
+  }
 
-public class HtmlTemplate
-{
-    /** Text of template. */
+  /**
+   * Create HtmlTemplate with specified template URL.
+   *
+   * @param templateURL HTML template URL.
+   * @param encoding Character encoding for template.
+   */
+  public HtmlTemplate(URL templateURL, String encoding) {
+    template = new TextFile(templateURL, encoding);
+  }
 
-    protected TextFile template = null;
+  /**
+   * Substitute values in template.
+   *
+   * @param writer Output writer.
+   * @param templateProperties Properties with values to substitute into template.
+   * @throws IOException If output cannot be written.
+   */
+  public synchronized void outputTemplate(PrintWriter writer, UTF8Properties templateProperties)
+      throws IOException {
+    //  Do nothing if template text not
+    //  loaded.
 
-    /** Create HtmlTemplate with specified template file name.
-     *
-     *  @param  templateFileName    HTML template file name.
-     *  @param  encoding            Character encoding for template.
-     */
+    if (!template.textLoaded()) return;
 
-    public HtmlTemplate( String templateFileName , String encoding )
-    {
-        template    = new TextFile( templateFileName , encoding );
-    }
+    //  Get string array of template lines.
 
-    /** Create HtmlTemplate with specified template URL.
-     *
-     *  @param  templateURL     HTML template URL.
-     *  @param  encoding        Character encoding for template.
-     */
+    String[] templateLines = template.toArray();
 
-    public HtmlTemplate( URL templateURL , String encoding )
-    {
-        template    = new TextFile( templateURL , encoding );
-    }
+    //  Loop over template lines and
+    //  substitute template properties.
 
-    /** Substitute values in template.
-     *
-     *  @param  writer              Output writer.
-     *
-     *  @param  templateProperties  Properties with values to substitute
-     *                              into template.
-     *
-     *  @throws     IOException     If output cannot be written.
-     */
+    for (int i = 0; i < templateLines.length; i++) {
+      //  Get next template line.
 
-    public synchronized void outputTemplate
-    (
-        PrintWriter writer ,
-        UTF8Properties templateProperties
-    )
-        throws IOException
-    {
-                                //  Do nothing if template text not
-                                //  loaded.
+      String templateLine = templateLines[i];
 
-        if ( !template.textLoaded() ) return;
+      //  Substitute template properties
+      //  values if any found in this line.
 
-                                //  Get string array of template lines.
+      if (templateProperties != null) {
+        //  Get all property names.
 
-        String[] templateLines  = template.toArray();
+        List properties = ListFactory.createNewList(templateProperties.getAllStrings());
 
-                                //  Loop over template lines and
-                                //  substitute template properties.
+        int propertyIndex = -1;
+        String propertyName = "";
+        String propertyValue = "";
 
-        for ( int i = 0 ; i < templateLines.length ; i++ )
-        {
-                                //  Get next template line.
+        //  Loop over property names.
 
-            String templateLine = templateLines[ i ];
+        for (int j = 0; j < properties.size(); j++) {
+          //  Get next property name.
 
-                                //  Substitute template properties
-                                //  values if any found in this line.
+          propertyName = (String) properties.get(j);
 
-            if ( templateProperties != null )
-            {
-                                //  Get all property names.
+          //  Get next property value.
 
-                List properties =
-                    ListFactory.createNewList
-                    (
-                        templateProperties.getAllStrings()
-                    );
+          propertyValue = templateProperties.getProperty(propertyName);
 
-                int propertyIndex       = -1;
-                String propertyName     = "";
-                String propertyValue    = "";
+          //  See if property occurs in
+          //  current template line.
 
-                                //  Loop over property names.
+          propertyIndex = templateLine.indexOf(propertyName);
 
-                for ( int j = 0 ; j < properties.size() ; j++ )
-                {
-                                //  Get next property name.
+          //  If property does occur in current
+          //  template line ...
 
-                    propertyName    = (String)properties.get( j );
+          while (propertyIndex >= 0) {
+            //  Substitute property value for
+            //  property name in template text.
+            try {
+              templateLine =
+                  templateLine.substring(0, propertyIndex)
+                      + propertyValue
+                      + templateLine.substring(propertyIndex + propertyName.length());
 
-                                //  Get next property value.
+              //  Keep substuting if property occurs
+              //  more than once in template line.
 
-                    propertyValue   =
-                        templateProperties.getProperty( propertyName );
-
-                                //  See if property occurs in
-                                //  current template line.
-
-                    propertyIndex   =
-                        templateLine.indexOf( propertyName );
-
-                                //  If property does occur in current
-                                //  template line ...
-
-                    while ( propertyIndex >= 0 )
-                    {
-                                //  Substitute property value for
-                                //  property name in template text.
-                        try
-                        {
-                            templateLine    =
-                                templateLine.substring( 0 , propertyIndex ) +
-                                propertyValue  +
-                                templateLine.substring(
-                                    propertyIndex + propertyName.length() );
-
-                                //  Keep substuting if property occurs
-                                //  more than once in template line.
-
-                            propertyIndex   =
-                                templateLine.indexOf( propertyName );
-                        }
-                        catch( Exception e)
-                        {
-                            propertyIndex   = -1;
-                        }
-                    }
-                }
+              propertyIndex = templateLine.indexOf(propertyName);
+            } catch (Exception e) {
+              propertyIndex = -1;
             }
-                                //  Output template line after
-                                //  properties substituted.
-
-            writer.println( templateLine );
+          }
         }
-                                //  Flush output.
-        writer.flush();
+      }
+      //  Output template line after
+      //  properties substituted.
+
+      writer.println(templateLine);
     }
+    //  Flush output.
+    writer.flush();
+  }
 }
 
 /*
@@ -188,6 +158,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

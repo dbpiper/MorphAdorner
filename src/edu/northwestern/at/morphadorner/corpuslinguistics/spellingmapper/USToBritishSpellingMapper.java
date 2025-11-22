@@ -2,113 +2,80 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingmapper;
 
 /*  Please see the license information at the end of this file. */
 
-import java.net.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
+import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
+/** Maps American to British spellings. */
+public class USToBritishSpellingMapper implements SpellingMapper {
+  /** Resource file with British/American mappings. */
+  protected static final String wordMapPath = "resources/abbc.tab";
 
-/** Maps American to British spellings.
- */
+  /** Hash map with American spelling as key and British spelling as value. */
+  protected static Map<String, String> USToBritMap = null;
 
-public class USToBritishSpellingMapper
-    implements SpellingMapper
-{
-    /** Resource file with British/American mappings.
-     */
+  /** Create US to British spelling mapper. */
+  public USToBritishSpellingMapper() {
+    //  Load the US to British word map if
+    //  not already loaded.
 
-    protected static final String wordMapPath   = "resources/abbc.tab";
+    if (USToBritMap == null) {
+      try {
+        USToBritMap = MapFactory.createNewMap();
+        loadUSToBritishWordMap();
+      } catch (Exception e) {
+      }
+    }
+  }
 
-    /** Hash map with American spelling as key and British spelling as value.
-     */
+  /** Load the US to British mapping data. */
+  protected void loadUSToBritishWordMap() throws MalformedURLException, IOException {
+    //  URL for British/US mapping word list.
+    URL wordMapURL = USToBritishSpellingMapper.class.getResource(wordMapPath);
 
-    protected static Map<String,String> USToBritMap =null;
+    BufferedReader mapReader = new BufferedReader(new UnicodeReader(wordMapURL.openStream()));
+    //  Load hash map with key=US spelling
+    //  and value=British spelling.
+    //  First token on each line is the
+    //  US spelling, followed by an ascii tab,
+    //  followed by the matching British
+    //  spelling.  We ignore the rest of
+    //  the text on each line.
 
-    /** Create US to British spelling mapper.
-     */
+    String line = mapReader.readLine();
 
-    public USToBritishSpellingMapper()
-    {
-                                //  Load the US to British word map if
-                                //  not already loaded.
+    while (line != null) {
+      StringTokenizer tokens = new StringTokenizer(line, "\t");
 
-        if ( USToBritMap == null )
-        {
-            try
-            {
-                USToBritMap = MapFactory.createNewMap();
-                loadUSToBritishWordMap();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
+      String usWord = tokens.nextToken().trim();
+      String britWord = tokens.nextToken().trim();
+
+      USToBritMap.put(usWord, britWord);
+
+      line = mapReader.readLine();
     }
 
-    /** Load the US to British mapping data.
-     */
+    mapReader.close();
+  }
 
-    protected void loadUSToBritishWordMap()
-        throws MalformedURLException, IOException
-    {
-                                //  URL for British/US mapping word list.
-        URL wordMapURL  =
-            USToBritishSpellingMapper.class.getResource( wordMapPath );
+  /**
+   * Returns British spelling given a U. S. spelling.
+   *
+   * @param spelling The spelling.
+   * @return The mapped spelling.
+   */
+  public String mapSpelling(String spelling) {
+    String result = spelling;
 
-        BufferedReader mapReader    =
-            new BufferedReader
-            (
-                new UnicodeReader
-                (
-                    wordMapURL.openStream()
-                )
-            );
-                                //  Load hash map with key=US spelling
-                                //  and value=British spelling.
-                                //  First token on each line is the
-                                //  US spelling, followed by an ascii tab,
-                                //  followed by the matching British
-                                //  spelling.  We ignore the rest of
-                                //  the text on each line.
+    String usSpelling = USToBritMap.get(spelling.toLowerCase());
 
-        String line = mapReader.readLine();
-
-        while ( line != null )
-        {
-            StringTokenizer tokens = new StringTokenizer( line , "\t" );
-
-            String usWord   = tokens.nextToken().trim();
-            String britWord = tokens.nextToken().trim();
-
-            USToBritMap.put( usWord , britWord );
-
-            line    = mapReader.readLine();
-        }
-
-        mapReader.close();
+    if (usSpelling != null) {
+      result = CharUtils.makeCaseMatch(usSpelling, spelling);
     }
 
-    /** Returns British spelling given a U. S. spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The mapped spelling.
-     */
-
-    public String mapSpelling( String spelling )
-    {
-        String result       = spelling;
-
-        String usSpelling   =
-            USToBritMap.get( spelling.toLowerCase() );
-
-        if ( usSpelling != null )
-        {
-            result  = CharUtils.makeCaseMatch( usSpelling , spelling );
-        }
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -151,6 +118,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

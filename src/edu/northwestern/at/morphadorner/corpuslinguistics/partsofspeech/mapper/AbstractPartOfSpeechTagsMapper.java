@@ -2,122 +2,85 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.mapper;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.IsCloseable;
+import edu.northwestern.at.utils.IsCloseableObject;
+import edu.northwestern.at.utils.StringUtils;
+import edu.northwestern.at.utils.UTF8Properties;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.IsCloseable;
-import edu.northwestern.at.utils.IsCloseableObject;
-import edu.northwestern.at.utils.MapFactory;
-import edu.northwestern.at.utils.SortedArrayList;
-import edu.northwestern.at.utils.StringUtils;
-import edu.northwestern.at.utils.TextFile;
-import edu.northwestern.at.utils.UTF8Properties;
-import edu.northwestern.at.utils.UTF8PropertyUtils;
+/** AbstractPartOfSpeechTagsMapper: Base class for PartOfSpeechTagsMapper implementations. */
+public abstract class AbstractPartOfSpeechTagsMapper extends IsCloseableObject
+    implements PartOfSpeechTagsMapper, IsCloseable {
+  /**
+   * Part of speech tags map.
+   *
+   * <p>Key is source part of speech tag, value is destination part of speech tag.
+   */
+  protected UTF8Properties partOfSpeechTagsMap = new UTF8Properties();
 
-/** AbstractPartOfSpeechTagsMapper: Base class for PartOfSpeechTagsMapper implementations.
- */
+  /** Character separating multiple part of speech tags. */
+  protected String sourceTagSeparator = "|";
 
-abstract public class AbstractPartOfSpeechTagsMapper
-    extends IsCloseableObject
-    implements PartOfSpeechTagsMapper, IsCloseable
-{
-    /** Part of speech tags map.
-     *
-     *  <p>
-     *  Key is source part of speech tag, value is destination
-     *  part of speech tag.
-     *  </p>
-     */
+  protected String destinationTagSeparator = "|";
 
-    protected UTF8Properties partOfSpeechTagsMap    =
-        new UTF8Properties();
+  /** Value to return for Unknown source tag. */
+  protected String unknownTag = "unknown";
 
-    /** Character separating multiple part of speech tags. */
+  /**
+   * Get destination part of speech tag for a source part of speech tag.
+   *
+   * @param spelling Spelling.
+   * @param sourceTag Source tag name.
+   * @return Destination tag name. Returns unknown tag value if source unrecognized.
+   *     <p>If the source tag contains one or more tag separators, the result will contain the
+   *     respective mapped destination tags separated by tag separators.
+   */
+  public String getTag(String spelling, String sourceTag) {
+    String result = unknownTag;
 
-    protected String sourceTagSeparator         = "|";
-    protected String destinationTagSeparator    = "|";
+    if (sourceTag != null) {
+      if (sourceTag.indexOf(sourceTagSeparator) >= 0) {
+        String[] sourceTags = StringUtils.makeTokenArray(sourceTag, sourceTagSeparator);
 
-    /** Value to return for Unknown source tag. */
+        StringBuffer sb = new StringBuffer();
 
-    protected String unknownTag                 = "unknown";
+        for (int i = 0; i < sourceTags.length; i++) {
+          String tag = partOfSpeechTagsMap.getTag(sourceTags[i]);
 
-    /** Get destination part of speech tag for a source part of speech tag.
-     *
-     *  @param  spelling        Spelling.
-     *  @param  sourceTag       Source tag name.
-     *
-     *  @return                 Destination tag name.
-     *                          Returns unknown tag value if source unrecognized.
-     *
-     *  <p>
-     *  If the source tag contains one or more tag separators,
-     *  the result will contain the respective mapped destination tags
-     *  separated by tag separators.
-     *  </p>
-     *
-     */
+          if (tag == null) {
+            tag = unknownTag;
+          }
 
-    public String getTag( String spelling , String sourceTag )
-    {
-        String result   = unknownTag;
+          if (sb.length() > 0) {
+            sb.append(destinationTagSeparator);
+          }
 
-        if ( sourceTag != null )
-        {
-            if ( sourceTag.indexOf( sourceTagSeparator ) >= 0 )
-            {
-                String[] sourceTags =
-                    StringUtils.makeTokenArray
-                    (
-                        sourceTag ,
-                        sourceTagSeparator
-                    );
-
-                StringBuffer sb = new StringBuffer();
-
-                for ( int i = 0 ; i < sourceTags.length ; i++ )
-                {
-                    String tag  =
-                        partOfSpeechTagsMap.getTag( sourceTags[ i ] );
-
-                    if ( tag == null )
-                    {
-                        tag = unknownTag;
-                    }
-
-                    if ( sb.length() > 0 )
-                    {
-                        sb.append( destinationTagSeparator );
-                    }
-
-                    sb.append( tag );
-                }
-
-                result  = sb.toString();
-            }
-            else
-            {
-                result  = partOfSpeechTagsMap.getTag( sourceTag );
-
-                if ( result == null )
-                {
-                    result  = unknownTag;
-                }
-            }
+          sb.append(tag);
         }
 
-        return result;
+        result = sb.toString();
+      } else {
+        result = partOfSpeechTagsMap.getTag(sourceTag);
+
+        if (result == null) {
+          result = unknownTag;
+        }
+      }
     }
 
-    /** Return string form of tag set.
-     *
-     *  @return     String form of part of speech tags map.
-     */
+    return result;
+  }
 
-    public String toString()
-    {
-        return partOfSpeechTagsMap.toString();
-    }
+  /**
+   * Return string form of tag set.
+   *
+   * @return String form of part of speech tags map.
+   */
+  public String toString() {
+    return partOfSpeechTagsMap.toString();
+  }
 }
 
 /*
@@ -160,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

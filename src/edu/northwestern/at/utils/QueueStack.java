@@ -4,93 +4,74 @@ package edu.northwestern.at.utils;
 
 import java.util.*;
 
-/** A stack implemented using a single-ended queue.
+/**
+ * A stack implemented using a single-ended queue.
  *
- *  <p>
- *  We actually use an ArrayList to mimic a queue.
- *  </p>
+ * <p>We actually use an ArrayList to mimic a queue.
  */
+public class QueueStack<E> {
+  /** The queue which is used to hold the stack entries. */
+  protected ArrayList<E> queue;
 
-public class QueueStack<E>
-{
-    /** The queue which is used to hold the stack entries. */
+  /** Create an empty stack. */
+  public QueueStack() {
+    queue = new ArrayList<E>();
+  }
 
-    protected ArrayList<E> queue;
+  /**
+   * Check if stack is empty.
+   *
+   * @return true if stack is empty.
+   */
+  public boolean isEmpty() {
+    return queue.isEmpty();
+  }
 
-    /** Create an empty stack. */
-
-    public QueueStack()
-    {
-        queue   = new ArrayList<E>();
+  /**
+   * Peek at top element of stack without removing it.
+   *
+   * @return Element returned.
+   * @throws EmptyQueueStackException when stack is empty.
+   */
+  public E peek() {
+    try {
+      return queue.get(queue.size() - 1);
+    } catch (NoSuchElementException e) {
+      throw new EmptyQueueStackException("Empty stack.");
     }
+  }
 
-    /** Check if stack is empty.
-     *
-     *  @return     true if stack is empty.
-     */
-
-    public boolean isEmpty()
-    {
-        return queue.isEmpty();
+  /**
+   * Remove element from stack.
+   *
+   * @return Element returned.
+   * @throws EmptyQueueStackException when stack is empty.
+   */
+  public E pop() {
+    try {
+      return queue.remove(queue.size() - 1);
+    } catch (NoSuchElementException e) {
+      throw new EmptyQueueStackException("Empty stack.");
     }
+  }
 
-    /** Peek at top element of stack without removing it.
-     *
-     *  @return     Element returned.
-     *
-     *  @throws     EmptyQueueStackException when stack is empty.
-     */
+  /**
+   * Add element to stack.
+   *
+   * @param e Element to add to stack.
+   */
+  public void push(E e) {
+    queue.add(e);
+  }
 
-    public E peek()
-    {
-        try
-        {
-            return queue.get( queue.size() - 1 );
-        }
-        catch ( NoSuchElementException e )
-        {
-            throw new EmptyQueueStackException( "Empty stack." );
-        }
-    }
-
-    /** Remove element from stack.
-     *
-     *  @return     Element returned.
-     *
-     *  @throws     EmptyQueueStackException when stack is empty.
-     */
-
-    public E pop()
-    {
-        try
-        {
-            return queue.remove( queue.size() - 1 );
-        }
-        catch ( NoSuchElementException e )
-        {
-            throw new EmptyQueueStackException( "Empty stack." );
-        }
-    }
-
-    /** Add element to stack.
-     *
-     *  @param  e   Element to add to stack.
-     */
-
-    public void push( E e )
-    {
-        queue.add( e );
-    }
-
-    /** Number of entries in stack.
-     *
-     *  @return     Number of entries in stack.
-     */
-
-    public int size()
-    {
-        return queue.size();
-    }
+  /**
+   * Number of entries in stack.
+   *
+   * @return Number of entries in stack.
+   */
+  public int size() {
+    return queue.size();
+  }
 }
 
 /*
@@ -133,6 +114,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

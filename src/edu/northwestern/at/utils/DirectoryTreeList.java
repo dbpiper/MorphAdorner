@@ -2,106 +2,74 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
 /** Walk directory tree to create list of files and directories. */
+public class DirectoryTreeList {
+  /**
+   * Walk directory tree to get sorted of all files and directories.
+   *
+   * @param startingDir Root directory to start walk.
+   * @return Files and directories sorted by name.
+   * @throws FileNotFounfException
+   */
+  public static List<File> getFileListing(File startingDir, boolean recurse)
+      throws FileNotFoundException {
+    List<File> result = null;
 
-public class DirectoryTreeList
-{
-    /** Walk directory tree to get sorted of all files and directories.
-     *
-     *  @param  startingDir Root directory to start walk.
-     *
-     *  @return Files and directories sorted by name.
-     *
-     *  @throws FileNotFounfException
-     */
+    if (startingDir != null) {
+      result = getFileListingUnsorted(startingDir, recurse);
 
-    public static List<File> getFileListing
-    (
-        File startingDir ,
-        boolean recurse
-    )
-        throws FileNotFoundException
-    {
-        List<File> result   = null;
-
-        if ( startingDir != null )
-        {
-            result  = getFileListingUnsorted( startingDir , recurse );
-
-            Collections.sort( result );
-        }
-
-        return result;
+      Collections.sort(result);
     }
 
-    /** Walk directory tree to get unsorted list of all files and directories.
-     *
-     *  @param  startingDir Root directory to start walk.
-     *
-     *  @return Files and directories sorted by name.
-     *
-     *  @throws FileNotFounfException
-     */
+    return result;
+  }
 
-    public static List<File> getFileListingUnsorted
-    (
-        File startingDir ,
-        boolean recurse
-    )
-        throws FileNotFoundException
-    {
-        List<File> result       = new ArrayList<File>();
-        File[] filesAndDirs     = startingDir.listFiles();
-        List<File> filesDirs    = Arrays.asList( filesAndDirs );
+  /**
+   * Walk directory tree to get unsorted list of all files and directories.
+   *
+   * @param startingDir Root directory to start walk.
+   * @return Files and directories sorted by name.
+   * @throws FileNotFounfException
+   */
+  public static List<File> getFileListingUnsorted(File startingDir, boolean recurse)
+      throws FileNotFoundException {
+    List<File> result = new ArrayList<File>();
+    File[] filesAndDirs = startingDir.listFiles();
+    List<File> filesDirs = Arrays.asList(filesAndDirs);
 
-        for ( File file : filesDirs )
-        {
-            result.add( file );
+    for (File file : filesDirs) {
+      result.add(file);
 
-            if ( !file.isFile() && recurse )
-            {
-                List<File> deeperList =
-                    getFileListingUnsorted( file , recurse );
+      if (!file.isFile() && recurse) {
+        List<File> deeperList = getFileListingUnsorted(file, recurse);
 
-                result.addAll( deeperList );
-            }
-        }
-
-        return result;
+        result.addAll(deeperList);
+      }
     }
 
-    /** Walk directory tree to get sorted list of FileInfo entries.
-     */
+    return result;
+  }
 
-    public static List<FileInfo> getFiles
-    (
-        File startingDir ,
-        boolean recurse
-    )
-    {
-        List<FileInfo> result   = new ArrayList<FileInfo>();
+  /** Walk directory tree to get sorted list of FileInfo entries. */
+  public static List<FileInfo> getFiles(File startingDir, boolean recurse) {
+    List<FileInfo> result = new ArrayList<FileInfo>();
 
-        try
-        {
-            List<File> files = getFileListing( startingDir , recurse );
+    try {
+      List<File> files = getFileListing(startingDir, recurse);
 
-            if ( files != null )
-            {
-                for ( File file : files )
-                {
-                    result.add( new FileInfo( file , startingDir ) );
-                }
-            }
+      if (files != null) {
+        for (File file : files) {
+          result.add(new FileInfo(file, startingDir));
         }
-        catch ( Exception e )
-        {
-        }
-
-        return result;
+      }
+    } catch (Exception e) {
     }
+
+    return result;
+  }
 }
 
 /*
@@ -144,6 +112,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

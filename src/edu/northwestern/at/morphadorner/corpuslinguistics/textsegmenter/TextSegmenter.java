@@ -4,20 +4,15 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsegmenter;
 
 import java.util.List;
 
-/** Defines an interface for segmenting a text.
- */
-
-public interface TextSegmenter
-{
-    /** Segment text.
-     *
-     *  @param  sentences   The list of tokenized sentences to segment.
-     *
-     *  @return             A list of sentence indices which start
-     *                      a new text segment.
-     */
-
-    public <T> List<Integer> getSegmentPositions( List<List<T>> sentences );
+/** Defines an interface for segmenting a text. */
+public interface TextSegmenter {
+  /**
+   * Segment text.
+   *
+   * @param sentences The list of tokenized sentences to segment.
+   * @return A list of sentence indices which start a new text segment.
+   */
+  public <T> List<Integer> getSegmentPositions(List<List<T>> sentences);
 }
 
 /*
@@ -60,5 +55,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

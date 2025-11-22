@@ -2,402 +2,313 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.adornedword;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
 import java.io.Serializable;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-
-/** A word adorned with addition morphological information.
+/**
+ * A word adorned with addition morphological information.
  *
- *  <p>
- *  An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
- *  represents a single word spelling,
- *  symbol, or punctuation mark in text.
- *  </p>
+ * <p>An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
+ * represents a single word spelling, symbol, or punctuation mark in text.
  *
- *  <p>
- *  An adorned word records the following information.
- *  </p>
+ * <p>An adorned word records the following information.
  *
- *  <ul>
- *      <li>The original form of the token as it appears in input text.
- *          </li>
- *      <li>The spelling form of the token with transcription errors
- *          corrected.  This is the form used by MorphAdorner for
- *          subsequent morphological processing.
- *          </li>
- *      <li>A standard spelling.  This is the standard modern form
- *          of the spelling for a word.  If the word is obsolete, the
- *          standard form is the most recent commonly used spelling.
- *          </li>
- *      <li>A lemma.  This is the standard dictionary headword form
- *          of the spelling.  Some spellings such as contractions
- *          contain multiple lemmata.  In this case, the lemma
- *          consists of a string of individual lemmata separated
- *          by a separator character, usually a vertical bar "|".
- *          For example, the lemma form of
- *          the contraction "isn't" is "be|not".
- *          </li>
- *      <li>A part of speech.  Each lemma form in the spelling
- *          has an associated part of speech.  Depending upon
- *          the tag set, the individual parts of speech may be
- *          separated by colons, slashes, vertical bars, etc.
- *          </li>
- *  </ul>
+ * <ul>
+ *   <li>The original form of the token as it appears in input text.
+ *   <li>The spelling form of the token with transcription errors corrected. This is the form used
+ *       by MorphAdorner for subsequent morphological processing.
+ *   <li>A standard spelling. This is the standard modern form of the spelling for a word. If the
+ *       word is obsolete, the standard form is the most recent commonly used spelling.
+ *   <li>A lemma. This is the standard dictionary headword form of the spelling. Some spellings such
+ *       as contractions contain multiple lemmata. In this case, the lemma consists of a string of
+ *       individual lemmata separated by a separator character, usually a vertical bar "|". For
+ *       example, the lemma form of the contraction "isn't" is "be|not".
+ *   <li>A part of speech. Each lemma form in the spelling has an associated part of speech.
+ *       Depending upon the tag set, the individual parts of speech may be separated by colons,
+ *       slashes, vertical bars, etc.
+ * </ul>
  */
+public class BaseAdornedWord implements AdornedWord, XCloneable, Comparable, Serializable {
+  /** Token form of spelling. */
+  protected String token;
 
-public class BaseAdornedWord
-    implements AdornedWord , XCloneable , Comparable , Serializable
-{
-    /** Token form of spelling. */
+  /** Corrected spelling. */
+  protected String spelling;
 
-    protected String token;
+  /** Standardized spelling. */
+  protected String standardSpelling;
 
-    /** Corrected spelling. */
+  /** Lemmata for spelling. */
+  protected String lemmata;
 
-    protected String spelling;
+  /** Parts of speech for spelling. */
+  protected String partsOfSpeech;
 
-    /** Standardized spelling. */
+  /** Create an empty adorned word. */
+  public BaseAdornedWord() {
+    this.token = "";
+    this.spelling = "";
+    this.standardSpelling = "";
+    this.lemmata = "";
+    this.partsOfSpeech = "";
+  }
 
-    protected String standardSpelling;
+  /**
+   * Create adorned word from a spelling.
+   *
+   * @param spelling The spelling.
+   *     <p>The token, the spelling, and the standard spelling are all set the the spelling
+   *     parameter value.
+   */
+  public BaseAdornedWord(String spelling) {
+    this.token = spelling;
+    this.spelling = spelling;
+    this.standardSpelling = spelling;
+    this.lemmata = "";
+    this.partsOfSpeech = "";
+  }
 
-    /** Lemmata for spelling. */
+  /**
+   * Create adorned word from a spelling and a part of speech.
+   *
+   * @param spelling The spelling.
+   * @param partsOfSpeech The part of speech.
+   */
+  public BaseAdornedWord(String spelling, String partsOfSpeech) {
+    this.token = spelling;
+    this.spelling = spelling;
+    this.standardSpelling = spelling;
+    this.lemmata = "";
+    this.partsOfSpeech = partsOfSpeech;
+  }
 
-    protected String lemmata;
+  /**
+   * Create adorned word from a token, spelling, and part of speech.
+   *
+   * @param token The token.
+   * @param spelling The spelling.
+   * @param partsOfSpeech The part of speech.
+   */
+  public BaseAdornedWord(String token, String spelling, String partsOfSpeech) {
+    this.token = token;
+    this.spelling = spelling;
+    this.standardSpelling = spelling;
+    this.lemmata = "";
+    this.partsOfSpeech = partsOfSpeech;
+  }
 
-    /** Parts of speech for spelling. */
+  /**
+   * Create adorned word from a token, spelling, standard spelling, lemmata, and parts of speech.
+   *
+   * @param token The token.
+   * @param spelling The spelling.
+   * @param standardSpelling The standard spelling.
+   * @param lemmata The lemmata.
+   * @param partsOfSpeech The parts of speech.
+   */
+  public BaseAdornedWord(
+      String token,
+      String spelling,
+      String standardSpelling,
+      String lemmata,
+      String partsOfSpeech) {
+    this.token = token;
+    this.spelling = spelling;
+    this.standardSpelling = standardSpelling;
+    this.lemmata = lemmata;
+    this.partsOfSpeech = partsOfSpeech;
+  }
 
-    protected String partsOfSpeech;
+  /**
+   * Create a adorned word from another adorned word.
+   *
+   * @param adornedWord A adorned word.
+   */
+  public BaseAdornedWord(AdornedWord adornedWord) {
+    this.token = adornedWord.getToken();
+    this.spelling = adornedWord.getSpelling();
+    this.standardSpelling = adornedWord.getStandardSpelling();
+    this.lemmata = adornedWord.getLemmata();
+    this.partsOfSpeech = adornedWord.getPartsOfSpeech();
+  }
 
-    /** Create an empty adorned word.
-     */
+  /**
+   * Get the original token.
+   *
+   * @return The original token.
+   */
+  public String getToken() {
+    return token;
+  }
 
-    public BaseAdornedWord()
-    {
-        this.token              = "";
-        this.spelling           = "";
-        this.standardSpelling   = "";
-        this.lemmata            = "";
-        this.partsOfSpeech      = "";
+  /**
+   * Set the original token.
+   *
+   * @param token The original token.
+   */
+  public void setToken(String token) {
+    this.token = token;
+  }
+
+  /**
+   * Get the spelling.
+   *
+   * @return The spelling.
+   */
+  public String getSpelling() {
+    return spelling;
+  }
+
+  /**
+   * Set the spelling.
+   *
+   * @param spelling The spelling.
+   */
+  public void setSpelling(String spelling) {
+    this.spelling = spelling;
+  }
+
+  /**
+   * Get the standard spelling.
+   *
+   * @return The standard spelling.
+   */
+  public String getStandardSpelling() {
+    return standardSpelling;
+  }
+
+  /**
+   * Set the standard spelling.
+   *
+   * @param standardSpelling The standard spelling.
+   */
+  public void setStandardSpelling(String standardSpelling) {
+    this.standardSpelling = standardSpelling;
+  }
+
+  /**
+   * Get the lemmata.
+   *
+   * @return The lemmata.
+   *     <p>Compound lemmata are separated by a separator tring.
+   */
+  public String getLemmata() {
+    return lemmata;
+  }
+
+  /**
+   * Set the lemmata.
+   *
+   * @param lemmata The lemmata.
+   */
+  public void setLemmata(String lemmata) {
+    this.lemmata = lemmata;
+  }
+
+  /**
+   * Get the parts of speech.
+   *
+   * @return The parts of speech.
+   */
+  public String getPartsOfSpeech() {
+    return partsOfSpeech;
+  }
+
+  /**
+   * Set the parts of speech.
+   *
+   * @param partsOfSpeech The parts of speech, separated by a tag set dependent separator string.
+   */
+  public void setPartsOfSpeech(String partsOfSpeech) {
+    this.partsOfSpeech = partsOfSpeech;
+  }
+
+  /**
+   * Check if another object is equal to this one.
+   *
+   * @param object Other object to test for equality.
+   * @return true if other object is equal to this one.
+   *     <p>Two word objects are equal if their spellings, lemmata, and parts of speech are equal.
+   */
+  public boolean equals(Object object) {
+    boolean result = false;
+
+    if (object instanceof BaseAdornedWord) {
+      AdornedWord otherAdornedWord = (AdornedWord) object;
+
+      result =
+          (spelling.equals(otherAdornedWord.getSpelling()))
+              && (lemmata.equals(otherAdornedWord.getLemmata()))
+              && (partsOfSpeech.equals(otherAdornedWord.getPartsOfSpeech()));
     }
 
-    /** Create adorned word from a spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  <p>
-     *  The token, the spelling, and the standard spelling
-     *  are all set the the spelling parameter value.
-     *  </p>
-     */
+    return result;
+  }
 
-    public BaseAdornedWord( String spelling )
-    {
-        this.token              = spelling;
-        this.spelling           = spelling;
-        this.standardSpelling   = spelling;
-        this.lemmata            = "";
-        this.partsOfSpeech      = "";
+  /**
+   * Compare this key with another.
+   *
+   * @param object The other CompoundKey.
+   * @return -1, 0, 1 depending opne whether this adorned word is less than, equal to, or greater
+   *     than another adorned word.
+   *     <p>Two word objects are compared first on their spellings, then their lemmata, and finally
+   *     their parts of speech.
+   */
+  public int compareTo(Object object) {
+    int result = 0;
+
+    if ((object == null) || !(object instanceof AdornedWord)) {
+      result = Integer.MIN_VALUE;
+    } else {
+      AdornedWord otherAdornedWord = (AdornedWord) object;
+
+      result = spelling.compareTo(otherAdornedWord.getSpelling());
+
+      if (result == 0) {
+        result = lemmata.compareTo(otherAdornedWord.getLemmata());
+      }
+
+      if (result == 0) {
+        result = partsOfSpeech.compareTo(otherAdornedWord.getPartsOfSpeech());
+      }
     }
 
-    /** Create adorned word from a spelling and a part of speech.
-     *
-     *  @param  spelling        The spelling.
-     *  @param  partsOfSpeech   The part of speech.
-     */
+    return result;
+  }
 
-    public BaseAdornedWord( String spelling , String partsOfSpeech )
-    {
-        this.token              = spelling;
-        this.spelling           = spelling;
-        this.standardSpelling   = spelling;
-        this.lemmata            = "";
-        this.partsOfSpeech      = partsOfSpeech;
+  /**
+   * Get the hash code of the keys.
+   *
+   * @return The hash code.
+   */
+  public int hashCode() {
+    return spelling.hashCode() ^ lemmata.hashCode() ^ partsOfSpeech.hashCode();
+  }
+
+  /**
+   * Return a string representation of this object.
+   *
+   * @return A string representation of this object = original spelling.
+   */
+  public String toString() {
+    return spelling;
+  }
+
+  /**
+   * Return a shallow cloned copy of this object.
+   *
+   * @return Shallow clone of this object.
+   * @throws CloneNotSupportedException which should never happen.
+   */
+  public Object clone() {
+    try {
+      return super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new InternalError();
     }
-
-    /** Create adorned word from a token, spelling, and part of speech.
-     *
-     *  @param  token           The token.
-     *  @param  spelling        The spelling.
-     *  @param  partsOfSpeech   The part of speech.
-     */
-
-    public BaseAdornedWord
-    (
-        String token ,
-        String spelling ,
-        String partsOfSpeech
-    )
-    {
-        this.token              = token;
-        this.spelling           = spelling;
-        this.standardSpelling   = spelling;
-        this.lemmata            = "";
-        this.partsOfSpeech      = partsOfSpeech;
-    }
-
-    /** Create adorned word from a token, spelling, standard spelling,
-     *  lemmata, and parts of speech.
-     *
-     *  @param  token               The token.
-     *  @param  spelling            The spelling.
-     *  @param  standardSpelling    The standard spelling.
-     *  @param  lemmata             The lemmata.
-     *  @param  partsOfSpeech       The parts of speech.
-     */
-
-    public BaseAdornedWord
-    (
-        String token ,
-        String spelling ,
-        String standardSpelling ,
-        String lemmata ,
-        String partsOfSpeech
-    )
-    {
-        this.token              = token;
-        this.spelling           = spelling;
-        this.standardSpelling   = standardSpelling;
-        this.lemmata            = lemmata;
-        this.partsOfSpeech      = partsOfSpeech;
-    }
-
-    /** Create a adorned word from another adorned word.
-     *
-     *  @param  adornedWord     A adorned word.
-     */
-
-    public BaseAdornedWord( AdornedWord adornedWord )
-    {
-        this.token              = adornedWord.getToken();
-        this.spelling           = adornedWord.getSpelling();
-        this.standardSpelling   = adornedWord.getStandardSpelling();
-        this.lemmata            = adornedWord.getLemmata();
-        this.partsOfSpeech      = adornedWord.getPartsOfSpeech();
-    }
-
-    /** Get the original token.
-     *
-     *  @return     The original token.
-     */
-
-    public String getToken()
-    {
-        return token;
-    }
-
-    /** Set the original token.
-     *
-     *  @param  token   The original token.
-     */
-
-    public void setToken( String token )
-    {
-        this.token  = token;
-    }
-
-    /** Get the spelling.
-     *
-     *  @return     The spelling.
-     */
-
-    public String getSpelling()
-    {
-        return spelling;
-    }
-
-    /** Set the spelling.
-     *
-     *  @param  spelling    The spelling.
-     */
-
-    public void setSpelling( String spelling )
-    {
-        this.spelling   = spelling;
-    }
-
-    /** Get the standard spelling.
-     *
-     *  @return     The standard spelling.
-     */
-
-    public String getStandardSpelling()
-    {
-        return standardSpelling;
-    }
-
-    /** Set the standard spelling.
-     *
-     *  @param  standardSpelling    The standard spelling.
-     */
-
-    public void setStandardSpelling( String standardSpelling )
-    {
-        this.standardSpelling   = standardSpelling;
-    }
-
-    /** Get the lemmata.
-     *
-     *  @return     The lemmata.
-     *
-     *  <p>
-     *  Compound lemmata are separated by a separator tring.
-     *  </p>
-     */
-
-    public String getLemmata()
-    {
-        return lemmata;
-    }
-
-    /** Set the lemmata.
-     *
-     *  @param  lemmata     The lemmata.
-     */
-
-    public void setLemmata( String lemmata )
-    {
-        this.lemmata    = lemmata;
-    }
-
-    /** Get the parts of speech.
-     *
-     *  @return     The parts of speech.
-     */
-
-    public String getPartsOfSpeech()
-    {
-        return partsOfSpeech;
-    }
-
-    /** Set the parts of speech.
-     *
-     *  @param  partsOfSpeech   The parts of speech, separated by
-     *                          a tag set dependent separator
-     *                          string.
-     */
-
-    public void setPartsOfSpeech( String partsOfSpeech )
-    {
-        this.partsOfSpeech  = partsOfSpeech;
-    }
-
-    /** Check if another object is equal to this one.
-     *
-     *  @param  object  Other object to test for equality.
-     *
-     *  @return         true if other object is equal to this one.
-     *
-     *  <p>
-     *  Two word objects are equal if their spellings, lemmata, and
-     *  parts of speech are equal.
-     *  </p>
-     */
-
-    public boolean equals( Object object )
-    {
-        boolean result  = false;
-
-        if ( object instanceof BaseAdornedWord )
-        {
-            AdornedWord otherAdornedWord    = (AdornedWord)object;
-
-            result  =
-                ( spelling.equals( otherAdornedWord.getSpelling() ) ) &&
-                ( lemmata.equals( otherAdornedWord.getLemmata() ) ) &&
-                ( partsOfSpeech.equals( otherAdornedWord.getPartsOfSpeech() ) );
-        }
-
-        return result;
-    }
-
-    /** Compare this key with another.
-     *
-     *  @param  object      The other CompoundKey.
-     *
-     *  @return             -1, 0, 1 depending opne whether this
-     *                      adorned word is less than, equal to, or
-     *                      greater than another adorned word.
-     *
-     *  <p>
-     *  Two word objects are compared first on their spellings,
-     *  then their lemmata, and finally their parts of speech.
-     *  </p>
-     */
-
-    public int compareTo( Object object )
-    {
-        int result  = 0;
-
-        if ( ( object == null ) ||
-            !( object instanceof AdornedWord ) )
-        {
-            result  = Integer.MIN_VALUE;
-        }
-        else
-        {
-            AdornedWord otherAdornedWord    = (AdornedWord)object;
-
-            result  = spelling.compareTo( otherAdornedWord.getSpelling() );
-
-            if ( result == 0 )
-            {
-                result  = lemmata.compareTo( otherAdornedWord.getLemmata() );
-            }
-
-            if ( result == 0 )
-            {
-                result  =
-                    partsOfSpeech.compareTo(
-                        otherAdornedWord.getPartsOfSpeech() );
-            }
-        }
-
-        return result;
-    }
-
-    /** Get the hash code of the keys.
-     *
-     *  @return     The hash code.
-     */
-
-    public int hashCode()
-    {
-        return
-            spelling.hashCode() ^
-            lemmata.hashCode() ^
-            partsOfSpeech.hashCode();
-    }
-
-    /** Return a string representation of this object.
-     *
-     *  @return     A string representation of this object = original spelling.
-     */
-
-    public String toString()
-    {
-        return spelling;
-    }
-
-    /** Return a shallow cloned copy of this object.
-     *
-     *  @return     Shallow clone of this object.
-     *
-     *  @throws     CloneNotSupportedException which should never happen.
-     */
-
-    public Object clone()
-    {
-        try
-        {
-            return super.clone();
-        }
-        catch ( CloneNotSupportedException e )
-        {
-            throw new InternalError();
-        }
-    }
+  }
 }
 
 /*
@@ -440,6 +351,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

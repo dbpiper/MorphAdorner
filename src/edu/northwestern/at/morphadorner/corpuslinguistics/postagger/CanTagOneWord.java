@@ -2,34 +2,27 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import java.util.*;
 
-/** Interface for a part of speech tagger which can tag a single word.
- */
+/** Interface for a part of speech tagger which can tag a single word. */
+public interface CanTagOneWord {
+  /**
+   * Tag a single word.
+   *
+   * @param word The word.
+   * @return The part of speech for the word.
+   */
+  public String tagWord(String word);
 
-public interface CanTagOneWord
-{
-    /** Tag a single word.
-     *
-     *  @param  word    The word.
-     *
-     *  @return         The part of speech for the word.
-     */
-
-     public String tagWord( String word );
-
-    /** Tag a single adorned word.
-     *
-     *  @param  word    The adorned word.
-     *
-     *  @return         The adorned word with the part of speech
-     *                  assigned.
-     */
-
-     public String tagWord( AdornedWord word );
+  /**
+   * Tag a single adorned word.
+   *
+   * @param word The adorned word.
+   * @return The adorned word with the part of speech assigned.
+   */
+  public String tagWord(AdornedWord word);
 }
 
 /*
@@ -72,6 +65,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

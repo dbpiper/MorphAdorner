@@ -1,9 +1,8 @@
 package com.rmtheis.langdetect.profile;
 
-import java.util.HashMap;
-
 import com.cybozu.labs.langdetect.util.LangProfile;
 import com.cybozu.labs.langdetect.util.NGram;
+import java.util.HashMap;
 
 public class ZHCN extends CLangProfile {
   private static final String name = "zh-cn";
@@ -14,7 +13,7 @@ public class ZHCN extends CLangProfile {
     init();
   }
 
-  public  LangProfile getLangProfile() {
+  public LangProfile getLangProfile() {
     return new LangProfile(name, freq, n_words);
   }
 
@@ -2175,6 +2174,4 @@ public class ZHCN extends CLangProfile {
     freq.put("\u8d77", 4293);
     freq.put("\u8bf8", 678);
   }
-
 }
-

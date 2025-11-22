@@ -2,22 +2,16 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector.pluralizer;
 
 /*  Please see the license information at the end of this file. */
 
-/** DefaultPluralizer: The default MorphAdorner pluralizer.
+/**
+ * DefaultPluralizer: The default MorphAdorner pluralizer.
  *
- *  <p>
- *  The English language pluralizer is the default MorphAdorner pluralizer.
- *  </p>
+ * <p>The English language pluralizer is the default MorphAdorner pluralizer.
  */
-
-public class DefaultPluralizer extends EnglishPluralizer implements Pluralizer
-{
-    /** Create the default pluralizer.
-     */
-
-    public DefaultPluralizer()
-    {
-        super();
-    }
+public class DefaultPluralizer extends EnglishPluralizer implements Pluralizer {
+  /** Create the default pluralizer. */
+  public DefaultPluralizer() {
+    super();
+  }
 }
 
 /*
@@ -60,6 +54,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

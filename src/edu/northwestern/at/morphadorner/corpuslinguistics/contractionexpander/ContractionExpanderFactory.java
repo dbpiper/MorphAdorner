@@ -5,118 +5,84 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.contractionexpander;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** ContractionExpander factory.
- */
+/** ContractionExpander factory. */
+public class ContractionExpanderFactory {
+  /**
+   * Get a contraction expander.
+   *
+   * @return The contraction expander.
+   */
+  public static ContractionExpander newContractionExpander() {
+    String className = System.getProperty("contractionExpander.class");
 
-public class ContractionExpanderFactory
-{
-    /** Get a contraction expander.
-     *
-     *  @return     The contraction expander.
-     */
-
-    public static ContractionExpander newContractionExpander()
-    {
-        String className    =
-            System.getProperty( "contractionExpander.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultContractionExpander";
-        }
-
-        return newContractionExpander( className );
+    if (className == null) {
+      className = "DefaultContractionExpander";
     }
 
-    /** Get a contraction expander.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The contraction expander.
-     */
+    return newContractionExpander(className);
+  }
 
-    public static ContractionExpander newContractionExpander
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a contraction expander.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The contraction expander.
+   */
+  public static ContractionExpander newContractionExpander(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "contractionExpander.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultContractionExpander";
-        }
-
-        return newContractionExpander( className );
+    if (properties != null) {
+      className = properties.getProperty("contractionExpander.class");
     }
 
-    /** Get a contractionExpander of a specified class name.
-     *
-     *  @param  className   Class name for the contractionExpander.
-     *
-     *  @return             The contractionExpander.
-     */
-
-    public static ContractionExpander newContractionExpander
-    (
-        String className
-    )
-    {
-        ContractionExpander contractionExpander = null;
-
-        try
-        {
-            contractionExpander =
-                (ContractionExpander)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    ContractionExpanderFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                contractionExpander =
-                    (ContractionExpander)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create contraction expander of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    contractionExpander = new DefaultContractionExpander();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null contraction expander.
-/*
-                    System.err.println(
-                        "Unable to create contractionExpander, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return contractionExpander;
+    if (className == null) {
+      className = "DefaultContractionExpander";
     }
+
+    return newContractionExpander(className);
+  }
+
+  /**
+   * Get a contractionExpander of a specified class name.
+   *
+   * @param className Class name for the contractionExpander.
+   * @return The contractionExpander.
+   */
+  public static ContractionExpander newContractionExpander(String className) {
+    ContractionExpander contractionExpander = null;
+
+    try {
+      contractionExpander = (ContractionExpander) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(ContractionExpanderFactory.class.getName()) + "." + className;
+
+      try {
+        contractionExpander = (ContractionExpander) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create contraction expander of class "
+                + fixedClassName
+                + ", using default.");
+
+        try {
+          contractionExpander = new DefaultContractionExpander();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null contraction expander.
+          /*
+                              System.err.println(
+                                  "Unable to create contractionExpander, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return contractionExpander;
+  }
 }
 
 /*
@@ -159,6 +125,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

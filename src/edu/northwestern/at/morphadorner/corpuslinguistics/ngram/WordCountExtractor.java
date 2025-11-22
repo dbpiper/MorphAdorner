@@ -2,204 +2,164 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.ngram;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
-
 import edu.northwestern.at.utils.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
-/** Counts words in a text.
- */
+/** Counts words in a text. */
+public class WordCountExtractor {
+  /**
+   * The list of words and word counts in the text.
+   *
+   * <p>Key=word<br>
+   * Value=Integer(count)
+   */
+  protected Map<String, Integer> wordCounts = new TreeMap<String, Integer>();
 
-public class WordCountExtractor
-{
-    /** The list of words and word counts in the text.
-     *
-     *  <p>
-     *  Key=word<br />
-     *  Value=Integer(count)
-     *  </p>
-     */
+  /**
+   * The text parsed into a string array of words.
+   *
+   * <p>Package scope for the benefit of NGramExtractor.
+   */
+  String[] words = null;
 
-    protected Map<String, Integer> wordCounts   =
-        new TreeMap<String, Integer>();
+  /** String array of unique words. */
+  protected String[] uniqueWords = null;
 
-    /** The text parsed into a string array of words.
-     *
-     *  Package scope for the benefit of NGramExtractor.
-     */
+  /** Create word count extractor. */
+  public WordCountExtractor() {}
 
-    String[] words  = null;
+  /**
+   * Extract word counts from a string array of words.
+   *
+   * @param words The string array with the words.
+   */
+  public void countWords(String[] words) {
+    this.words = (String[]) words.clone();
 
-    /** String array of unique words. */
+    computeWordCounts();
+  }
 
-    protected String[] uniqueWords  = null;
+  /**
+   * Extract word counts from an arraylist of words.
+   *
+   * @param wordList The list with the words.
+   */
+  public void countWords(List<String> wordList) {
+    //  Get the list of words into
+    //  a string array.
 
-    /** Create word count extractor.
-     */
+    int nWords = wordList.size();
 
-    public WordCountExtractor()
-    {
+    words = new String[nWords];
+
+    for (int i = 0; i < nWords; i++) {
+      words[i] = wordList.get(i);
     }
 
-    /** Extract word counts from a string array of words.
-     *
-     *  @param  words       The string array with the words.
-     */
+    computeWordCounts();
+  }
 
-    public void countWords
-    (
-        String[] words
-    )
-    {
-        this.words  = (String[])words.clone();
+  /** Compute word counts from a string array of words. */
+  protected void computeWordCounts() {
+    //  Get the count of occurrence
+    //  for each word.
 
-        computeWordCounts();
+    for (int i = 0; i < words.length; i++) {
+      String word = words[i];
+
+      if (wordCounts.containsKey(word)) {
+        int freq = wordCounts.get(word).intValue();
+        freq++;
+        wordCounts.put(word, new Integer(freq));
+      } else {
+        wordCounts.put(word, new Integer(1));
+      }
+    }
+    //  Create array of unique words.
+
+    int nUniqueWords = wordCounts.size();
+
+    uniqueWords = new String[nUniqueWords];
+
+    Set<String> keyset = wordCounts.keySet();
+    Iterator<String> iterator = keyset.iterator();
+
+    for (int i = 0; i < nUniqueWords; i++) {
+      uniqueWords[i] = iterator.next();
+    }
+  }
+
+  /**
+   * Return tokenized text words as a string array.
+   *
+   * @return The string array of words.
+   */
+  public String[] getWords() {
+    return words;
+  }
+
+  /**
+   * Return the total number of words.
+   *
+   * @return The number of words.
+   */
+  public int getNumberOfWords() {
+    return words.length;
+  }
+
+  /**
+   * Return unique words as a string array.
+   *
+   * @return The string array of unique words.
+   */
+  public String[] getUniqueWords() {
+    return uniqueWords;
+  }
+
+  /**
+   * Return the number of unique words.
+   *
+   * @return The number of unique words.
+   */
+  public int getNumberOfUniqueWords() {
+    return uniqueWords.length;
+  }
+
+  /**
+   * Return count for a specific word.
+   *
+   * @param word The word whose count is desired.
+   * @return The count of the word in the text.
+   */
+  public int getWordCount(String word) {
+    int result = 0;
+
+    if (wordCounts.containsKey(word)) {
+      Integer count = wordCounts.get(word);
+      result = count.intValue();
     }
 
-    /** Extract word counts from an arraylist of words.
-     *
-     *  @param  wordList    The list with the words.
-     */
+    return result;
+  }
 
-    public void countWords
-    (
-        List<String> wordList
-    )
-    {
-                                //  Get the list of words into
-                                //  a string array.
+  /**
+   * Return word count map.
+   *
+   * @return Word count map.
+   */
+  public Map getWordCounts() {
+    return wordCounts;
+  }
 
-        int nWords  = wordList.size();
+  /** Reset counter. */
+  public void reset() {
+    wordCounts.clear();
 
-        words       = new String[ nWords ];
-
-        for ( int i = 0 ; i < nWords ; i++ )
-        {
-            words[ i ]  = wordList.get( i );
-        }
-
-        computeWordCounts();
-    }
-
-    /** Compute word counts from a string array of words.
-     */
-
-    protected void computeWordCounts()
-    {
-                                //  Get the count of occurrence
-                                //  for each word.
-
-        for ( int i = 0 ; i < words.length ; i++ )
-        {
-            String word = words[ i ];
-
-            if ( wordCounts.containsKey( word ) )
-            {
-                int freq    = wordCounts.get( word ).intValue();
-                freq++;
-                wordCounts.put( word , new Integer( freq ) );
-            }
-            else
-            {
-                wordCounts.put( word , new Integer( 1 ) );
-            }
-        }
-                                //  Create array of unique words.
-
-        int nUniqueWords            = wordCounts.size();
-
-        uniqueWords                 = new String[ nUniqueWords ];
-
-        Set<String> keyset          = wordCounts.keySet();
-        Iterator<String> iterator   = keyset.iterator();
-
-        for ( int i = 0 ; i < nUniqueWords ; i++ )
-        {
-            uniqueWords[ i ]    = iterator.next();
-        }
-    }
-
-    /** Return tokenized text words as a string array.
-     *
-     *  @return     The string array of words.
-     */
-
-    public String[] getWords()
-    {
-        return words;
-    }
-
-    /** Return the total number of words.
-     *
-     *  @return     The number of words.
-     */
-
-    public int getNumberOfWords()
-    {
-        return words.length;
-    }
-
-    /** Return unique words as a string array.
-     *
-     *  @return     The string array of unique words.
-     */
-
-    public String[] getUniqueWords()
-    {
-        return uniqueWords;
-    }
-
-    /** Return the number of unique words.
-     *
-     *  @return     The number of unique words.
-     */
-
-    public int getNumberOfUniqueWords()
-    {
-        return uniqueWords.length;
-    }
-
-    /** Return count for a specific word.
-     *
-     *  @param  word    The word whose count is desired.
-     *
-     *  @return         The count of the word in the text.
-     */
-
-    public int getWordCount( String word )
-    {
-        int result  = 0;
-
-        if ( wordCounts.containsKey( word ) )
-        {
-            Integer count   = wordCounts.get( word );
-            result          = count.intValue();
-        }
-
-        return result;
-    }
-
-    /** Return word count map.
-     *
-     *  @return     Word count map.
-     */
-
-    public Map getWordCounts()
-    {
-        return wordCounts;
-    }
-
-    /** Reset counter.
-     */
-
-    public void reset()
-    {
-        wordCounts.clear();
-
-        words       = null;
-        uniqueWords = null;
-    }
+    words = null;
+    uniqueWords = null;
+  }
 }
 
 /*
@@ -242,5 +202,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

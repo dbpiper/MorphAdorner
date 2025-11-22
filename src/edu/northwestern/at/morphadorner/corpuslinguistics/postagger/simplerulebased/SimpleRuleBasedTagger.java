@@ -2,254 +2,187 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.simpleruleb
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** Simple Rule-Based Part of Speech tagger.
+/**
+ * Simple Rule-Based Part of Speech tagger.
  *
- *  <p>
- *  The simple rule-based part of speech tagger assigns the most
- *  commonly occurring part of speech to all words and then
- *  applies a small set of contextual rules to "fix up" the tagging.
- *  It's kind of a "Brill light."
- *  </p>
+ * <p>The simple rule-based part of speech tagger assigns the most commonly occurring part of speech
+ * to all words and then applies a small set of contextual rules to "fix up" the tagging. It's kind
+ * of a "Brill light."
  *
- *  <p>
- *  This simple tagger is useful when very fast tagging without
- *  high accuracy is useful, e.g., in sentence splitting.
- *  </p>
+ * <p>This simple tagger is useful when very fast tagging without high accuracy is useful, e.g., in
+ * sentence splitting.
  */
+public class SimpleRuleBasedTagger extends UnigramTagger
+    implements PartOfSpeechTagger, PartOfSpeechRetagger {
+  /** Create a simple rule-based tagger. */
+  public SimpleRuleBasedTagger() {}
 
-public class SimpleRuleBasedTagger
-    extends UnigramTagger
-    implements PartOfSpeechTagger, PartOfSpeechRetagger
-{
-    /** Create a simple rule-based tagger.
-     */
+  /**
+   * Tag a sentence.
+   *
+   * @param sentence The sentence as a list of string words.
+   * @return An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
+   *     of the words in the sentence tagged with parts of speech.
+   *     <p>The input sentence is a {@link java.util.List} of string words to be tagged. The output
+   *     is {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} of
+   *     the words with parts of speech added.
+   */
+  public List<AdornedWord> tagSentence(List<String> sentence) {
+    //  Get unigram tagger results.
+    //  This assigns the most common tag
+    //  to each word.
 
-    public SimpleRuleBasedTagger()
-    {
-    }
+    List<AdornedWord> taggedSentence = super.tagSentence(sentence);
 
-    /** Tag a sentence.
-     *
-     *  @param  sentence    The sentence as a list of string words.
-     *
-     *  @return             An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *                      of the words in the sentence tagged with
-     *                      parts of speech.
-     *
-     *  <p>
-     *  The input sentence is a {@link java.util.List} of
-     *  string words to be tagged.  The output is
-     *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *  of the words with parts of speech added.
-     *  </p>
-     */
+    //  Apply the fixup rules.
 
-    public List<AdornedWord> tagSentence( List<String> sentence )
-    {
-                                //  Get unigram tagger results.
-                                //  This assigns the most common tag
-                                //  to each word.
+    return retagWords(taggedSentence);
+  }
 
-        List<AdornedWord> taggedSentence    = super.tagSentence( sentence );
+  /**
+   * Retag words in a tagged sentence.
+   *
+   * @param taggedSentence The tagged sentence.
+   * @return The retagged sentence.
+   *     <p>This method applies the short list of fixup rules. The resultant tagging is crude but
+   *     good enough for tasks like sentence boundary detection.
+   */
+  public <T extends AdornedWord> List<T> retagWords(List<T> taggedSentence) {
+    //  Get part of speech tags used
+    //  for tagging this sentence.
 
-                                //  Apply the fixup rules.
+    PartOfSpeechTags posTags = lexicon.getPartOfSpeechTags();
 
-        return retagWords( taggedSentence );
-    }
+    //  Previous word in sentence.
 
-    /** Retag words in a tagged sentence.
-     *
-     *  @param  taggedSentence  The tagged sentence.
-     *
-     *  @return                 The retagged sentence.
-     *
-     *  <p>
-     *  This method applies the short list of fixup rules.
-     *  The resultant tagging is crude but good enough
-     *  for tasks like sentence boundary detection.
-     *  </p>
-     */
+    T previousWord = null;
 
-    public<T extends AdornedWord> List<T> retagWords
-    (
-        List<T> taggedSentence
-    )
-    {
-                                //  Get part of speech tags used
-                                //  for tagging this sentence.
+    //  Loop over words in sentence.
 
-        PartOfSpeechTags posTags    = lexicon.getPartOfSpeechTags();
+    for (int i = 0; i < taggedSentence.size(); i++) {
+      //  Get current word in sentence.
 
-                                //  Previous word in sentence.
+      T word = taggedSentence.get(i);
 
-        T previousWord      = null;
+      //  Get spelling and parts of speech
+      //  for word.
 
-                                //  Loop over words in sentence.
+      String spelling = word.getSpelling();
+      String posTag = word.getPartsOfSpeech();
 
-        for ( int i = 0 ; i < taggedSentence.size() ; i++ )
-        {
-                                //  Get current word in sentence.
+      //  Rule 1:
+      //  determiner followed by
+      //  verb -> determiner followed
+      //  by noun.
 
-            T word  = taggedSentence.get( i );
-
-                                //  Get spelling and parts of speech
-                                //  for word.
-
-            String spelling = word.getSpelling();
-            String posTag   = word.getPartsOfSpeech();
-
-                                //  Rule 1:
-                                //  determiner followed by
-                                //  verb -> determiner followed
-                                //  by noun.
-
-            if ( previousWord != null )
-            {
-                if  (   posTags.isDeterminerTag(
-                        previousWord.getPartsOfSpeech() ) &&
-                        posTags.isVerbTag( posTag )
-                    )
-                {
-                    word.setPartsOfSpeech( posTags.getSingularNounTag() );
-                }
-            }
-                                //  Rule 2: convert a noun to a
-                                //  past participle if word ends with "ed"
-
-            if  (   (   posTags.isNounTag( posTag ) &&
-                        !posTags.isProperNounTag( posTag )
-                    ) && spelling.endsWith( "ed" )
-                )
-            {
-                word.setPartsOfSpeech( posTags.getPastParticipleTag() );
-            }
-
-                                //  Rule 3: convert any type to adverb
-                                //  if it ends in "ly".
-
-            if ( spelling.endsWith( "ly" ) )
-            {
-                word.setPartsOfSpeech( posTags.getAdverbTag() );
-            }
-                                //  Rule 4: convert a common noun to an
-                                //  adjective if it ends with "al".
-
-            if  (   (   posTags.isNounTag( posTag ) &&
-                        !posTags.isProperNounTag( posTag )
-                    ) && spelling.endsWith( "al" )
-                )
-            {
-                word.setPartsOfSpeech( posTags.getAdjectiveTag() );
-            }
-                                //  Rule 5: convert a noun to a verb
-                                //  if the preceeding word is "would".
-
-            if ( previousWord != null )
-            {
-                if  (   (   posTags.isNounTag( posTag ) &&
-                            !posTags.isProperNounTag( posTag )
-                        ) &&
-                        previousWord.getSpelling().equalsIgnoreCase( "would" )
-                    )
-                {
-                    word.setPartsOfSpeech( posTags.getVerbTag() );
-                }
-            }
-                                //  Rule 6: if a word has been categorized
-                                //  as a common noun and it ends with "s",
-                                //  set its part of speech to plural
-                                //  common noun.
-
-            if  (   posTag.equals( posTags.getSingularNounTag() ) &&
-                    spelling.endsWith( "s" )
-                )
-            {
-                word.setPartsOfSpeech( posTags.getPluralNounTag() );
-            }
-                                //  Rule 7: convert a common noun to a
-                                //  present participle verb.
-
-            if ( spelling.endsWith( "ing" ) )
-            {
-                if  (   posTags.isNounTag( posTag ) &&
-                        !posTags.isProperNounTag( posTag )
-                    )
-                {
-                    word.setPartsOfSpeech(
-                        posTags.getPresentParticipleTag() );
-                }
-            }
-                                //  Set previous word to current word.
-
-            previousWord    = word;
-
-                                //  Replace word with updated word.
-
-            taggedSentence.remove( i );
-            taggedSentence.add( i , word );
+      if (previousWord != null) {
+        if (posTags.isDeterminerTag(previousWord.getPartsOfSpeech()) && posTags.isVerbTag(posTag)) {
+          word.setPartsOfSpeech(posTags.getSingularNounTag());
         }
+      }
+      //  Rule 2: convert a noun to a
+      //  past participle if word ends with "ed"
 
-        return taggedSentence;
+      if ((posTags.isNounTag(posTag) && !posTags.isProperNounTag(posTag))
+          && spelling.endsWith("ed")) {
+        word.setPartsOfSpeech(posTags.getPastParticipleTag());
+      }
+
+      //  Rule 3: convert any type to adverb
+      //  if it ends in "ly".
+
+      if (spelling.endsWith("ly")) {
+        word.setPartsOfSpeech(posTags.getAdverbTag());
+      }
+      //  Rule 4: convert a common noun to an
+      //  adjective if it ends with "al".
+
+      if ((posTags.isNounTag(posTag) && !posTags.isProperNounTag(posTag))
+          && spelling.endsWith("al")) {
+        word.setPartsOfSpeech(posTags.getAdjectiveTag());
+      }
+      //  Rule 5: convert a noun to a verb
+      //  if the preceeding word is "would".
+
+      if (previousWord != null) {
+        if ((posTags.isNounTag(posTag) && !posTags.isProperNounTag(posTag))
+            && previousWord.getSpelling().equalsIgnoreCase("would")) {
+          word.setPartsOfSpeech(posTags.getVerbTag());
+        }
+      }
+      //  Rule 6: if a word has been categorized
+      //  as a common noun and it ends with "s",
+      //  set its part of speech to plural
+      //  common noun.
+
+      if (posTag.equals(posTags.getSingularNounTag()) && spelling.endsWith("s")) {
+        word.setPartsOfSpeech(posTags.getPluralNounTag());
+      }
+      //  Rule 7: convert a common noun to a
+      //  present participle verb.
+
+      if (spelling.endsWith("ing")) {
+        if (posTags.isNounTag(posTag) && !posTags.isProperNounTag(posTag)) {
+          word.setPartsOfSpeech(posTags.getPresentParticipleTag());
+        }
+      }
+      //  Set previous word to current word.
+
+      previousWord = word;
+
+      //  Replace word with updated word.
+
+      taggedSentence.remove(i);
+      taggedSentence.add(i, word);
     }
 
-    /** Retag a sentence.
-     *
-     *  @param  sentence    The sentence as an
-     *                      {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
-     *
-     *  @return             The sentence with words retagged.
-     */
+    return taggedSentence;
+  }
 
-    public<T extends AdornedWord> List<T> retagSentence
-    (
-        List<T> sentence
-    )
-    {
-        return retagWords( sentence );
-    }
+  /**
+   * Retag a sentence.
+   *
+   * @param sentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
+   * @return The sentence with words retagged.
+   */
+  public <T extends AdornedWord> List<T> retagSentence(List<T> sentence) {
+    return retagWords(sentence);
+  }
 
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @return     true if retagger can add or delete words.
-     */
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @return true if retagger can add or delete words.
+   */
+  public boolean getCanAddOrDeleteWords() {
+    return false;
+  }
 
-    public boolean getCanAddOrDeleteWords()
-    {
-        return false;
-    }
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @param canAddOrDeleteWords true if retagger can add or delete words.
+   *     <p>Ignored here.
+   */
+  public void setCanAddOrDeleteWords(boolean canAddOrDeleteWords) {}
 
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @param  canAddOrDeleteWords     true if retagger can add or
-     *                                  delete words.
-     *
-     *  <p>
-     *  Ignored here.
-     *  </p>
-     */
-
-    public void setCanAddOrDeleteWords( boolean canAddOrDeleteWords )
-    {
-    }
-
-    /** Return tagger description.
-     *
-     *  @return     Tagger description.
-     */
-
-    public String toString()
-    {
-        return "Simple rule based tagger";
-    }
+  /**
+   * Return tagger description.
+   *
+   * @return Tagger description.
+   */
+  public String toString() {
+    return "Simple rule based tagger";
+  }
 }
 
 /*
@@ -292,6 +225,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

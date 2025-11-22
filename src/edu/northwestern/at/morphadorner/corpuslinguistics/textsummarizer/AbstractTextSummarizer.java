@@ -2,83 +2,61 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsummarizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.List;
-
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.logger.*;
+import java.util.List;
 
-/** Base class for summarizing a text.
- */
+/** Base class for summarizing a text. */
+public abstract class AbstractTextSummarizer extends IsCloseableObject
+    implements TextSummarizer, IsCloseable, UsesLogger {
+  /** Logger used for output. */
+  protected Logger logger;
 
-abstract public class AbstractTextSummarizer
-    extends IsCloseableObject
-    implements TextSummarizer, IsCloseable, UsesLogger
-{
-    /** Logger used for output. */
+  /** Create a word tokenizer. */
+  public AbstractTextSummarizer() {
+    //  Create dummy logger.
 
-    protected Logger logger;
+    logger = new DummyLogger();
+  }
 
-    /** Create a word tokenizer.
-     */
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    public AbstractTextSummarizer()
-    {
-                                //  Create dummy logger.
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-        logger  = new DummyLogger();
-    }
+  /**
+   * Summarize text.
+   *
+   * @param sentences Tokenized sentences to summarize.
+   * @return Summary of the input text. The maximum number of sentences returned is 10% of the
+   *     original.
+   */
+  public <T extends Comparable> List<Integer> summarize(List<List<T>> sentences) {
+    return summarize(sentences, sentences.size() / 10);
+  }
 
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
-
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
-
-    /** Summarize text.
-     *
-     *  @param  sentences           Tokenized sentences to summarize.
-     *
-     *  @return                     Summary of the input text.
-     *                              The maximum number of sentences
-     *                              returned is 10% of the original.
-     */
-
-    public <T extends Comparable> List<Integer> summarize
-    (
-        List<List<T>> sentences
-    )
-    {
-        return summarize( sentences , sentences.size() / 10 );
-    }
-
-    /** Summarize text.
-     *
-     *  @param  sentences           Tokenized sentences to summarize.
-     *  @param  summarySentences    Maximum number of sentences to return
-     *                              in the summary.
-     *
-     *  @return                     Summary of the input text.
-     */
-
-    abstract public <T extends Comparable> List<Integer> summarize
-    (
-        List<List<T>> sentences ,
-        int summarySentences
-    );
+  /**
+   * Summarize text.
+   *
+   * @param sentences Tokenized sentences to summarize.
+   * @param summarySentences Maximum number of sentences to return in the summary.
+   * @return Summary of the input text.
+   */
+  public abstract <T extends Comparable> List<Integer> summarize(
+      List<List<T>> sentences, int summarySentences);
 }
 
 /*
@@ -121,6 +99,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

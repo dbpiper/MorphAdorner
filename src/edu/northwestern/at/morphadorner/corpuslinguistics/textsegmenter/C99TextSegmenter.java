@@ -2,122 +2,94 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsegmenter;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.List;
-import edu.northwestern.at.utils.ListFactory;
 import edu.northwestern.at.morphadorner.corpuslinguistics.stemmer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.textsegmenter.c99.C99;
+import edu.northwestern.at.utils.ListFactory;
+import java.util.List;
 
-/** Freddy Choi's C99 linear text segmenter.
- */
+/** Freddy Choi's C99 linear text segmenter. */
+public class C99TextSegmenter extends AbstractTextSegmenter implements TextSegmenter {
+  /** Mask size. */
+  protected int maskSize = 11;
 
-public class C99TextSegmenter
-    extends AbstractTextSegmenter
-    implements TextSegmenter
-{
-    /** Mask size. */
+  /** Number of segments wanted. */
+  protected int segmentsWanted = -1;
 
-    protected int maskSize  = 11;
+  /** Create C99 segmenter. */
+  public C99TextSegmenter() {
+    super();
+  }
 
-    /** Number of segments wanted. */
+  /**
+   * Get mask size.
+   *
+   * @return Mask size.
+   */
+  public int getMaskSize() {
+    return maskSize;
+  }
 
-    protected int segmentsWanted    = -1;
+  /**
+   * Set mask size.
+   *
+   * @param maskSize The mask size.
+   */
+  public void setMaskSize(int maskSize) {
+    this.maskSize = maskSize;
+  }
 
-    /** Create C99 segmenter.
-     */
+  /**
+   * Get number of segments wanted.
+   *
+   * @return Number of segments wanted.
+   */
+  public int getSegmentsWanted() {
+    return segmentsWanted;
+  }
 
-    public C99TextSegmenter()
-    {
-        super();
+  /**
+   * Set segments wanted.
+   *
+   * @param segmentsWanted The number of segments wanted.
+   */
+  public void setSegmentsWanted(int segmentsWanted) {
+    this.segmentsWanted = segmentsWanted;
+  }
+
+  /**
+   * Segment text.
+   *
+   * @param sentences The list of tokenized sentences to segment.
+   * @return A list of sentence indices which start a new text segment.
+   */
+  public <T> List<Integer> getSegmentPositions(List<List<T>> sentences) {
+    String[][] docSentences = new String[sentences.size()][];
+
+    for (int i = 0; i < sentences.size(); i++) {
+      List<T> sentence = sentences.get(i);
+
+      docSentences[i] = new String[sentence.size()];
+
+      for (int j = 0; j < sentence.size(); j++) {
+        docSentences[i][j] = sentence.get(j).toString();
+      }
     }
 
-    /** Get mask size.
-     *
-     *  @return     Mask size.
-     */
+    String[][][] segments = C99.segment(docSentences, segmentsWanted, maskSize, stopWords, stemmer);
 
-    public int getMaskSize()
-    {
-        return maskSize;
+    int segmentCount = segments.length;
+    int sentenceIndex = 0;
+    List<Integer> result = ListFactory.createNewList();
+
+    for (int i = 0; i < segmentCount; i++) {
+      result.add(sentenceIndex);
+
+      sentenceIndex += segments[i].length;
     }
 
-    /** Set mask size.
-     *
-     *  @param  maskSize    The mask size.
-     */
-
-    public void setMaskSize( int maskSize )
-    {
-        this.maskSize   = maskSize;
-    }
-
-    /** Get number of segments wanted.
-     *
-     *  @return     Number of segments wanted.
-     */
-
-    public int getSegmentsWanted()
-    {
-        return segmentsWanted;
-    }
-
-    /** Set segments wanted.
-     *
-     *  @param  segmentsWanted  The number of segments wanted.
-     */
-
-    public void setSegmentsWanted( int segmentsWanted )
-    {
-        this.segmentsWanted = segmentsWanted;
-    }
-
-    /** Segment text.
-     *
-     *  @param  sentences   The list of tokenized sentences to segment.
-     *
-     *  @return             A list of sentence indices which start
-     *                      a new text segment.
-     */
-
-    public <T> List<Integer> getSegmentPositions( List<List<T>> sentences )
-    {
-        String[][] docSentences = new String[ sentences.size() ][];
-
-        for ( int i = 0 ; i < sentences.size() ; i++ )
-        {
-            List<T> sentence    = sentences.get( i );
-
-            docSentences[ i ]   = new String[ sentence.size() ];
-
-            for ( int j = 0 ; j < sentence.size() ; j++ )
-            {
-                docSentences[ i ][ j ]  = sentence.get( j ).toString();
-            }
-        }
-
-        String[][][] segments   =
-            C99.segment
-            (
-                docSentences ,
-                segmentsWanted ,
-                maskSize ,
-                stopWords ,
-                stemmer
-            );
-
-        int segmentCount        = segments.length;
-        int sentenceIndex       = 0;
-        List<Integer> result    = ListFactory.createNewList();
-
-        for ( int i = 0 ; i < segmentCount ; i++ )
-        {
-            result.add( sentenceIndex );
-
-            sentenceIndex   += segments[ i ].length;
-        }
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -160,6 +132,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

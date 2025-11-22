@@ -2,64 +2,56 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.transitionmatrix.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.trigram.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** Default Part of Speech tagger.
+/**
+ * Default Part of Speech tagger.
  *
- *  <p>
- *  The Penn Treebank part of speech tagger is a trigram tagger using
- *  the Penn Treebank part of speech tag set.
- *  </p>
+ * <p>The Penn Treebank part of speech tagger is a trigram tagger using the Penn Treebank part of
+ * speech tag set.
  */
+public class PennTreebankPartOfSpeechTagger extends TrigramTagger implements PartOfSpeechTagger {
+  /**
+   * Create default part of speech tagger.
+   *
+   * @throws Exception when tagger initialization fails.
+   */
+  public PennTreebankPartOfSpeechTagger() throws Exception {
+    super();
+    //  Get word and suffix lexicon.
 
-public class PennTreebankPartOfSpeechTagger
-    extends TrigramTagger
-    implements PartOfSpeechTagger
-{
-    /** Create default part of speech tagger.
-     *
-     *  @throws Exception   when tagger initialization fails.
-     */
+    Lexicon lexicon = new PennTreebankWordLexicon();
+    Lexicon suffixLexicon = new PennTreebankSuffixLexicon();
 
-    public PennTreebankPartOfSpeechTagger()
-        throws Exception
-    {
-        super();
-                                //  Get word and suffix lexicon.
+    //  Set word lexicon into tagger.
 
-        Lexicon lexicon         = new PennTreebankWordLexicon();
-        Lexicon suffixLexicon   = new PennTreebankSuffixLexicon();
+    setLexicon(lexicon);
 
-                                //  Set word lexicon into tagger.
+    //  Load transition matrix.
 
-        setLexicon( lexicon );
+    setTransitionMatrix(new PennTreebankTransitionMatrix());
 
-                                //  Load transition matrix.
+    //  Create part of speech guesser.
 
-        setTransitionMatrix( new PennTreebankTransitionMatrix() );
+    PartOfSpeechGuesser guesser = new DefaultPartOfSpeechGuesser();
 
-                                //  Create part of speech guesser.
+    //  Add lexicons to guesser.
 
-        PartOfSpeechGuesser guesser = new DefaultPartOfSpeechGuesser();
+    guesser.setWordLexicon(lexicon);
 
-                                //  Add lexicons to guesser.
+    guesser.setSuffixLexicon(suffixLexicon);
 
-        guesser.setWordLexicon( lexicon );
+    //  Set guesser into tagger.
 
-        guesser.setSuffixLexicon( suffixLexicon );
-
-                                //  Set guesser into tagger.
-
-        setPartOfSpeechGuesser( guesser );
-    }
+    setPartOfSpeechGuesser(guesser);
+  }
 }
 
 /*
@@ -102,6 +94,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,118 +2,86 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+import java.util.*;
 
-/** Environment information.
- */
-
+/** Environment information. */
 public class Env {
 
-    /** The operating system. */
+  /** The operating system. */
+  public static final String OSNAME = System.getProperty("os.name");
 
-    public static final String OSNAME =
-        System.getProperty("os.name");
+  /** True if running on Mac OS X. */
+  public static final boolean MACOSX = System.getProperty("os.name").equals("Mac OS X");
 
-    /** True if running on Mac OS X. */
+  /** True if running on some version of MS Windows. */
+  public static final boolean WINDOWSOS =
+      System.getProperty("os.name").toLowerCase().startsWith("windows");
 
-    public static final boolean MACOSX =
-        System.getProperty("os.name").equals("Mac OS X");
+  /** True if running Java 2 level 1.3 or later. */
+  public static final boolean IS_JAVA_13_OR_LATER =
+      System.getProperty("java.version").compareTo("1.3") >= 0;
 
-    /** True if running on some version of MS Windows. */
+  /** True if running Java 2 level 1.4 or later. */
+  public static final boolean IS_JAVA_14_OR_LATER =
+      System.getProperty("java.version").compareTo("1.4") >= 0;
 
-    public static final boolean WINDOWSOS =
-        System.getProperty("os.name").toLowerCase().startsWith("windows");
+  /** True if running Java 2 level 1.4.2 or later. */
+  public static final boolean IS_JAVA_142_OR_LATER =
+      System.getProperty("java.version").compareTo("1.4.2") >= 0;
 
-    /** True if running Java 2 level 1.3 or later. */
+  /** True if running Java 2 level 1.5 or later. */
+  public static final boolean IS_JAVA_15_OR_LATER =
+      System.getProperty("java.version").compareTo("1.5") >= 0;
 
-    public static final boolean IS_JAVA_13_OR_LATER =
-        System.getProperty("java.version").compareTo("1.3") >= 0;
+  /** True if running Java 2 level 1.6 or later. */
+  public static final boolean IS_JAVA_16_OR_LATER =
+      System.getProperty("java.version").compareTo("1.6") >= 0;
 
-    /** True if running Java 2 level 1.4 or later. */
+  /** True if running Java 2 level 1.7 or later. */
+  public static final boolean IS_JAVA_17_OR_LATER =
+      System.getProperty("java.version").compareTo("1.7") >= 0;
 
-    public static final boolean IS_JAVA_14_OR_LATER =
-        System.getProperty("java.version").compareTo("1.4") >= 0;
+  /** True if running Java 2 level 1.8 or later. */
+  public static final boolean IS_JAVA_18_OR_LATER =
+      System.getProperty("java.version").compareTo("1.8") >= 0;
 
-    /** True if running Java 2 level 1.4.2 or later. */
+  /** True if running Java 2 level 1.9 or later. */
+  public static final boolean IS_JAVA_19_OR_LATER =
+      System.getProperty("java.version").compareTo("1.9") >= 0;
 
-    public static final boolean IS_JAVA_142_OR_LATER =
-        System.getProperty("java.version").compareTo("1.4.2") >= 0;
+  /** Menu shortcut key mask. */
+  public static int MENU_SHORTCUT_KEY_MASK;
 
-    /** True if running Java 2 level 1.5 or later. */
+  /** Menu shortcut key mask with shift key. */
+  public static int MENU_SHORTCUT_SHIFT_KEY_MASK;
 
-    public static final boolean IS_JAVA_15_OR_LATER =
-        System.getProperty("java.version").compareTo("1.5") >= 0;
+  /** Line separator. */
+  public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-    /** True if running Java 2 level 1.6 or later. */
+  static {
+    //  Do not initialize keyboard settings
+    //  if we are running headless.
 
-    public static final boolean IS_JAVA_16_OR_LATER =
-        System.getProperty("java.version").compareTo("1.6") >= 0;
+    try {
+      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 
-    /** True if running Java 2 level 1.7 or later. */
+      if (!ge.isHeadless()) {
+        MENU_SHORTCUT_KEY_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
-    public static final boolean IS_JAVA_17_OR_LATER =
-        System.getProperty("java.version").compareTo("1.7") >= 0;
-
-    /** True if running Java 2 level 1.8 or later. */
-
-    public static final boolean IS_JAVA_18_OR_LATER =
-        System.getProperty("java.version").compareTo("1.8") >= 0;
-
-    /** True if running Java 2 level 1.9 or later. */
-
-    public static final boolean IS_JAVA_19_OR_LATER =
-        System.getProperty("java.version").compareTo("1.9") >= 0;
-
-    /** Menu shortcut key mask. */
-
-    public static int MENU_SHORTCUT_KEY_MASK;
-
-    /** Menu shortcut key mask with shift key. */
-
-    public static int MENU_SHORTCUT_SHIFT_KEY_MASK;
-
-    /** Line separator. */
-
-    public static final String LINE_SEPARATOR =
-        System.getProperty( "line.separator" );
-
-    static
-    {
-                                //  Do not initialize keyboard settings
-                                //  if we are running headless.
-
-        try
-        {
-            GraphicsEnvironment ge  =
-                GraphicsEnvironment.getLocalGraphicsEnvironment();
-
-            if ( !ge.isHeadless() )
-            {
-                MENU_SHORTCUT_KEY_MASK =
-                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-
-                MENU_SHORTCUT_SHIFT_KEY_MASK =
-                    MENU_SHORTCUT_KEY_MASK + InputEvent.SHIFT_MASK;
-            }
-            else
-            {
-                MENU_SHORTCUT_KEY_MASK          =   0;
-                MENU_SHORTCUT_SHIFT_KEY_MASK    =   0;
-            }
-        }
-        catch ( Exception e )
-        {
-        }
+        MENU_SHORTCUT_SHIFT_KEY_MASK = MENU_SHORTCUT_KEY_MASK + InputEvent.SHIFT_MASK;
+      } else {
+        MENU_SHORTCUT_KEY_MASK = 0;
+        MENU_SHORTCUT_SHIFT_KEY_MASK = 0;
+      }
+    } catch (Exception e) {
     }
+  }
 
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected Env()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected Env() {}
 }
 
 /*
@@ -156,5 +124,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

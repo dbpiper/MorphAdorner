@@ -2,107 +2,73 @@ package edu.northwestern.at.morphadorner.tools;
 
 /*  Please see the license information at the end of this file. */
 
+import com.megginson.sax.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
-
-import com.megginson.sax.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
+/** Filter contents of an adorned file. */
+public class FilterAdornedFile {
+  /**
+   * Filter contents of an adorned file.
+   *
+   * @param inputXMLFile Input XML file.
+   * @param outputXMLFile Output XML file.
+   * @param filter XML filter.
+   * @throws SAXException When an XML parsing error occurs.
+   * @throws FileNotFoundException When a file cannot be found.
+   * @throws IOException When an I/O error occurs.
+   *     <p>The contents of the input XML file are filtered using the specified filter. The filtered
+   *     results are written to the output XML file.
+   */
+  public FilterAdornedFile(String inputXMLFile, String outputXMLFile, XMLFilter filter)
+      throws SAXException, FileNotFoundException, IOException {
+    //  Make sure output directory
+    //  exists for XML output file.
 
-/** Filter contents of an adorned file.
- */
+    FileUtils.createPathForFile(outputXMLFile);
 
-public class FilterAdornedFile
-{
-    /** Filter contents of an adorned file.
-     *
-     *  @param  inputXMLFile    Input XML file.
-     *  @param  outputXMLFile   Output XML file.
-     *  @param  filter          XML filter.
-     *
-     *  @throws SAXException            When an XML parsing error occurs.
-     *  @throws FileNotFoundException   When a file cannot be found.
-     *  @throws IOException             When an I/O error occurs.
-     *
-     *  <p>
-     *  The contents of the input XML file are filtered
-     *  using the specified filter.  The filtered results
-     *  are written to the output XML file.
-     *  </p>
-     */
+    //  Create pretty-printing
+    //  XML output writer.
 
-    public FilterAdornedFile
-    (
-        String inputXMLFile ,
-        String outputXMLFile ,
-        XMLFilter filter
-    )
-        throws SAXException, FileNotFoundException, IOException
-    {
-                                //  Make sure output directory
-                                //  exists for XML output file.
+    OutputStreamWriter outputStreamWriter =
+        new OutputStreamWriter(
+            new BufferedOutputStream(new FileOutputStream(outputXMLFile)), "utf-8");
 
-        FileUtils.createPathForFile( outputXMLFile );
+    IndentingXMLWriter writer = new IndentingXMLWriter(filter, outputStreamWriter);
+    //  Output characters without
+    //  converting to entity form.
 
-                                //  Create pretty-printing
-                                //  XML output writer.
+    writer.setOutputCharsAsIs(true);
 
-        OutputStreamWriter outputStreamWriter   =
-            new OutputStreamWriter
-            (
-                new BufferedOutputStream
-                (
-                    new FileOutputStream( outputXMLFile )
-                ) ,
-                "utf-8"
-            );
+    //  Indent output by 2 spaces
+    //  for each nested element.
 
-        IndentingXMLWriter writer   =
-            new IndentingXMLWriter
-            (
-                filter ,
-                outputStreamWriter
-            );
-                                //  Output characters without
-                                //  converting to entity form.
+    writer.setIndentStep(2);
 
-        writer.setOutputCharsAsIs( true );
+    //  Create whitespace trimming
+    //  XML input reader.
 
-                                //  Indent output by 2 spaces
-                                //  for each nested element.
+    WhitespaceTrimmingBufferedReader bufferedReader =
+        new WhitespaceTrimmingBufferedReader(
+            new UnicodeReader(new FileInputStream(inputXMLFile), "utf-8"));
 
-        writer.setIndentStep( 2 );
+    InputSource inputSource = new InputSource(bufferedReader);
 
-                                //  Create whitespace trimming
-                                //  XML input reader.
+    //  Parse, filter, and output
+    //  filtered XML.
 
-        WhitespaceTrimmingBufferedReader bufferedReader =
-            new WhitespaceTrimmingBufferedReader
-            (
-                new UnicodeReader
-                (
-                    new FileInputStream( inputXMLFile ) ,
-                    "utf-8"
-                )
-            );
+    writer.parse(inputSource);
 
-        InputSource inputSource = new InputSource( bufferedReader );
+    //  Close files.
 
-                                //  Parse, filter, and output
-                                //  filtered XML.
-
-        writer.parse( inputSource );
-
-                                //  Close files.
-
-        bufferedReader.close();
-        outputStreamWriter.close();
-    }
+    bufferedReader.close();
+    outputStreamWriter.close();
+  }
 }
 
 /*
@@ -145,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

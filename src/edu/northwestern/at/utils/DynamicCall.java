@@ -2,81 +2,61 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.io.*;
 
-/** DynamicCall.
+/**
+ * DynamicCall.
  *
- *  <p>DynamicCall provides methods for dynamically calling methods in classes
- *  with specified arguments.  The class may be specified by its class type or
- *  by name.  The method is provided by name.  The list of parameters
- *  is passed as an {@link ArgumentList}.  DynamicCall uses Java reflection.</p>
+ * <p>DynamicCall provides methods for dynamically calling methods in classes with specified
+ * arguments. The class may be specified by its class type or by name. The method is provided by
+ * name. The list of parameters is passed as an {@link ArgumentList}. DynamicCall uses Java
+ * reflection.
  */
+public class DynamicCall {
+  /**
+   * Use reflection to call a named method from a specified class.
+   *
+   * @param classToCall The class containing the method to call.
+   * @param methodName The method name to call.
+   * @param argumentList The argument list.
+   */
+  public static Object dynamicCall(Object classToCall, String methodName, ArgumentList argumentList)
+      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method methodToCall =
+        classToCall.getClass().getMethod(methodName, argumentList.getArgumentClasses());
+    return (methodToCall.invoke(classToCall, argumentList.getArguments()));
+  }
 
-public class DynamicCall
-{
-    /** Use reflection to call a named method from a specified class.
-     *
-     *  @param  classToCall     The class containing the method to call.
-     *  @param  methodName      The method name to call.
-     *  @param  argumentList    The argument list.
-     */
+  /**
+   * Use reflection to call a named method from a named class.
+   *
+   * @param className The class name containing the method to call.
+   * @param methodName The method name to call.
+   * @param argumentList The argument list.
+   */
+  public static Object dynamicCall(String className, String methodName, ArgumentList argumentList)
+      throws NoSuchMethodException,
+          InvocationTargetException,
+          IllegalAccessException,
+          ClassNotFoundException,
+          InstantiationException {
+    Object result = null;
 
-    public static Object dynamicCall(
-        Object classToCall,
-        String methodName,
-        ArgumentList argumentList )
-            throws  NoSuchMethodException,
-                    InvocationTargetException,
-                    IllegalAccessException
-    {
-        Method methodToCall =
-            classToCall.getClass().getMethod(
-                methodName , argumentList.getArgumentClasses() );
-        return ( methodToCall.invoke( classToCall , argumentList.getArguments() ) );
+    try {
+      java.lang.Class classToCall = Class.forName(className);
+
+      result = dynamicCall(classToCall.newInstance(), methodName, argumentList);
+    } catch (ClassNotFoundException e) {
+      throw new ClassNotFoundException();
     }
 
-    /** Use reflection to call a named method from a named class.
-     *
-     *  @param  className       The class name containing the method to call.
-     *  @param  methodName      The method name to call.
-     *  @param  argumentList    The argument list.
-     */
+    return result;
+  }
 
-    public static Object dynamicCall(
-        String className,
-        String methodName,
-        ArgumentList argumentList )
-            throws  NoSuchMethodException,
-                    InvocationTargetException,
-                    IllegalAccessException,
-                    ClassNotFoundException,
-                    InstantiationException
-    {
-        Object result = null;
-
-        try
-        {
-            java.lang.Class classToCall = Class.forName( className );
-
-            result  =
-                dynamicCall(
-                    classToCall.newInstance() , methodName , argumentList );
-        }
-        catch ( ClassNotFoundException e )
-        {
-            throw new ClassNotFoundException();
-        }
-
-        return result;
-    }
-
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected DynamicCall()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected DynamicCall() {}
 }
 
 /*
@@ -119,5 +99,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

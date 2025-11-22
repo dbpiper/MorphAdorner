@@ -4,135 +4,110 @@ package edu.northwestern.at.morphadorner.tools.compareadornedfiles;
 
 import java.util.Map;
 
-/** Data for a single adorned word.
- */
+/** Data for a single adorned word. */
+public class AdornedWordData {
+  /** Word text. */
+  protected String wordText;
 
-public class AdornedWordData
-{
-    /** Word text. */
+  /** Attribute map. */
+  protected Map<String, String> attributeMap;
 
-    protected String wordText;
+  /** Word ID of sibling (same parent element) word. */
+  protected String siblingID;
 
-    /** Attribute map. */
+  /** If word is preceded by a blank element. */
+  public boolean blankPrecedes;
 
-    protected Map<String, String> attributeMap;
+  /** Create empty adorned word data. */
+  public AdornedWordData() {}
 
-    /** Word ID of sibling (same parent element) word. */
+  /**
+   * Create populated adorned word data.
+   *
+   * @param wordText Word text.
+   * @param attributeMap Map of attribute names to attribute values.
+   * @param siblingID Sibling word ID (has same parent element).
+   * @param blankPrecedes true if blank precedes word.
+   */
+  public AdornedWordData(
+      String wordText, Map<String, String> attributeMap, String siblingID, boolean blankPrecedes) {
+    this.wordText = wordText;
+    this.attributeMap = attributeMap;
+    this.siblingID = siblingID;
+    this.blankPrecedes = blankPrecedes;
+  }
 
-    protected String siblingID;
+  /**
+   * Get word text.
+   *
+   * @return word text.
+   */
+  public String getWordText() {
+    return wordText;
+  }
 
-    /** If word is preceded by a blank element. */
+  /**
+   * Set word text.
+   *
+   * @param wordText The word text.
+   */
+  public void setWordText(String wordText) {
+    this.wordText = wordText;
+  }
 
-    public boolean blankPrecedes;
+  /**
+   * Get attribute map.
+   *
+   * @return attribute map.
+   */
+  public Map<String, String> getAttributeMap() {
+    return attributeMap;
+  }
 
-    /** Create empty adorned word data.
-     */
+  /**
+   * Set attribute map.
+   *
+   * @param attributeMap The attribute map.
+   */
+  public void setAttributeMap(Map<String, String> attributeMap) {
+    this.attributeMap = attributeMap;
+  }
 
-    public AdornedWordData()
-    {
-    }
+  /**
+   * Get sibling word ID.
+   *
+   * @return Sibling word ID.
+   */
+  public String getSiblingID() {
+    return siblingID;
+  }
 
-    /** Create populated adorned word data.
-     *
-     *  @param  wordText        Word text.
-     *  @param  attributeMap    Map of attribute names to attribute values.
-     *  @param  siblingID       Sibling word ID (has same parent element).
-     *  @param  blankPrecedes   true if blank precedes word.
-     */
+  /**
+   * Set sibling word ID.
+   *
+   * @param siblingID The sibling word ID.
+   */
+  public void setSiblingID(String siblingID) {
+    this.siblingID = siblingID;
+  }
 
-    public AdornedWordData
-    (
-        String wordText ,
-        Map<String, String> attributeMap ,
-        String siblingID ,
-        boolean blankPrecedes
-    )
-    {
-        this.wordText       = wordText;
-        this.attributeMap   = attributeMap;
-        this.siblingID      = siblingID;
-        this.blankPrecedes  = blankPrecedes;
-    }
+  /**
+   * Get blank precedes word flag.
+   *
+   * @return true if blank precedes word.
+   */
+  public boolean getBlankPrecedes() {
+    return blankPrecedes;
+  }
 
-    /** Get word text.
-     *
-     *  @return     word text.
-     */
-
-    public String getWordText()
-    {
-        return wordText;
-    }
-
-    /** Set word text.
-     *
-     *  @param  wordText    The word text.
-     */
-
-    public void setWordText( String wordText )
-    {
-        this.wordText   = wordText;
-    }
-
-    /** Get attribute map.
-     *
-     *  @return     attribute map.
-     */
-
-    public Map<String, String> getAttributeMap()
-    {
-        return attributeMap;
-    }
-
-    /** Set attribute map.
-     *
-     *  @param  attributeMap    The attribute map.
-     */
-
-    public void setAttributeMap( Map<String, String> attributeMap )
-    {
-        this.attributeMap   = attributeMap;
-    }
-
-    /** Get sibling word ID.
-     *
-     *  @return     Sibling word ID.
-     */
-
-    public String getSiblingID()
-    {
-        return siblingID;
-    }
-
-    /** Set sibling word ID.
-     *
-     *  @param  siblingID   The sibling word ID.
-     */
-
-    public void setSiblingID( String siblingID )
-    {
-        this.siblingID  = siblingID;
-    }
-
-    /** Get blank precedes word flag.
-     *
-     *  @return     true if blank precedes word.
-     */
-
-    public boolean getBlankPrecedes()
-    {
-        return blankPrecedes;
-    }
-
-    /** Set blank precedes word flag.
-     *
-     *  @param  blankPrecedes   true if blank precedes word.
-     */
-
-    public void setBlankPrecedes( boolean blankPrecedes )
-    {
-        this.blankPrecedes  = blankPrecedes;
-    }
+  /**
+   * Set blank precedes word flag.
+   *
+   * @param blankPrecedes true if blank precedes word.
+   */
+  public void setBlankPrecedes(boolean blankPrecedes) {
+    this.blankPrecedes = blankPrecedes;
+  }
 }
 
 /*
@@ -175,6 +150,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

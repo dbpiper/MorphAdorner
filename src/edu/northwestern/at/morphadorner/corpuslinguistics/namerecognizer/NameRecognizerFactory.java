@@ -5,99 +5,70 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namerecognizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** NameRecognizer factory.
- */
+/** NameRecognizer factory. */
+public class NameRecognizerFactory {
+  /**
+   * Get a name recognizer.
+   *
+   * @return The name recognizer.
+   */
+  public static NameRecognizer newNameRecognizer() {
+    String className = System.getProperty("namerecognizer.class");
 
-public class NameRecognizerFactory
-{
-    /** Get a name recognizer.
-     *
-     *  @return     The name recognizer.
-     */
-
-    public static NameRecognizer newNameRecognizer()
-    {
-        String className    =
-            System.getProperty( "namerecognizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultNameRecognizer";
-        }
-
-        return newNameRecognizer( className );
+    if (className == null) {
+      className = "DefaultNameRecognizer";
     }
 
-    /** Get a name recognizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The name recognizer.
-     */
+    return newNameRecognizer(className);
+  }
 
-    public static NameRecognizer newNameRecognizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a name recognizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The name recognizer.
+   */
+  public static NameRecognizer newNameRecognizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "namerecognizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultNameRecognizer";
-        }
-
-        return newNameRecognizer( className );
+    if (properties != null) {
+      className = properties.getProperty("namerecognizer.class");
     }
 
-    /** Get a name recognizer of a specified class name.
-     *
-     *  @param  className   Class name for the name recognizer.
-     *
-     *  @return             The name recognizer.
-     */
-
-    public static NameRecognizer newNameRecognizer( String className )
-    {
-        NameRecognizer nameRecognizer   = null;
-
-        try
-        {
-            nameRecognizer  =
-                (NameRecognizer)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    NameRecognizer.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                nameRecognizer  =
-                    (NameRecognizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create name recognizer of class " +
-                    fixedClassName + ", using default." );
-
-                nameRecognizer  = new DefaultNameRecognizer();
-            }
-        }
-
-        return nameRecognizer;
+    if (className == null) {
+      className = "DefaultNameRecognizer";
     }
+
+    return newNameRecognizer(className);
+  }
+
+  /**
+   * Get a name recognizer of a specified class name.
+   *
+   * @param className Class name for the name recognizer.
+   * @return The name recognizer.
+   */
+  public static NameRecognizer newNameRecognizer(String className) {
+    NameRecognizer nameRecognizer = null;
+
+    try {
+      nameRecognizer = (NameRecognizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(NameRecognizer.class.getName()) + "." + className;
+
+      try {
+        nameRecognizer = (NameRecognizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create name recognizer of class " + fixedClassName + ", using default.");
+
+        nameRecognizer = new DefaultNameRecognizer();
+      }
+    }
+
+    return nameRecognizer;
+  }
 }
 
 /*
@@ -140,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

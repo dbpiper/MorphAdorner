@@ -2,45 +2,31 @@ package edu.northwestern.at.utils.xml;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-
 /** Applies pattern replacements to XML text. */
+public class XMLTextReplacer {
+  /**
+   * Replace text XML using regular expressions.
+   *
+   * @param xmlText XML text in which to perform replacements.
+   * @param patternReplacers Pattern replacers defining replacements.
+   */
+  public static String performReplacements(String xmlText, List<PatternReplacer> patternReplacers) {
+    String result = xmlText;
 
-public class XMLTextReplacer
-{
-    /** Replace text XML using regular expressions.
-     *
-     *  @param  xmlText             XML text in which to perform replacements.
-     *  @param  patternReplacers    Pattern replacers defining replacements.
-     */
-
-    public static String performReplacements
-    (
-        String xmlText ,
-        List<PatternReplacer> patternReplacers
-    )
-    {
-        String result   = xmlText;
-
-        if ( patternReplacers != null )
-        {
-            for ( int i = 0 ; i < patternReplacers.size() ; i++ )
-            {
-                result  = patternReplacers.get( i ).replace( result );
-            }
-        }
-
-        return result;
+    if (patternReplacers != null) {
+      for (int i = 0; i < patternReplacers.size(); i++) {
+        result = patternReplacers.get(i).replace(result);
+      }
     }
 
-    /** Allow overrides but no instantiation.
-     */
+    return result;
+  }
 
-    protected XMLTextReplacer()
-    {
-    }
+  /** Allow overrides but no instantiation. */
+  protected XMLTextReplacer() {}
 }
 
 /*
@@ -83,6 +69,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

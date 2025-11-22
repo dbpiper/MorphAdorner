@@ -2,191 +2,147 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inputter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.PatternReplacer;
 import java.io.*;
 import java.net.URL;
 import java.util.List;
 
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-import edu.northwestern.at.utils.PatternReplacer;
+/** Interface for retrieving text from a possibly segmented input source. */
+public interface TextInputter {
+  /**
+   * Reads text from a URL.
+   *
+   * @param url URL from which to read text.
+   * @param encoding Text encoding.
+   * @throws IOException If an error occurs.
+   */
+  public void loadText(URL url, String encoding) throws Exception;
 
-/** Interface for retrieving text from a possibly segmented input source.
- */
+  /**
+   * Reads text from a String.
+   *
+   * @param str String from which to read text.
+   * @throws IOException If an error occurs.
+   */
+  public void loadText(String str) throws Exception;
 
-public interface TextInputter
-{
-    /** Reads text from a URL.
-     *
-     *  @param  url             URL from which to read text.
-     *  @param  encoding        Text encoding.
-     *
-     *  @throws IOException     If an error occurs.
-     */
+  /**
+   * Reads text from a URL using a specified XML schema.
+   *
+   * @param url URL from which to read text.
+   * @param encoding Text encoding.
+   * @param xmlSchemaURI String URI specifying Xml schema.
+   * @throws Exception If an error occurs.
+   *     <p>The schema and schema type should be ignored when the input is not an XML file.
+   */
+  public void loadText(URL url, String encoding, String xmlSchemaURI) throws Exception;
 
-    public void loadText( URL url , String encoding )
-        throws Exception;
+  /**
+   * Reads text from a string using a specified XML schema.
+   *
+   * @param str String from which to read text.
+   * @param xmlSchemaURI String URI specifying Xml schema.
+   * @throws Exception If an error occurs.
+   *     <p>The schema and schema type should be ignored when the input is not an XML file.
+   */
+  public void loadText(String str, String xmlSchemaURI) throws Exception;
 
-    /** Reads text from a String.
-     *
-     *  @param  str             String from which to read text.
-     *
-     *  @throws IOException     If an error occurs.
-     */
+  /**
+   * Returns number of text segments.
+   *
+   * @return Number of text segments.
+   */
+  public int getSegmentCount();
 
-    public void loadText( String str )
-        throws Exception;
+  /**
+   * Returns name of specified segment.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @return The name for the specified segment number, or null if the segment number is invalid.
+   */
+  public String getSegmentName(int segmentNumber);
 
-    /** Reads text from a URL using a specified XML schema.
-     *
-     *  @param  url                 URL from which to read text.
-     *  @param  encoding            Text encoding.
-     *  @param  xmlSchemaURI        String URI specifying Xml schema.
-     *
-     *  @throws Exception           If an error occurs.
-     *
-     *  <p>
-     *  The schema and schema type should be ignored when the input
-     *  is not an XML file.
-     *  </p>
-     */
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @return The text for for the specified segment number, or null if the segment number is
+   *     invalid. The returned text may be an empty string if the segment number is valid but the
+   *     segment contains no text.
+   */
+  public String getSegmentText(int segmentNumber);
 
-    public void loadText
-    (
-        URL url ,
-        String encoding ,
-        String xmlSchemaURI
-    )
-        throws Exception;
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentName The segment name.
+   * @return The text for for the specified segment name, or null if the segment name is invalid.
+   *     The returned text may be an empty string if the segment name is valid but the segment
+   *     contains no text.
+   */
+  public String getSegmentText(String segmentName);
 
-    /** Reads text from a string using a specified XML schema.
-     *
-     *  @param  str             String from which to read text.
-     *  @param  xmlSchemaURI    String URI specifying Xml schema.
-     *
-     *  @throws Exception       If an error occurs.
-     *
-     *  <p>
-     *  The schema and schema type should be ignored when the input
-     *  is not an XML file.
-     *  </p>
-     */
+  /**
+   * Updates specified segment of loaded text.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @param segmentText The updated segment text.
+   */
+  public void setSegmentText(int segmentNumber, String segmentText);
 
-    public void loadText
-    (
-        String str ,
-        String xmlSchemaURI
-    )
-        throws Exception;
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentName The segment name.
+   * @param segmentText The updated segment text.
+   */
+  public void setSegmentText(String segmentName, String segmentText);
 
-    /** Returns number of text segments.
-     *
-     *  @return     Number of text segments.
-     */
+  /**
+   * Updates specified segment of loaded text from file.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @param segmentTextFile The file containing the updated segment text.
+   */
+  public void setSegmentText(int segmentNumber, File segmentTextFile);
 
-    public int getSegmentCount();
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentName The segment name.
+   * @param segmentTextFile The file containing the updated segment text.
+   */
+  public void setSegmentText(String segmentName, File segmentTextFile);
 
-    /** Returns name of specified segment.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *
-     *  @return                 The name for the specified
-     *                          segment number, or null if the
-     *                          segment number is invalid.
-     */
+  /**
+   * Enable gap element fixer.
+   *
+   * @param fixGaps true to fix gap tags.
+   */
+  public void enableGapFixer(boolean fixGaps);
 
-    public String getSegmentName( int segmentNumber );
+  /**
+   * Enable orig element fixer.
+   *
+   * @param fixOrigs true to fix orig tags.
+   */
+  public void enableOrigFixer(boolean fixOrigs);
 
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *
-     *  @return                 The text for for the specified
-     *                          segment number, or null if the
-     *                          segment number is invalid.  The
-     *                          returned text may be an empty string
-     *                          if the segment number is valid but
-     *                          the segment contains no text.
-     */
+  /**
+   * Enable split words fixer.
+   *
+   * @param fixSplitWords true to fix selected split words.
+   * @param patternReplacers Patterns for fixing split words.
+   */
+  public void enableSplitWordsFixer(boolean fixSplitWords, List<PatternReplacer> patternReplacers);
 
-    public String getSegmentText( int segmentNumber );
-
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentName     The segment name.
-     *
-     *  @return                 The text for for the specified
-     *                          segment name, or null if the
-     *                          segment name is invalid.  The
-     *                          returned text may be an empty string
-     *                          if the segment name is valid but
-     *                          the segment contains no text.
-     */
-
-    public String getSegmentText( String segmentName );
-
-    /** Updates specified segment of loaded text.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *  @param  segmentText     The updated segment text.
-     */
-
-    public void setSegmentText( int segmentNumber , String segmentText );
-
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentName     The segment name.
-     *  @param  segmentText     The updated segment text.
-     */
-
-    public void setSegmentText( String segmentName , String segmentText );
-
-    /** Updates specified segment of loaded text from file.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *  @param  segmentTextFile The file containing the updated segment text.
-     */
-
-    public void setSegmentText( int segmentNumber , File segmentTextFile );
-
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentName     The segment name.
-     *  @param  segmentTextFile The file containing the updated segment text.
-     */
-
-    public void setSegmentText( String segmentName , File segmentTextFile );
-
-    /** Enable gap element fixer.
-     *
-     *  @param  fixGaps     true to fix gap tags.
-     */
-
-    public void enableGapFixer( boolean fixGaps );
-
-    /** Enable orig element fixer.
-     *
-     *  @param  fixOrigs        true to fix orig tags.
-     */
-
-    public void enableOrigFixer( boolean fixOrigs );
-
-    /** Enable split words fixer.
-     *
-     *  @param  fixSplitWords       true to fix selected split words.
-     *  @param  patternReplacers    Patterns for fixing split words.
-     */
-
-    public void enableSplitWordsFixer
-    (
-        boolean fixSplitWords ,
-        List<PatternReplacer> patternReplacers
-    );
-
-    /** Does inputter use segment files?
-     *
-     *  @return     true if inputter uses segment files.
-     */
-
-    public boolean usesSegmentFiles();
+  /**
+   * Does inputter use segment files?
+   *
+   * @return true if inputter uses segment files.
+   */
+  public boolean usesSegmentFiles();
 }
 
 /*
@@ -229,6 +185,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

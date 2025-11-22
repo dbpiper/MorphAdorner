@@ -5,114 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.hyphenator;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** Hyphenator factory.
- */
+/** Hyphenator factory. */
+public class HyphenatorFactory {
+  /**
+   * Get a hyphenator.
+   *
+   * @return The hyphenator.
+   */
+  public static Hyphenator newHyphenator() {
+    String className = System.getProperty("hyphenator.class");
 
-public class HyphenatorFactory
-{
-    /** Get a hyphenator.
-     *
-     *  @return     The hyphenator.
-     */
-
-    public static Hyphenator newHyphenator()
-    {
-        String className    =
-            System.getProperty( "hyphenator.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultHyphenator";
-        }
-
-        return newHyphenator( className );
+    if (className == null) {
+      className = "DefaultHyphenator";
     }
 
-    /** Get a hyphenator.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The hyphenator.
-     */
+    return newHyphenator(className);
+  }
 
-    public static Hyphenator newHyphenator
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a hyphenator.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The hyphenator.
+   */
+  public static Hyphenator newHyphenator(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "hyphenator.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultHyphenator";
-        }
-
-        return newHyphenator( className );
+    if (properties != null) {
+      className = properties.getProperty("hyphenator.class");
     }
 
-    /** Get a hyphenator of a specified class name.
-     *
-     *  @param  className   Class name for the hyphenator.
-     *
-     *  @return             The hyphenator.
-     */
-
-    public static Hyphenator newHyphenator( String className )
-    {
-        Hyphenator hyphenator   = null;
-
-        try
-        {
-            hyphenator  =
-                (Hyphenator)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    HyphenatorFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                hyphenator  =
-                    (Hyphenator)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create hyphenator of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    hyphenator  = new DefaultHyphenator();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null hyphenator.
-/*
-                    System.err.println(
-                        "Unable to create hyphenator, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return hyphenator;
+    if (className == null) {
+      className = "DefaultHyphenator";
     }
+
+    return newHyphenator(className);
+  }
+
+  /**
+   * Get a hyphenator of a specified class name.
+   *
+   * @param className Class name for the hyphenator.
+   * @return The hyphenator.
+   */
+  public static Hyphenator newHyphenator(String className) {
+    Hyphenator hyphenator = null;
+
+    try {
+      hyphenator = (Hyphenator) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(HyphenatorFactory.class.getName()) + "." + className;
+
+      try {
+        hyphenator = (Hyphenator) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create hyphenator of class " + fixedClassName + ", using default.");
+
+        try {
+          hyphenator = new DefaultHyphenator();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null hyphenator.
+          /*
+                              System.err.println(
+                                  "Unable to create hyphenator, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return hyphenator;
+  }
 }
 
 /*
@@ -155,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

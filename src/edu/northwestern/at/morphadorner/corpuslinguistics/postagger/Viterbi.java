@@ -2,454 +2,354 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.logger.*;
 import edu.northwestern.at.utils.math.*;
+import java.util.*;
 
-/** Viterbi algorithm.
+/**
+ * Viterbi algorithm.
  *
- *  <p>
- *  The Viterbi trellis is a (# of words) x (# of part-of-speech-tags)
- *  matrix containing transition probability states from one
- *  word/tag to the next for each tag.  Because this is a very sparse
- *  matrix, we use a HashMap2D to hold the probability values.
- *  In addition, we use another HashMap2D to hold the back trace tags.
- *  This allows use to produce the optimal (most probable) path
- *  from the last tag in a sentence back to the first.
- *  </p>
+ * <p>The Viterbi trellis is a (# of words) x (# of part-of-speech-tags) matrix containing
+ * transition probability states from one word/tag to the next for each tag. Because this is a very
+ * sparse matrix, we use a HashMap2D to hold the probability values. In addition, we use another
+ * HashMap2D to hold the back trace tags. This allows use to produce the optimal (most probable)
+ * path from the last tag in a sentence back to the first.
  *
- *  <p>
- *  To improve performance, we define a beam width which allows us
- *  to eliminate trellis states which are highly unlikely to be
- *  part of the optimal tag path.  The default beam width s 1000
- *  which appears to work well in practice.
- *  </p>
+ * <p>To improve performance, we define a beam width which allows us to eliminate trellis states
+ * which are highly unlikely to be part of the optimal tag path. The default beam width s 1000 which
+ * appears to work well in practice.
  */
+public class Viterbi {
+  /** Viterbi probability trellis. */
+  protected Map2D<Integer, String, Probability> trellis;
 
-public class Viterbi
-{
-    /** Viterbi probability trellis.
-     */
+  /** Viterbi traceback for tags. */
+  protected Map2D<Integer, String, String> tracebackTags;
 
-    protected Map2D<Integer, String, Probability> trellis;
+  /** Beam width for beam search. */
+  protected double beamWidth = Math.log(1000.0D);
 
-    /** Viterbi traceback for tags.
-     */
+  /** Count of tags rejected by beam search. */
+  protected int beamSearchRejections = 0;
 
-    protected Map2D<Integer, String, String> tracebackTags;
+  /** Logger used for output. */
+  protected Logger logger;
 
-    /** Beam width for beam search.
-     */
+  /** Create Viterbi object. */
+  public Viterbi() {
+    //  Set initial state.
+    reset();
+  }
 
-    protected double beamWidth          = Math.log( 1000.0D );
+  /** Reset viterbi to clean state. */
+  public void reset() {
+    //  Set initial state.  Use "." as
+    //  the initial tag(s).
 
-    /** Count of tags rejected by beam search.
-     */
+    String startState = ".";
 
-    protected int beamSearchRejections  = 0;
+    trellis = Map2DFactory.createNewMap2D();
 
-    /** Logger used for output. */
+    tracebackTags = Map2DFactory.createNewMap2D();
 
-    protected Logger logger;
+    trellis.put(Integer.valueOf(-2), startState, Probability.ONE_PROBABILITY);
 
-    /** Create Viterbi object.
-     */
+    trellis.put(Integer.valueOf(-1), startState, Probability.ONE_PROBABILITY);
 
-    public Viterbi()
-    {
-                                //  Set initial state.
-        reset();
+    beamSearchRejections = 0;
+
+    //  Create dummy logger.
+
+    logger = new DummyLogger();
+  }
+
+  /**
+   * Get probability value for a specified word index and tag.
+   *
+   * @param index Word index.
+   * @param tag Part of speech tag.
+   * @return Probability. If (index,tag) not found, returns 0.
+   */
+  public Probability getScore(int index, String tag) {
+    Probability result = Probability.ZERO_PROBABILITY;
+
+    Probability score = (Probability) trellis.get(Integer.valueOf(index), tag);
+
+    if (score != null) {
+      result = score;
     }
 
-    /** Reset viterbi to clean state.
-     */
+    return result;
+  }
 
-    public void reset()
-    {
-                                //  Set initial state.  Use "." as
-                                //  the initial tag(s).
+  /**
+   * Get traceback tag for a specified tag and word index.
+   *
+   * @param index Word index.
+   * @param tag Part of speech tag.
+   * @return Part of speech tag. Returns "*" if (index,tag) not found, which should never happen,
+   *     unless the part of speech guesser fails to return any parts of speech for a word (which
+   *     should also never happen).
+   */
+  public String getTracebackTag(int index, String tag) {
+    String result = (String) tracebackTags.get(Integer.valueOf(index), tag);
 
-        String startState   = ".";
+    if (result == null) result = "*";
 
-        trellis             = Map2DFactory.createNewMap2D();
+    return result;
+  }
 
-        tracebackTags       = Map2DFactory.createNewMap2D();
+  /**
+   * Store Viterbi score and traceback tag for a specified word index.
+   *
+   * @param index Word index.
+   * @param tag Part of speech tag.
+   * @param tracebackTag Traceback tag to store.
+   * @param score Score to store.
+   */
+  public void setScore(int index, String tag, String tracebackTag, Probability score) {
+    trellis.put(Integer.valueOf(index), tag, score);
+    tracebackTags.put(Integer.valueOf(index), tag, tracebackTag);
+  }
 
-        trellis.put(
-            Integer.valueOf( -2 ) , startState , Probability.ONE_PROBABILITY );
+  /**
+   * Perform Viterbi scoring for bigram.
+   *
+   * @param wordIndex Word index for current word.
+   * @param lexicalProbs Array of lexical probabilities. Entries match corresponding tags in "tags"
+   *     parameter.
+   * @param contextualProbs HashMap2D mapping words and tags to contextual probabilities.
+   * @param tags Possible tags for current word.
+   * @param prevTags Possible tags for previous word.
+   * @return Tags passing beam search criterion.
+   */
+  public List<String> updateScore(
+      int wordIndex,
+      Probability[] lexicalProbs,
+      Map2D contextualProbs,
+      List<String> tags,
+      List<String> prevTags) {
+    Probability bestScore = Probability.ZERO_PROBABILITY;
 
-        trellis.put(
-            Integer.valueOf( -1 ) , startState , Probability.ONE_PROBABILITY );
+    for (int i = 0; i < tags.size(); i++) {
+      String tag = tags.get(i);
 
-        beamSearchRejections    = 0;
+      Probability lexicalProb = lexicalProbs[i];
 
-                                //  Create dummy logger.
+      for (int j = 0; j < prevTags.size(); j++) {
+        String prevTag = prevTags.get(j);
 
-        logger  = new DummyLogger();
-    }
+        Probability scorem1 = getScore(wordIndex - 1, prevTag);
 
-    /** Get probability value for a specified word index and tag.
-     *
-     *  @param  index   Word index.
-     *  @param  tag     Part of speech tag.
-     *
-     *  @return         Probability.  If (index,tag) not found, returns 0.
-     */
+        Probability contextualProb = (Probability) contextualProbs.get(tag, prevTag);
 
-    public Probability getScore( int index , String tag )
-    {
-        Probability result  = Probability.ZERO_PROBABILITY;
+        Probability score = scorem1.multiply(lexicalProb, contextualProb);
 
-        Probability score   =
-            (Probability)trellis.get( Integer.valueOf( index ) , tag );
+        if (score.compareTo(getScore(wordIndex, tag)) > 0) {
+          bestScore = score;
 
-        if ( score != null )
-        {
-            result  = score;
+          setScore(wordIndex, tag, prevTag, score);
         }
-
-        return result;
+      }
     }
+    //  Prune tags using beam width.
 
-    /** Get traceback tag for a specified tag and word index.
-     *
-     *  @param  index   Word index.
-     *  @param  tag     Part of speech tag.
-     *
-     *  @return         Part of speech tag.  Returns "*" if (index,tag)
-     *                  not found, which should never happen, unless the
-     *                  part of speech guesser fails to return any
-     *                  parts of speech for a word (which should also
-     *                  never happen).
-     */
+    return pruneTags(wordIndex, tags, bestScore);
+  }
 
-    public String getTracebackTag( int index , String tag )
-    {
-        String result   =
-            (String)tracebackTags.get( Integer.valueOf( index ) , tag );
+  /**
+   * Perform Viterbi scoring for trigram.
+   *
+   * @param wordIndex Word index for current word.
+   * @param lexicalProbs Array of lexical probabilities. Entries match corresponding tags in "tags"
+   *     parameter.
+   * @param contextualProbs HashMap3D mapping words and tags to contextual probabilities.
+   * @param tags Possible tags for current word.
+   * @param prevTags Possible tags for previous word.
+   * @param prevPrevTags Possible tags for previous word of previous word.
+   * @return Tags passing beam search criterion.
+   */
+  public List<String> updateScore(
+      int wordIndex,
+      Probability[] lexicalProbs,
+      Map3D contextualProbs,
+      List<String> tags,
+      List<String> prevTags,
+      List<String> prevPrevTags) {
+    Probability bestScore = Probability.ZERO_PROBABILITY;
 
-        if ( result == null ) result = "*";
+    for (int i = 0; i < tags.size(); i++) {
+      String tag = tags.get(i);
 
-        return result;
-    }
+      Probability lexicalProb = lexicalProbs[i];
+      Probability currentScore = getScore(wordIndex, tag);
 
-    /** Store Viterbi score and traceback tag for a specified word index.
-     *
-     *  @param  index           Word index.
-     *  @param  tag             Part of speech tag.
-     *  @param  tracebackTag    Traceback tag to store.
-     *  @param  score           Score to store.
-     */
+      for (int j = 0; j < prevTags.size(); j++) {
+        String prevTag = prevTags.get(j);
 
-    public void setScore
-    (
-        int index ,
-        String tag ,
-        String tracebackTag ,
-        Probability score
-    )
-    {
-        trellis.put( Integer.valueOf( index ) , tag , score );
-        tracebackTags.put( Integer.valueOf( index ) , tag , tracebackTag );
-    }
+        Probability scorem1 = getScore(wordIndex - 1, prevTag).multiply(lexicalProb);
 
-    /** Perform Viterbi scoring for bigram.
-     *
-     *  @param  wordIndex       Word index for current word.
-     *  @param  lexicalProbs    Array of lexical probabilities.
-     *                          Entries match corresponding tags
-     *                          in "tags" parameter.
-     *  @param  contextualProbs HashMap2D mapping words and tags
-     *                          to contextual probabilities.
-     *  @param  tags            Possible tags for current word.
-     *  @param  prevTags        Possible tags for previous word.
-     *
-     *  @return                 Tags passing beam search criterion.
-     */
+        for (int k = 0; k < prevPrevTags.size(); k++) {
+          Probability contextualProb =
+              (Probability) contextualProbs.get(tag, prevTag, prevPrevTags.get(k));
 
-    public List<String> updateScore
-    (
-        int wordIndex ,
-        Probability[] lexicalProbs ,
-        Map2D contextualProbs ,
-        List<String> tags ,
-        List<String> prevTags
-    )
-    {
-        Probability bestScore   = Probability.ZERO_PROBABILITY;
+          Probability score = scorem1.multiply(contextualProb);
 
-        for ( int i = 0 ; i < tags.size() ; i++ )
-        {
-            String tag  = tags.get( i );
+          if (score.compareTo(currentScore) > 0) {
+            bestScore = score;
+            currentScore = score;
 
-            Probability lexicalProb = lexicalProbs[ i ];
-
-            for ( int j = 0 ; j < prevTags.size() ; j++ )
-            {
-                String prevTag  = prevTags.get( j );
-
-                Probability scorem1         =
-                    getScore( wordIndex - 1 , prevTag );
-
-                Probability contextualProb  =
-                    (Probability)contextualProbs.get( tag , prevTag );
-
-                Probability score   =
-                    scorem1.multiply( lexicalProb , contextualProb );
-
-                if ( score.compareTo( getScore( wordIndex , tag ) ) > 0 )
-                {
-                    bestScore   = score;
-
-                    setScore( wordIndex , tag , prevTag , score );
-                }
-            }
+            setScore(wordIndex, tag, prevTag, currentScore);
+          }
         }
-                                //  Prune tags using beam width.
+      }
+    }
+    //  Prune tags using beam width.
 
-        return pruneTags( wordIndex , tags , bestScore );
+    return pruneTags(wordIndex, tags, bestScore);
+  }
+
+  /**
+   * Prune tags using beam search.
+   *
+   * @param wordIndex The word index.
+   * @param tags The tags to prune.
+   * @param bestScore The best score for this word and set of tags.
+   * @return The pruned list of tags.
+   *     <p>Compares the ratio of the best score scross all the tags to each individual tag's score.
+   *     Tags with a ratio larger than the beam width are removed from further consideration in
+   *     succeeding states.
+   */
+  protected List<String> pruneTags(int wordIndex, List<String> tags, Probability bestScore) {
+    //  Holds list of tags passing
+    //  beam search criterion.
+
+    List<String> passedTags = ListFactory.createNewList();
+
+    //  Get log(best score).  We work in
+    //  log space to avoid underflows.
+
+    double dBestScore = bestScore.getLogProbability();
+
+    //  Loop over tags.
+
+    for (int i = 0; i < tags.size(); i++) {
+      String tag = tags.get(i);
+
+      //  Get this tag's score.
+
+      Probability tagScore = getScore(wordIndex, tag);
+      double dTagScore = tagScore.getLogProbability();
+
+      //  Subtract log(tag score) from
+      //  log(best score), and compare to
+      //  log(beam width).  If the log
+      //  difference is greater than the
+      //  log of the beam width, remove this
+      //  tag from the trellis, and increment
+      //  the count of tags rejected by the
+      //  beam search.
+
+      if ((dBestScore - dTagScore) > beamWidth) {
+        trellis.remove(new Integer(wordIndex), tag);
+
+        beamSearchRejections++;
+      }
+      //  Tag not excluded by beam search
+      //  criterion.  Add to list of tags
+      //  to pass on to further steps.
+      else {
+        passedTags.add(tag);
+      }
+    }
+    //  Return possibly pruned list of tags.
+    return passedTags;
+  }
+
+  /**
+   * Get optimal set of tags via backtracking.
+   *
+   * @param nWords Number of words.
+   * @param tags Final state tags.
+   * @return Optimal list of tags.
+   */
+  public List<String> optimalTags(int nWords, List<String> tags) {
+    List<String> tagList = ListFactory.createNewList();
+
+    //  Get optimal end state.
+    //  Only iterate over tags we have seen
+    //  since unseen tags cannot contribute
+    //  to joint probability.
+
+    int wordIndex = nWords - 1;
+
+    String bestTag = ".";
+    Probability bestScore = Probability.ZERO_PROBABILITY;
+
+    for (int i = 0; i < tags.size(); i++) {
+      String tag = tags.get(i);
+
+      if (getScore(wordIndex, tag).compareTo(bestScore) > 0) {
+        bestScore = getScore(wordIndex, tag);
+        bestTag = tag;
+      }
+    }
+    //  Back track to get optimal tags.
+
+    while (wordIndex >= 0) {
+      tagList.add(0, bestTag);
+
+      bestTag = getTracebackTag(wordIndex--, bestTag);
     }
 
-    /** Perform Viterbi scoring for trigram.
-     *
-     *  @param  wordIndex       Word index for current word.
-     *  @param  lexicalProbs    Array of lexical probabilities.
-     *                          Entries match corresponding tags
-     *                          in "tags" parameter.
-     *  @param  contextualProbs HashMap3D mapping words and tags
-     *                          to contextual probabilities.
-     *  @param  tags            Possible tags for current word.
-     *  @param  prevTags        Possible tags for previous word.
-     *  @param  prevPrevTags    Possible tags for previous word of
-     *                          previous word.
-     *
-     *  @return                 Tags passing beam search criterion.
-     */
+    return tagList;
+  }
 
-    public List<String> updateScore
-    (
-        int wordIndex ,
-        Probability[] lexicalProbs ,
-        Map3D contextualProbs ,
-        List<String> tags ,
-        List<String> prevTags ,
-        List<String> prevPrevTags
-    )
-    {
-        Probability bestScore   = Probability.ZERO_PROBABILITY;
+  /**
+   * Return number of entries rejected by beam search.
+   *
+   * @return Number of entries rejected by beam search.
+   */
+  public int getBeamSearchRejections() {
+    return beamSearchRejections;
+  }
 
-        for ( int i = 0 ; i < tags.size() ; i++ )
-        {
-            String tag                  = tags.get( i );
+  /**
+   * Get the beam width.
+   *
+   * @return The beam width.
+   */
+  public double beamWidth() {
+    return beamWidth;
+  }
 
-            Probability lexicalProb     = lexicalProbs[ i ];
-            Probability currentScore    = getScore( wordIndex , tag );
+  /**
+   * Set the beam width.
+   *
+   * @param beamWidth The beam width.
+   */
+  public void beamWidth(double beamWidth) {
+    this.beamWidth = beamWidth;
+  }
 
-            for ( int j = 0 ; j < prevTags.size() ; j++ )
-            {
-                String prevTag  = prevTags.get( j );
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-                Probability scorem1 =
-                    getScore( wordIndex - 1 , prevTag ).multiply(
-                        lexicalProb );
-
-                for ( int k = 0 ; k < prevPrevTags.size() ; k++ )
-                {
-                    Probability contextualProb  =
-                        (Probability)contextualProbs.get
-                        (
-                            tag ,
-                            prevTag ,
-                            prevPrevTags.get( k )
-                        );
-
-                    Probability score   =
-                        scorem1.multiply( contextualProb );
-
-                    if ( score.compareTo( currentScore ) > 0 )
-                    {
-                        bestScore       = score;
-                        currentScore    = score;
-
-                        setScore
-                        (
-                            wordIndex , tag , prevTag , currentScore
-                        );
-                    }
-                }
-            }
-        }
-                                //  Prune tags using beam width.
-
-        return pruneTags( wordIndex , tags , bestScore );
-    }
-
-    /** Prune tags using beam search.
-     *
-     *  @param  wordIndex   The word index.
-     *  @param  tags        The tags to prune.
-     *  @param  bestScore   The best score for this word and set of tags.
-     *
-     *  @return             The pruned list of tags.
-     *
-     *  <p>
-     *  Compares the ratio of the best score scross all the tags to each
-     *  individual tag's score.  Tags with a ratio larger than the beam
-     *  width are removed from further consideration in succeeding
-     *  states.
-     *  </p>
-     */
-
-    protected List<String> pruneTags
-    (
-        int wordIndex ,
-        List<String> tags ,
-        Probability bestScore
-    )
-    {
-                                //  Holds list of tags passing
-                                //  beam search criterion.
-
-        List<String> passedTags = ListFactory.createNewList();
-
-                                //  Get log(best score).  We work in
-                                //  log space to avoid underflows.
-
-        double dBestScore       = bestScore.getLogProbability();
-
-                                //  Loop over tags.
-
-        for ( int i = 0 ; i < tags.size() ; i++ )
-        {
-            String tag              = tags.get( i );
-
-                                //  Get this tag's score.
-
-            Probability tagScore    = getScore( wordIndex , tag );
-            double dTagScore        = tagScore.getLogProbability();
-
-                                //  Subtract log(tag score) from
-                                //  log(best score), and compare to
-                                //  log(beam width).  If the log
-                                //  difference is greater than the
-                                //  log of the beam width, remove this
-                                //  tag from the trellis, and increment
-                                //  the count of tags rejected by the
-                                //  beam search.
-
-            if ( ( dBestScore - dTagScore ) > beamWidth )
-            {
-                trellis.remove( new Integer( wordIndex ) , tag );
-
-                beamSearchRejections++;
-            }
-                                //  Tag not excluded by beam search
-                                //  criterion.  Add to list of tags
-                                //  to pass on to further steps.
-            else
-            {
-                passedTags.add( tag );
-            }
-        }
-                                //  Return possibly pruned list of tags.
-        return passedTags;
-    }
-
-    /** Get optimal set of tags via backtracking.
-     *
-     *  @param  nWords  Number of words.
-     *  @param  tags    Final state tags.
-     *
-     *  @return         Optimal list of tags.
-     */
-
-    public List<String> optimalTags( int nWords , List<String> tags )
-    {
-        List<String> tagList    = ListFactory.createNewList();
-
-                                //  Get optimal end state.
-                                //  Only iterate over tags we have seen
-                                //  since unseen tags cannot contribute
-                                //  to joint probability.
-
-        int wordIndex           = nWords - 1;
-
-        String bestTag          = ".";
-        Probability bestScore   = Probability.ZERO_PROBABILITY;
-
-        for ( int i = 0 ; i < tags.size() ; i++ )
-        {
-            String tag  = tags.get( i );
-
-            if ( getScore( wordIndex , tag ).compareTo( bestScore ) > 0 )
-            {
-                bestScore   = getScore( wordIndex , tag );
-                bestTag     = tag;
-            }
-        }
-                                //  Back track to get optimal tags.
-
-        while ( wordIndex >= 0 )
-        {
-            tagList.add( 0 , bestTag );
-
-            bestTag     = getTracebackTag( wordIndex-- , bestTag );
-        }
-
-        return tagList;
-    }
-
-    /** Return number of entries rejected by beam search.
-     *
-     *  @return     Number of entries rejected by beam search.
-     */
-
-    public int getBeamSearchRejections()
-    {
-        return beamSearchRejections;
-    }
-
-    /** Get the beam width.
-     *
-     *  @return     The beam width.
-     */
-
-    public double beamWidth()
-    {
-        return beamWidth;
-    }
-
-    /** Set the beam width.
-     *
-     *  @param  beamWidth   The beam width.
-     */
-
-    public void beamWidth( double beamWidth )
-    {
-        this.beamWidth  = beamWidth;
-    }
-
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
-
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 }
 
 /*
@@ -492,6 +392,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

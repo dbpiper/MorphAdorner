@@ -5,107 +5,78 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** PartOfSpeechTags factory.
- */
+/** PartOfSpeechTags factory. */
+public class PartOfSpeechTagsFactory {
+  /**
+   * Get part of speech tags.
+   *
+   * @return The part of speech tags.
+   */
+  public static PartOfSpeechTags newPartOfSpeechTags() {
+    String className = System.getProperty("partofspeechtags.class");
 
-public class PartOfSpeechTagsFactory
-{
-    /** Get part of speech tags.
-     *
-     *  @return     The part of speech tags.
-     */
-
-    public static PartOfSpeechTags newPartOfSpeechTags()
-    {
-        String className    =
-            System.getProperty( "partofspeechtags.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultPartOfSpeechTags";
-        }
-
-        return newPartOfSpeechTags( className );
+    if (className == null) {
+      className = "DefaultPartOfSpeechTags";
     }
 
-    /** Get part of speech tags.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The part of speech tags.
-     */
+    return newPartOfSpeechTags(className);
+  }
 
-    public static PartOfSpeechTags newPartOfSpeechTags
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get part of speech tags.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The part of speech tags.
+   */
+  public static PartOfSpeechTags newPartOfSpeechTags(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "partofspeechtags.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultPartOfSpeechTags";
-        }
-
-        return newPartOfSpeechTags( className );
+    if (properties != null) {
+      className = properties.getProperty("partofspeechtags.class");
     }
 
-    /** Get part of speech tags of a specified class name.
-     *
-     *  @param  className   Class name for the part of speech tags.
-     *
-     *  @return             The part of speech tags.
-     */
-
-    public static PartOfSpeechTags newPartOfSpeechTags( String className )
-    {
-        PartOfSpeechTags partOfSpeechTags   = null;
-
-        try
-        {
-            partOfSpeechTags    =
-                (PartOfSpeechTags)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    PartOfSpeechTagsFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                partOfSpeechTags    =
-                    (PartOfSpeechTags)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create adorned part of speech tags " +
-                    "of class " + fixedClassName + ", using default." );
-
-                try
-                {
-                    partOfSpeechTags    = new DefaultPartOfSpeechTags();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null part of speech tags.
-                }
-            }
-        }
-
-        return partOfSpeechTags;
+    if (className == null) {
+      className = "DefaultPartOfSpeechTags";
     }
+
+    return newPartOfSpeechTags(className);
+  }
+
+  /**
+   * Get part of speech tags of a specified class name.
+   *
+   * @param className Class name for the part of speech tags.
+   * @return The part of speech tags.
+   */
+  public static PartOfSpeechTags newPartOfSpeechTags(String className) {
+    PartOfSpeechTags partOfSpeechTags = null;
+
+    try {
+      partOfSpeechTags = (PartOfSpeechTags) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(PartOfSpeechTagsFactory.class.getName()) + "." + className;
+
+      try {
+        partOfSpeechTags = (PartOfSpeechTags) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create adorned part of speech tags "
+                + "of class "
+                + fixedClassName
+                + ", using default.");
+
+        try {
+          partOfSpeechTags = new DefaultPartOfSpeechTags();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null part of speech tags.
+        }
+      }
+    }
+
+    return partOfSpeechTags;
+  }
 }
 
 /*
@@ -148,6 +119,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

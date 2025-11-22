@@ -2,66 +2,49 @@ package edu.northwestern.at.utils.xml;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
-import edu.northwestern.at.utils.*;
+/** XML tag classifier for TEI XML. */
+public class TEITagClassifier extends XMLTagClassifier {
+  /** Create TEI tag class. */
+  public TEITagClassifier() {
+    super();
+    //  TEI soft tags.
+    setSoftTags(
+        "abbr add address author c corr date emph "
+            + "foreign gap g hi l lb location mentioned milestone money name num "
+            + "organization orig pb pc person q quote reg rs sb sic soCalled "
+            + "sub sup term time title unclear w",
+        true);
+    //  TEI jump tags.
+    setJumpTags("bibl figdesc figDesc figure footnote note ref tailnote", true);
+    //  TEI main/side tags.
 
-/** XML tag classifier for TEI XML.
- */
+    setTagClass("front", "front", true);
+    setTagClass("back", "back", true);
 
-public class TEITagClassifier extends XMLTagClassifier
-{
-    /** Create TEI tag class.
-     */
+    setTagClass(
+        "side",
+        "bibl castGroup castItem castList figdesc figDesc figure "
+            + "head headnote note ref role roledesc roleDesc speaker "
+            + "stage tailnote trailer",
+        true);
+  }
 
-    public TEITagClassifier()
-    {
-        super();
-                                //  TEI soft tags.
-        setSoftTags
-        (
-            "abbr add address author c corr date emph " +
-            "foreign gap g hi l lb location mentioned milestone money name num " +
-            "organization orig pb pc person q quote reg rs sb sic soCalled " +
-            "sub sup term time title unclear w" ,
-            true
-        );
-                                //  TEI jump tags.
-        setJumpTags
-        (
-            "bibl figdesc figDesc figure footnote note ref tailnote" ,
-            true
-        );
-                                //  TEI main/side tags.
+  /**
+   * Is tag side text?
+   *
+   * @param tag The XML tag.
+   * @return True if tag is side text.
+   */
+  public boolean isSideTextTag(String tag) {
+    String tagClass = getTagClass(tag);
 
-        setTagClass( "front" , "front" , true );
-        setTagClass( "back" , "back" , true );
-
-        setTagClass
-        (
-            "side" ,
-            "bibl castGroup castItem castList figdesc figDesc figure " +
-            "head headnote note ref role roledesc roleDesc speaker " +
-            "stage tailnote trailer" ,
-            true
-        );
-    }
-
-    /** Is tag side text?
-     *
-     *  @param  tag     The XML tag.
-     *
-     *  @return         True if tag is side text.
-     */
-
-    public boolean isSideTextTag( String tag )
-    {
-        String tagClass = getTagClass( tag );
-
-        return ( tagClass != null ) && ( tagClass.equals( "side" ) );
-    }
+    return (tagClass != null) && (tagClass.equals("side"));
+  }
 }
 
 /*
@@ -104,6 +87,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

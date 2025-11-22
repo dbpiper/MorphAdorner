@@ -2,26 +2,21 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.languagerecognizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-
-/** Interface for a Language Recognizer.
- */
-
-public interface LanguageRecognizer
-{
-    /** Returns a scored list of possible languages for a text string.
-     *
-     *  @param  text    The text for which to determine the language.
-     *
-     *  @return         Array of ScoredList entries of language names and
-     *                  scores sorted in descending order by score.
-     */
-
-     public ScoredString[] recognizeLanguage( String text );
+/** Interface for a Language Recognizer. */
+public interface LanguageRecognizer {
+  /**
+   * Returns a scored list of possible languages for a text string.
+   *
+   * @param text The text for which to determine the language.
+   * @return Array of ScoredList entries of language names and scores sorted in descending order by
+   *     score.
+   */
+  public ScoredString[] recognizeLanguage(String text);
 }
 
 /*
@@ -64,6 +59,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

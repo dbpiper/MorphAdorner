@@ -2,245 +2,200 @@ package edu.northwestern.at.utils.logger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import java.io.*;
-
+import java.util.*;
 import org.apache.logging.log4j.*;
-import org.apache.logging.log4j.core.net.Priority;
 
-/** Base logger which wraps Jakarta Common Logging Log manager.
+/**
+ * Base logger which wraps Jakarta Common Logging Log manager.
  *
- *  <p>
- *  This class is a simple wrapper around Jakarta Common Logging
- *  log4j loggers.
- *  </p>
+ * <p>This class is a simple wrapper around Jakarta Common Logging log4j loggers.
  */
+public class BaseLogger implements Logger {
+  /** Log4J logger. */
+  protected org.apache.logging.log4j.Logger logger;
 
-public class BaseLogger implements Logger
-{
-    /** Log4J logger. */
+  /** True if logger enabled. */
+  protected boolean loggerEnabled = false;
 
-    protected org.apache.logging.log4j.Logger logger;
+  /** Lock for synchronizing output. */
+  protected Object lock = new Object();
 
-    /** True if logger enabled. */
+  /**
+   * Create a logger.
+   *
+   * @param logClassName The log class name.
+   * @param logPath The path in which to store log files.
+   * @param logConfigFilePath Path to log configuration file.
+   *     <p>Reads the configuration file, creates a Log4J logger for the specified class name, and
+   *     configures the logger.
+   * @throws FileNotFoundException
+   * @throws IOException
+   */
+  public BaseLogger(String logClassName, String logPath, String logConfigFilePath)
+      throws FileNotFoundException, IOException {
+    logger = org.apache.logging.log4j.LogManager.getLogger(logClassName);
 
-    protected boolean loggerEnabled = false;
+    Properties properties = new Properties();
 
-    /** Lock for synchronizing output. */
+    properties.load(new FileInputStream(logConfigFilePath));
 
-    protected Object lock = new Object();
+    for (Enumeration enumeration = properties.propertyNames(); enumeration.hasMoreElements(); ) {
+      String key = (String) enumeration.nextElement();
 
-    /** Create a logger.
-     *
-     *  @param  logClassName        The log class name.
-     *  @param  logPath             The path in which to store log files.
-     *  @param  logConfigFilePath   Path to log configuration file.
-     *
-     *  <p>
-     *  Reads the configuration file, creates a Log4J logger for
-     *  the specified class name, and configures the logger.
-     *  </p>
-     *
-     *  @throws FileNotFoundException
-     *
-     *  @throws IOException
-     */
+      if (key.startsWith("log4j.appender") && key.endsWith(".File")) {
+        String val = properties.getProperty(key);
 
-    public BaseLogger
-    (
-        String logClassName ,
-        String logPath,
-        String logConfigFilePath
-    )
-        throws FileNotFoundException, IOException
-    {
-        logger  = org.apache.logging.log4j.LogManager.getLogger( logClassName );
+        val = logPath + File.separatorChar + val;
 
-        Properties properties = new Properties();
-
-        properties.load( new FileInputStream( logConfigFilePath ) );
-
-        for (   Enumeration enumeration = properties.propertyNames();
-                enumeration.hasMoreElements(); )
-        {
-            String key = (String)enumeration.nextElement();
-
-            if  (   key.startsWith( "log4j.appender" ) &&
-                    key.endsWith( ".File" ) )
-            {
-                String val = properties.getProperty( key );
-
-                val = logPath + File.separatorChar + val;
-
-                properties.setProperty( key , val );
-            }
-        }
-
-        loggerEnabled = true;
+        properties.setProperty(key, val);
+      }
     }
 
-    /** Terminates the logger.
-     */
+    loggerEnabled = true;
+  }
 
-    public void terminate()
-    {
-        synchronized( lock )
-        {
-            if ( loggerEnabled )
-            {
-                loggerEnabled = false;
+  /** Terminates the logger. */
+  public void terminate() {
+    synchronized (lock) {
+      if (loggerEnabled) {
+        loggerEnabled = false;
 
-                LogManager.shutdown();
-            }
-        }
+        LogManager.shutdown();
+      }
     }
+  }
 
-    /** Maps a LoggerConstants level to log4j level.
-     *
-     *  @param  level       LoggerConstants level.
-     *
-     *  @return     log4j level.
-     */
+  /**
+   * Maps a LoggerConstants level to log4j level.
+   *
+   * @param level LoggerConstants level.
+   * @return log4j level.
+   */
+  protected static Level mapLevel(int level) {
+    switch (level) {
+      case LoggerConstants.FATAL:
+        return Level.FATAL;
 
-    protected static Level mapLevel( int level )
-    {
-        switch ( level )
-        {
-            case LoggerConstants.FATAL:
-                return Level.FATAL;
-
-            case LoggerConstants.ERROR:
-                return Level.ERROR;
-
-            case LoggerConstants.WARN:
-                return Level.WARN;
-
-            case LoggerConstants.INFO:
-                return Level.INFO;
-
-            case LoggerConstants.DEBUG:
-                return Level.DEBUG;
-        }
-
+      case LoggerConstants.ERROR:
         return Level.ERROR;
+
+      case LoggerConstants.WARN:
+        return Level.WARN;
+
+      case LoggerConstants.INFO:
+        return Level.INFO;
+
+      case LoggerConstants.DEBUG:
+        return Level.DEBUG;
     }
 
-    /** Logs a message at the DEBUG level.
-     *
-     *  @param  str         Log message.
-     */
+    return Level.ERROR;
+  }
 
-    public void logDebug( String str )
-    {
-        logger.log( Level.DEBUG , str );
-    }
+  /**
+   * Logs a message at the DEBUG level.
+   *
+   * @param str Log message.
+   */
+  public void logDebug(String str) {
+    logger.log(Level.DEBUG, str);
+  }
 
-    /** Logs a message at the INFO level.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Logs a message at the INFO level.
+   *
+   * @param str Log message.
+   */
+  public void logInfo(String str) {
+    logger.log(Level.INFO, str);
+  }
 
-    public void logInfo( String str )
-    {
-        logger.log( Level.INFO , str );
-    }
+  /**
+   * Logs a message at the WARN level.
+   *
+   * @param str Log message.
+   */
+  public void logWarning(String str) {
+    logger.log(Level.WARN, str);
+  }
 
-    /** Logs a message at the WARN level.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Logs a message at the ERROR level.
+   *
+   * @param str Log message.
+   */
+  public void logError(String str) {
+    logger.log(Level.ERROR, str);
+  }
 
-    public void logWarning( String str )
-    {
-        logger.log( Level.WARN , str );
-    }
+  /**
+   * Logs a error message with a stack trace.
+   *
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void logError(String str, Throwable t) {
+    logger.log(Level.ERROR, str, t);
+  }
 
-    /** Logs a message at the ERROR level.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Logs a message at the FATAL level.
+   *
+   * @param str Log message.
+   */
+  public void logFatal(String str) {
+    logger.log(Level.FATAL, str);
+  }
 
-    public void logError( String str )
-    {
-        logger.log( Level.ERROR , str );
-    }
+  /**
+   * Logs a fatal message with a stack trace.
+   *
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void logFatal(String str, Throwable t) {
+    logger.log(Level.FATAL, str, t);
+  }
 
-    /** Logs a error message with a stack trace.
-     *
-     *  @param  str     Log message.
-     *
-     *  @param  t       Throwable.
-     */
+  /**
+   * Logs a message.
+   *
+   * @param level Log message level.
+   * @param str Log message.
+   */
+  public void log(int level, String str) {
+    logger.log(mapLevel(level), str);
+  }
 
-    public void logError( String str , Throwable t )
-    {
-        logger.log( Level.ERROR , str , t );
-    }
+  /**
+   * Logs a message with a stack trace.
+   *
+   * @param level Log message level.
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void log(int level, String str, Throwable t) {
+    logger.log(mapLevel(level), str, t);
+  }
 
-    /** Logs a message at the FATAL level.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Returns true if debugging messages are enabled.
+   *
+   * @return True if debugging messages are enabled.
+   */
+  public boolean isDebuggingEnabled() {
+    return logger.isDebugEnabled();
+  }
 
-    public void logFatal( String str )
-    {
-        logger.log( Level.FATAL , str );
-    }
-
-    /** Logs a fatal message with a stack trace.
-     *
-     *  @param  str     Log message.
-     *
-     *  @param  t       Throwable.
-     */
-
-    public void logFatal( String str , Throwable t )
-    {
-        logger.log( Level.FATAL , str , t );
-    }
-
-    /** Logs a message.
-     *
-     *  @param  level       Log message level.
-     *  @param  str         Log message.
-     */
-
-    public void log( int level , String str )
-    {
-        logger.log( mapLevel( level ) , str );
-    }
-
-    /** Logs a message with a stack trace.
-     *
-     *  @param  level       Log message level.
-     *  @param  str         Log message.
-     *  @param  t           Throwable.
-     */
-
-    public void log( int level, String str, Throwable t )
-    {
-        logger.log( mapLevel( level ), str, t );
-    }
-
-    /** Returns true if debugging messages are enabled.
-     *
-     *  @return     True if debugging messages are enabled.
-     */
-
-    public boolean isDebuggingEnabled()
-    {
-        return logger.isDebugEnabled();
-    }
-
-    /** Returns true if logger is enabled.
-     *
-     *  @return     True if logger is enabled.
-     */
-
-    public boolean isLoggerEnabled()
-    {
-        return loggerEnabled;
-    }
+  /**
+   * Returns true if logger is enabled.
+   *
+   * @return True if logger is enabled.
+   */
+  public boolean isLoggerEnabled() {
+    return loggerEnabled;
+  }
 }
 
 /*
@@ -283,6 +238,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

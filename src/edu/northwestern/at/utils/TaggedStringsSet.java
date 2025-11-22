@@ -4,123 +4,100 @@ package edu.northwestern.at.utils;
 
 import java.util.*;
 
-import edu.northwestern.at.utils.TaggedStrings;
+/** Wraps a set as a TaggedStrings object. */
+public class TaggedStringsSet implements TaggedStrings {
+  /** Set being wrapped. */
+  protected Set<String> wrappedSet;
 
-/** Wraps a set as a TaggedStrings object.
- */
+  /** The common tag for all the string values. */
+  protected String tag = null;
 
-public class TaggedStringsSet implements TaggedStrings
-{
-    /** Set being wrapped. */
+  /**
+   * Create a tagged strings set.
+   *
+   * @param set The set to wrap.
+   * @param tag The tag value for all set entries.
+   */
+  public TaggedStringsSet(Set<String> set, String tag) {
+    this.wrappedSet = set;
+    this.tag = tag;
+  }
 
-    protected Set<String> wrappedSet;
+  /**
+   * See if specified string exists.
+   *
+   * @param string The string.
+   * @return True if specified string exists.
+   */
+  public boolean containsString(String string) {
+    return wrappedSet.contains(string);
+  }
 
-    /** The common tag for all the string values. */
+  /**
+   * Get the tag value associated with a string.
+   *
+   * @param string The string.
+   * @return The tag value associated with the string. All strings in the set have the same tag.
+   *     Returns null if the string is not in the set.
+   */
+  public String getTag(String string) {
+    String result = null;
 
-    protected String tag    = null;
-
-    /** Create a tagged strings set.
-     *
-     *  @param  set     The set to wrap.
-     *  @param  tag     The tag value for all set entries.
-     */
-
-    public TaggedStringsSet( Set<String> set , String tag )
-    {
-        this.wrappedSet = set;
-        this.tag        = tag;
+    if (wrappedSet.contains(string)) {
+      result = tag;
     }
 
-    /** See if specified string exists.
-     *
-     *  @param  string  The string.
-     *
-     *  @return         True if specified string exists.
-     */
+    return result;
+  }
 
-    public boolean containsString( String string )
-    {
-        return wrappedSet.contains( string );
-    }
+  /**
+   * Set the tag value associated with a string.
+   *
+   * @param string The string.
+   * @param tag The tag.
+   *     <p>Note: the tag value is ignored.
+   */
+  public void putTag(String string, String tag) {}
 
-    /** Get the tag value associated with a string.
-     *
-     *  @param  string  The string.
-     *
-     *  @return         The tag value associated with the string.
-     *                  All strings in the set have the same tag.
-     *                  Returns null if the string is not in the set.
-     */
+  /**
+   * Get number of strings.
+   *
+   * @return Number of strings.
+   */
+  public int getStringCount() {
+    return wrappedSet.size();
+  }
 
-    public String getTag( String string )
-    {
-        String result   = null;
+  /**
+   * Get set of all unique tag values.
+   *
+   * @return Set of all unique tag values.
+   */
+  public Set<String> getAllTags() {
+    Set<String> result = SetFactory.createNewSet();
 
-        if ( wrappedSet.contains( string ) )
-        {
-            result  = tag;
-        }
+    if (tag != null) result.add(tag);
 
-        return result;
-    }
+    return result;
+  }
 
-    /** Set the tag value associated with a string.
-     *
-     *  @param  string  The string.
-     *  @param  tag     The tag.
-     *
-     *  <p>
-     *  Note: the tag value is ignored.
-     *  </p>
-     */
+  /**
+   * Get set of all unique string values.
+   *
+   * @return Set of all unique string values.
+   */
+  public Set<String> getAllStrings() {
+    return wrappedSet;
+  }
 
-    public void putTag( String string , String tag )
-    {
-    }
-
-    /** Get number of strings.
-     *
-     *  @return     Number of strings.
-     */
-
-    public int getStringCount()
-    {
-        return wrappedSet.size();
-    }
-
-    /** Get set of all unique tag values.
-     *
-     *  @return     Set of all unique tag values.
-     */
-
-    public Set<String> getAllTags()
-    {
-        Set<String> result  = SetFactory.createNewSet();
-
-        if ( tag != null ) result.add( tag );
-
-        return result;
-    }
-
-    /** Get set of all unique string values.
-     *
-     *  @return     Set of all unique string values.
-     */
-
-    public Set<String> getAllStrings()
-    {
-        return wrappedSet;
-    }
-
-    /** Return the wrapped set.
-     *
-     *  @return     The wrapped set.
-     */
-
-    public Set<String> getSet()
-    {
-        return wrappedSet;
-    }
+  /**
+   * Return the wrapped set.
+   *
+   * @return The wrapped set.
+   */
+  public Set<String> getSet() {
+    return wrappedSet;
+  }
 }
 
 /*
@@ -163,6 +140,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,108 +2,98 @@ package edu.northwestern.at.utils.xml;
 
 /*  Please see the license information at the end of this file. */
 
-/** XML utilities.
- */
+/** XML utilities. */
+public class XMLUtils {
+  /**
+   * Check that string contains valid XML characters.
+   *
+   * @param xml The XML text to check.
+   * @return true if the string contains only characters valid in XML, false otherwise.
+   */
+  public static boolean iSValidXMLText(String xml) {
+    boolean result = true;
 
-public class XMLUtils
-{
-    /** Check that string contains valid XML characters.
-     *
-     *  @param  xml     The XML text to check.
-     *
-     *  @return         true if the string contains only characters
-     *                  valid in XML, false otherwise.
-     */
+    if (xml != null) {
+      result =
+          xml.matches(
+              // # ASCII
 
-    public static boolean iSValidXMLText( String xml )
-    {
-        boolean result  = true;
+              "^([\\x09\\x0A\\x0D\\x20-\\x7E]|"
+                  +
 
-        if( xml != null )
-        {
-            result  =
-                xml.matches
-                (
-                                //# ASCII
+                  // # non-overlong 2-byte
 
-                    "^([\\x09\\x0A\\x0D\\x20-\\x7E]|" +
+                  "[\\xC2-\\xDF][\\x80-\\xBF]|"
+                  +
 
-                                //# non-overlong 2-byte
+                  // # excluding overlongs
 
-                    "[\\xC2-\\xDF][\\x80-\\xBF]|" +
+                  "\\xE0[\\xA0-\\xBF][\\x80-\\xBF]|"
+                  +
 
-                                //# excluding overlongs
+                  // # straight 3-byte
 
-                    "\\xE0[\\xA0-\\xBF][\\x80-\\xBF]|" +
+                  "[\\xE1-\\xEC\\xEE\\xEF][\\x80-\\xBF]{2}|"
+                  +
 
-                                //# straight 3-byte
+                  // # excluding surrogates
 
-                    "[\\xE1-\\xEC\\xEE\\xEF][\\x80-\\xBF]{2}|" +
+                  "\\xED[\\x80-\\x9F][\\x80-\\xBF]|"
+                  +
 
-                                //# excluding surrogates
+                  // # planes 1-3
 
-                    "\\xED[\\x80-\\x9F][\\x80-\\xBF]|" +
+                  "\\xF0[\\x90-\\xBF][\\x80-\\xBF]{2}|"
+                  +
 
-                                //# planes 1-3
+                  // # planes 4-15
 
-                    "\\xF0[\\x90-\\xBF][\\x80-\\xBF]{2}|" +
+                  "[\\xF1-\\xF3][\\x80-\\xBF]{3}|"
+                  +
 
-                                //# planes 4-15
+                  // # plane 16
 
-                    "[\\xF1-\\xF3][\\x80-\\xBF]{3}|" +
-
-                                //# plane 16
-
-                    "\\xF4[\\x80-\\x8F][\\x80-\\xBF]{2})*$"
-                );
-        }
-
-        return result;
+                  "\\xF4[\\x80-\\x8F][\\x80-\\xBF]{2})*$");
     }
 
-    /** Strips invalid characters from XML text.
-     *
-     *  @param  xml     XML text to check for invalid characters.
-     *  @param  rep     Replacement string for invalid characters.
-     *
-     *  @return         XML text with invalid characters removed.
-     */
+    return result;
+  }
 
-    public String stripBadXMLCharacters( String xml , String rep )
-    {
-        StringBuffer result = new StringBuffer();
+  /**
+   * Strips invalid characters from XML text.
+   *
+   * @param xml XML text to check for invalid characters.
+   * @param rep Replacement string for invalid characters.
+   * @return XML text with invalid characters removed.
+   */
+  public String stripBadXMLCharacters(String xml, String rep) {
+    StringBuffer result = new StringBuffer();
 
-        int codePoint;
+    int codePoint;
 
-        if ( ( xml != null ) && ( xml.length() > 0 ) )
-        {
-            int i = 0;
+    if ((xml != null) && (xml.length() > 0)) {
+      int i = 0;
 
-            while ( i < xml.length() )
-            {
-                codePoint   = xml.codePointAt( i );
+      while (i < xml.length()) {
+        codePoint = xml.codePointAt(i);
 
-                if  (   ( codePoint == 0x9 ) ||
-                        ( codePoint == 0xA ) ||
-                        ( codePoint == 0xD ) ||
-                        ( ( codePoint >= 0x20 ) && ( codePoint <= 0xD7FF ) ) ||
-                        ( ( codePoint >= 0xE000 ) && ( codePoint <= 0xFFFD ) ) ||
-                        ( ( codePoint >= 0x10000 ) && ( codePoint <= 0x10FFFF ) )
-                    )
-                {
-                    result.append( Character.toChars( codePoint ) );
-                }
-                else
-                {
-                    result.append( rep );
-                }
-
-                i += Character.charCount( codePoint );
-            }
+        if ((codePoint == 0x9)
+            || (codePoint == 0xA)
+            || (codePoint == 0xD)
+            || ((codePoint >= 0x20) && (codePoint <= 0xD7FF))
+            || ((codePoint >= 0xE000) && (codePoint <= 0xFFFD))
+            || ((codePoint >= 0x10000) && (codePoint <= 0x10FFFF))) {
+          result.append(Character.toChars(codePoint));
+        } else {
+          result.append(rep);
         }
 
-        return result.toString();
+        i += Character.charCount(codePoint);
+      }
     }
+
+    return result.toString();
+  }
 }
 
 /*
@@ -146,6 +136,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

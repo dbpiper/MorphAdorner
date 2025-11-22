@@ -6,38 +6,25 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-/** NoopPartOfSpeechTagsMapper: default returns original tag unchanged.
- */
+/** NoopPartOfSpeechTagsMapper: default returns original tag unchanged. */
+public class NoopPartOfSpeechTagsMapper extends AbstractPartOfSpeechTagsMapper
+    implements PartOfSpeechTagsMapper {
+  /** Create noop part of speech tags mapper. */
+  public NoopPartOfSpeechTagsMapper() throws IOException {
+    super();
+  }
 
-public class NoopPartOfSpeechTagsMapper
-    extends AbstractPartOfSpeechTagsMapper
-    implements PartOfSpeechTagsMapper
-{
-    /** Create noop part of speech tags mapper.
-     */
-
-    public NoopPartOfSpeechTagsMapper()
-        throws IOException
-    {
-        super();
-    }
-
-    /** Get destination part of speech tag for a source part of speech tag.
-     *
-     *  @param  spelling        Spelling.
-     *  @param  sourceTag       Source tag name.
-     *
-     *  @return                 Destination tag name.
-     *
-     *  <p>
-     *  This implementation returns the original tag unchanged.
-     *  </p>
-     */
-
-    public String getTag( String spelling , String sourceTag )
-    {
-        return sourceTag;
-    }
+  /**
+   * Get destination part of speech tag for a source part of speech tag.
+   *
+   * @param spelling Spelling.
+   * @param sourceTag Source tag name.
+   * @return Destination tag name.
+   *     <p>This implementation returns the original tag unchanged.
+   */
+  public String getTag(String spelling, String sourceTag) {
+    return sourceTag;
+  }
 }
 
 /*
@@ -80,6 +67,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

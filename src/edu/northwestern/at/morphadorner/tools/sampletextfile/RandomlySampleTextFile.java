@@ -2,136 +2,101 @@ package edu.northwestern.at.morphadorner.tools.sampletextfile;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.math.randomnumbers.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.math.randomnumbers.*;
-
-/** Randomly sample a text file.
+/**
+ * Randomly sample a text file.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  java edu.northwestern.at.morphadorner.tools.sampletextfile.RandomlySampleTextFile input.txt output.txt samplingpercent<br />
- *  <br />
- *  input.txt -- input text file to be sampled.<br />
- *  output.txt -- output text file.<br />
- *  samplingpercent -- sampling percent from 0 through 100.
- *  </p>
+ * <p>java edu.northwestern.at.morphadorner.tools.sampletextfile.RandomlySampleTextFile input.txt
+ * output.txt samplingpercent<br>
+ * <br>
+ * input.txt -- input text file to be sampled.<br>
+ * output.txt -- output text file.<br>
+ * samplingpercent -- sampling percent from 0 through 100.
  *
- *  <p>
- *  The output file is a text file containing the sampled text lines
- *  from the input file.  Both the input and the output must be utf-8 encoded.
- *  The output lines are appended to any existing lines in the output file.
- *  </p>
+ * <p>The output file is a text file containing the sampled text lines from the input file. Both the
+ * input and the output must be utf-8 encoded. The output lines are appended to any existing lines
+ * in the output file.
  */
+public class RandomlySampleTextFile extends SampleTextFile {
+  /**
+   * Main program.
+   *
+   * @param args Program parameters.
+   */
+  public static void main(String[] args) {
+    try {
+      //  Check for enough arguments.
 
-public class RandomlySampleTextFile extends SampleTextFile
-{
-    /** Main program.
-     *
-     *  @param  args    Program parameters.
-     */
+      if (args.length < 3) {
+        System.err.println("Too few arguments.");
 
-    public static void main( String[] args )
-    {
-        try
-        {
-                                //  Check for enough arguments.
+        help();
 
-            if ( args.length < 3 )
-            {
-                System.err.println( "Too few arguments." );
+        System.exit(1);
+      }
+      //  Get the sampling percent.
 
-                help();
+      double samplingPercentage = Double.parseDouble(args[2]);
 
-                System.exit( 1 );
-            }
-                                //  Get the sampling percent.
+      if ((samplingPercentage < 0.0D) || (samplingPercentage > 100.0D)) {
+        System.err.println("Bad percent -- must be from 0 through 100.");
 
-            double samplingPercentage   =
-                Double.parseDouble( args[ 2 ] );
+        System.exit(1);
+      }
+      //  Convert sampling percent to percentage.
 
-            if  (   ( samplingPercentage < 0.0D ) ||
-                    ( samplingPercentage > 100.0D ) )
-            {
-                System.err.println(
-                    "Bad percent -- must be from 0 through 100." );
+      samplingPercentage = samplingPercentage / 100.0D;
 
-                System.exit( 1 );
-            }
-                                //  Convert sampling percent to percentage.
+      //  Sample the input file to the output file.
 
-            samplingPercentage  = samplingPercentage / 100.0D;
+      new RandomlySampleTextFile(args[0], args[1], samplingPercentage).sample();
+    } catch (Exception e) {
+      e.printStackTrace();
 
-                                //  Sample the input file to the output file.
-
-            new RandomlySampleTextFile
-            (
-                args[ 0 ] , args[ 1 ] , samplingPercentage
-            ).sample();
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-
-            System.exit( 1 );
-        }
+      System.exit(1);
     }
+  }
 
-    /** Help text. */
+  /** Help text. */
+  public static void help() {
+    System.out.println();
+    System.out.println(
+        "java edu.northwestern.at.morphadorner.tools."
+            + "sampletextfile.RandomlySampleTextFile input.txt "
+            + "output.txt samplingpercent");
+    System.out.println();
+    System.out.println("   input.txt -- input text file to be sampled.");
+    System.out.println("   output.txt -- output text file.");
+    System.out.println("   samplingpercent -- sampling percent from 0 through 100.");
+  }
 
-    public static void help()
-    {
-        System.out.println();
-        System.out.println(
-            "java edu.northwestern.at.morphadorner.tools." +
-            "sampletextfile.RandomlySampleTextFile input.txt " +
-            "output.txt samplingpercent" );
-        System.out.println();
-        System.out.println(
-            "   input.txt -- input text file to be sampled." );
-        System.out.println(
-            "   output.txt -- output text file." );
-        System.out.println(
-            "   samplingpercent -- sampling percent from 0 through 100." );
-    }
+  /**
+   * Copy a text file to another while sampling the input lines.
+   *
+   * @param inputFileName Input file name.
+   * @param outputFileName Output file name.
+   * @param sample Sample count, percentage, etc.
+   */
+  public RandomlySampleTextFile(String inputFileName, String outputFileName, double sample) {
+    super(inputFileName, outputFileName, sample);
+  }
 
-    /** Copy a text file to another while sampling the input lines.
-     *
-     *  @param  inputFileName       Input file name.
-     *  @param  outputFileName      Output file name.
-     *  @param  sample              Sample count, percentage, etc.
-     */
-
-    public RandomlySampleTextFile
-    (
-        String inputFileName ,
-        String outputFileName ,
-        double sample
-    )
-    {
-        super( inputFileName , outputFileName , sample );
-    }
-
-    /** Check if line should be selected.
-     *
-     *  @param  inputLine       The input line.
-     *
-     *  @return true to select line.
-     *
-     *  <p>
-     *  Subclasses must override this method.
-     *  </p>
-     */
-
-    protected boolean lineSelected( String inputLine )
-    {
-        return ( RandomVariable.rand() <= sample );
-    }
+  /**
+   * Check if line should be selected.
+   *
+   * @param inputLine The input line.
+   * @return true to select line.
+   *     <p>Subclasses must override this method.
+   */
+  protected boolean lineSelected(String inputLine) {
+    return (RandomVariable.rand() <= sample);
+  }
 }
 
 /*
@@ -174,6 +139,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -4,39 +4,26 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsummarizer;
 
 import java.util.List;
 
-/** Defines an interface for summarizing a text.
- */
+/** Defines an interface for summarizing a text. */
+public interface TextSummarizer {
+  /**
+   * Summarize text.
+   *
+   * @param sentences Tokenized sentences to summarize.
+   * @return Summary of the input text. The maximum number of sentences returned is 10% of the
+   *     original.
+   */
+  public <T extends Comparable> List<Integer> summarize(List<List<T>> sentences);
 
-public interface TextSummarizer
-{
-    /** Summarize text.
-     *
-     *  @param  sentences           Tokenized sentences to summarize.
-     *
-     *  @return                     Summary of the input text.
-     *                              The maximum number of sentences
-     *                              returned is 10% of the original.
-     */
-
-    public <T extends Comparable> List<Integer> summarize
-    (
-        List<List<T>> sentences
-    );
-
-    /** Summarize text.
-     *
-     *  @param  sentences           Tokenized sentences to summarize.
-     *  @param  summarySentences    Maximum number of sentences to return
-     *                              in the summary.
-     *
-     *  @return                     Summary of the input text.
-     */
-
-    public <T extends Comparable> List<Integer> summarize
-    (
-        List<List<T>> sentences ,
-        int summarySentences
-    );
+  /**
+   * Summarize text.
+   *
+   * @param sentences Tokenized sentences to summarize.
+   * @param summarySentences Maximum number of sentences to return in the summary.
+   * @return Summary of the input text.
+   */
+  public <T extends Comparable> List<Integer> summarize(
+      List<List<T>> sentences, int summarySentences);
 }
 
 /*
@@ -79,6 +66,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

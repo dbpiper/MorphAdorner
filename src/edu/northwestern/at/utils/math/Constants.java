@@ -2,118 +2,94 @@ package edu.northwestern.at.utils.math;
 
 /*  Please see the license information at the end of this file. */
 
-/** Machine-dependent arithmetic constants.
- */
+/** Machine-dependent arithmetic constants. */
+public class Constants {
+  /** Machine epsilon. Smallest double floating point number such that (1 + MACHEPS) > 1 . */
+  public static final double MACHEPS = determineMachineEpsilon();
 
-public class Constants
-{
-    /** Machine epsilon.  Smallest double floating point number
-     *  such that (1 + MACHEPS) > 1 .
-     */
+  /* Machine precision in decimal digits . */
 
-    public static final double MACHEPS      = determineMachineEpsilon();
+  public static final int MAXPREC = determineMaximumPrecision();
 
-    /* Machine precision in decimal digits . */
+  /** Maximum logarithm value. */
+  public static final double MAXLOG = 7.09782712893383996732E2;
 
-    public static final int MAXPREC         = determineMaximumPrecision();
+  /** Minimum logarithm value. */
+  public static final double MINLOG = -7.451332191019412076235E2;
 
-    /** Maximum logarithm value. */
+  /** Square root of 2. */
+  public static final double SQRT2 = Math.sqrt(2.0D);
 
-    public static final double MAXLOG       = 7.09782712893383996732E2;
+  /** ( Square root of 2 ) / 2 . */
+  public static final double SQRT2DIV2 = SQRT2 / 2.0D;
 
-    /** Minimum logarithm value. */
+  /** Square root of PI. */
+  public static final double SQRTPI = Math.sqrt(Math.PI);
 
-    public static final double MINLOG       = -7.451332191019412076235E2;
+  /** Natural log of PI. */
+  public static final double LNPI = Math.log(Math.PI);
 
-    /** Square root of 2. */
+  /* LN(10) .            */
 
-    public static final double SQRT2        = Math.sqrt( 2.0D );
+  public static final double LN10 = Math.log(10.0D);
 
-    /** ( Square root of 2 ) / 2 . */
+  /* 1 / LN(10)             */
 
-    public static final double SQRT2DIV2    = SQRT2 / 2.0D;
+  //  public static final double  LN10INV     = 1.0D / LN10;
+  public static final double LN10INV = 0.43429448190325182765D;
 
-    /** Square root of PI. */
+  /* LN(2)                  */
 
-    public static final double SQRTPI       = Math.sqrt( Math.PI );
+  public static final double LN2 = Math.log(2.0D);
 
-    /** Natural log of PI. */
+  /* 1 / LN(2)              */
 
-    public static final double LNPI         = Math.log( Math.PI );
+  public static final double LN2INV = 1.0D / LN2;
 
-    /* LN(10) .            */
+  /* LN( Sqrt( 2 * PI ) ) */
 
-    public static final double  LN10        = Math.log( 10.0D );
+  public static final double LNSQRT2PI = Math.log(Math.sqrt(2.0D * Math.PI));
 
-    /* 1 / LN(10)             */
+  /**
+   * Determine machine epsilon.
+   *
+   * @return The machine epsilon as a double. The machine epsilon MACHEPS is the smallest number
+   *     such that (1 + MACHEPS) == 1 .
+   */
+  public static double determineMachineEpsilon() {
+    double d1 = 1.3333333333333333D;
+    double d3;
+    double d4;
 
-//  public static final double  LN10INV     = 1.0D / LN10;
-    public static final double  LN10INV     = 0.43429448190325182765D;
-
-    /* LN(2)                  */
-
-    public static final double  LN2         = Math.log( 2.0D );
-
-    /* 1 / LN(2)              */
-
-    public static final double  LN2INV      = 1.0D / LN2;
-
-    /* LN( Sqrt( 2 * PI ) ) */
-
-    public static final double  LNSQRT2PI   =
-        Math.log( Math.sqrt( 2.0D * Math.PI ) );
-
-    /** Determine machine epsilon.
-     *
-     *  @return     The machine epsilon as a double.
-     *              The machine epsilon MACHEPS is the
-     *              smallest number such that (1 + MACHEPS) == 1 .
-     */
-
-    public static double determineMachineEpsilon()
-    {
-        double d1 = 1.3333333333333333D;
-        double d3;
-        double d4;
-
-        for( d4 = 0.0D; d4 == 0.0D; d4 = Math.abs( d3 - 1.0D ) )
-        {
-            double d2 = d1 - 1.0D;
-            d3 = d2 + d2 + d2;
-        }
-
-        return d4;
+    for (d4 = 0.0D; d4 == 0.0D; d4 = Math.abs(d3 - 1.0D)) {
+      double d2 = d1 - 1.0D;
+      d3 = d2 + d2 + d2;
     }
 
-    /** Determine maximum double floating point precision.
-     *
-     *  @return     Maximum number of digits of precision
-     *              for double precision floating point.
-     */
+    return d4;
+  }
 
-    public static int determineMaximumPrecision()
-    {
-                                //  Get machine epsilon.
+  /**
+   * Determine maximum double floating point precision.
+   *
+   * @return Maximum number of digits of precision for double precision floating point.
+   */
+  public static int determineMaximumPrecision() {
+    //  Get machine epsilon.
 
-        double  macheps = determineMachineEpsilon();
+    double macheps = determineMachineEpsilon();
 
-                                //  Maximum digits of precision
-                                //  is given by the negative of
-                                //  of the base 10 exponent of
-                                //  of the machine precision.
-        double  digits  =
-            ArithUtils.trunc(
-                Math.log( macheps ) / Math.log( 10.0D ) );
+    //  Maximum digits of precision
+    //  is given by the negative of
+    //  of the base 10 exponent of
+    //  of the machine precision.
+    double digits = ArithUtils.trunc(Math.log(macheps) / Math.log(10.0D));
 
-        return -new Long( Math.round( digits ) ).intValue();
-    }
+    return -new Long(Math.round(digits)).intValue();
+  }
 
-    /** This class is non-instantiable but inheritable.
-     */
-
-    protected Constants()
-    {
-    }
+  /** This class is non-instantiable but inheritable. */
+  protected Constants() {}
 }
 
 /*
@@ -156,5 +132,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

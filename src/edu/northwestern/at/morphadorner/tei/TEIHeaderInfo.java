@@ -2,286 +2,219 @@ package edu.northwestern.at.morphadorner.tei;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 import javax.xml.stream.*;
 
-import edu.northwestern.at.utils.*;
+/** Extract selected "teiHeader" information from a TEI file. */
+public class TEIHeaderInfo {
+  /** File name. */
+  String fileName = null;
 
-/** Extract selected "teiHeader" information from a TEI file.
- */
+  /** Title. */
+  String title = null;
 
-public class TEIHeaderInfo
-{
-    /** File name. */
+  /** List of authors. */
+  protected List<TEIHeaderAuthor> authorList = new ArrayList<TEIHeaderAuthor>();
 
-    String fileName = null;
+  /** Current author map. */
+  protected Map<String, String> authorMap = null;
 
-    /** Title. */
+  /**
+   * Get bibliographic information from TEI header section.
+   *
+   * @param teiXMLFileName The TEI XML file name.
+   */
+  public TEIHeaderInfo(String teiXMLFileName) {
+    this.fileName = FileNameUtils.stripPathName(teiXMLFileName);
 
-    String title    = null;
+    this.fileName = FileNameUtils.changeFileExtension(this.fileName, "");
 
-    /** List of authors. */
+    parseXML(teiXMLFileName);
+  }
 
-    protected List<TEIHeaderAuthor> authorList  =
-        new ArrayList<TEIHeaderAuthor>();
+  /**
+   * Get file name.
+   *
+   * @return The file name.
+   */
+  public String getFileName() {
+    return fileName;
+  }
 
-    /** Current author map. */
+  /**
+   * Get title.
+   *
+   * @return The work's title.
+   */
+  public String getTitle() {
+    return safeString(title);
+  }
 
-    protected Map<String, String> authorMap = null;
+  /**
+   * Return author list.
+   *
+   * @return authorList List of author maps.
+   */
+  public List<TEIHeaderAuthor> getAuthors() {
+    return authorList;
+  }
 
-    /** Get bibliographic information from TEI header section.
-     *
-     *  @param  teiXMLFileName  The TEI XML file name.
-     */
+  /**
+   * Parse adorned file.
+   *
+   * @param xmlFile Bibadorned XML file name.
+   */
+  protected void parseXML(String xmlFile) {
+    try {
+      FileInputStream fileInputStream = new FileInputStream(xmlFile);
 
-    public TEIHeaderInfo( String teiXMLFileName )
-    {
-        this.fileName   =
-            FileNameUtils.stripPathName( teiXMLFileName );
+      XMLStreamReader parser = XMLInputFactory.newInstance().createXMLStreamReader(fileInputStream);
 
-        this.fileName   =
-            FileNameUtils.changeFileExtension( this.fileName , "" );
+      int inBiblFull = 0;
+      int inTitleStmt = 0;
+      int inAuthor = 0;
+      int inTitle = 0;
+      boolean seenBiblFull = false;
+      boolean done = false;
+      String currentElement = "";
 
-        parseXML( teiXMLFileName );
-    }
-
-    /** Get file name.
-     *
-     *  @return     The file name.
-     */
-
-    public String getFileName()
-    {
-        return fileName;
-    }
-
-    /** Get title.
-     *
-     *  @return     The work's title.
-     */
-
-    public String getTitle()
-    {
-        return safeString( title );
-    }
-
-    /** Return author list.
-     *
-     *  @return     authorList      List of author maps.
-     */
-
-    public List<TEIHeaderAuthor> getAuthors()
-    {
-        return authorList;
-    }
-
-    /** Parse adorned file.
-     *
-     *  @param  xmlFile     Bibadorned XML file name.
-     */
-
-    protected void parseXML( String xmlFile )
-    {
-        try
-        {
-            FileInputStream fileInputStream =
-                new FileInputStream( xmlFile );
-
-            XMLStreamReader parser =
-                XMLInputFactory.newInstance().createXMLStreamReader(
-                    fileInputStream );
-
-            int inBiblFull          = 0;
-            int inTitleStmt         = 0;
-            int inAuthor            = 0;
-            int inTitle             = 0;
-            boolean seenBiblFull    = false;
-            boolean done            = false;
-            String currentElement   = "";
-
-            for (   int event = parser.next() ;
-                    !done && ( event != XMLStreamConstants.END_DOCUMENT ) ;
-                    event = parser.next()
-                )
+      for (int event = parser.next();
+          !done && (event != XMLStreamConstants.END_DOCUMENT);
+          event = parser.next()) {
+        switch (event) {
+          case XMLStreamConstants.START_ELEMENT:
             {
-                switch ( event )
-                {
-                    case XMLStreamConstants.START_ELEMENT:
-                    {
-                        currentElement  = parser.getLocalName();
+              currentElement = parser.getLocalName();
 
-                        if ( isBiblFull( currentElement ) )
-                        {
-                            inBiblFull++;
-                            seenBiblFull    = true;
-                        }
-                        else if ( isTitleStmt( currentElement ) )
-                        {
-                            if ( inBiblFull > 0 )
-                            {
-                                inTitleStmt++;
-                            }
-                        }
-                        else if ( isTitle( currentElement ) )
-                        {
-                            if ( inTitleStmt > 0 )
-                            {
-                                title   = "";
-                                inTitle++;
-                            }
-                        }
-                        else if ( isAuthor( currentElement ) )
-                        {
-                            if ( inTitleStmt > 0 )
-                            {
-                                authorMap   = new TreeMap<String, String>();
-                                authorMap.put( "name" , "" );
-                                inAuthor++;
-                            }
-                        }
-                    }
-                    break;
-
-                    case XMLStreamConstants.END_ELEMENT:
-                    {
-                        String localName    = parser.getLocalName();
-
-                        if ( isBiblFull( localName ) )
-                        {
-                            inBiblFull--;
-                        }
-
-                        if ( isTitleStmt( localName ) && ( inBiblFull > 0 ) )
-                        {
-                            inTitleStmt--;
-                        }
-
-                        if ( inBiblFull <= 0 )
-                        {
-                            done = seenBiblFull;
-                        }
-                        else
-                        {
-                            if ( isAuthor( localName ) )
-                            {
-                                inAuthor--;
-
-                                if ( authorMap != null )
-                                {
-                                    authorList.add
-                                    (
-                                        new TEIHeaderAuthor( authorMap )
-                                    );
-                                }
-
-                                authorMap   = null;
-                            }
-                            else if ( isTitle( localName ) )
-                            {
-                                inTitle--;
-                            }
-                        }
-
-                        currentElement  = "";
-                    }
-                    break;
-
-                    case XMLStreamConstants.CDATA:
-                    case XMLStreamConstants.CHARACTERS:
-                    {
-                        if  (   ( inBiblFull > 0 ) &&
-                                ( currentElement.length() > 0 )
-                            )
-                        {
-                            if ( inAuthor > 0 )
-                            {
-                                authorMap.put
-                                (
-                                    "name" ,
-                                    authorMap.get( "name" ) +
-                                        parser.getText()
-                                );
-                            }
-                            else if ( inTitle > 0 )
-                            {
-                                title   += parser.getText();
-                            }
-                        }
-                    }
-                    break;
+              if (isBiblFull(currentElement)) {
+                inBiblFull++;
+                seenBiblFull = true;
+              } else if (isTitleStmt(currentElement)) {
+                if (inBiblFull > 0) {
+                  inTitleStmt++;
                 }
+              } else if (isTitle(currentElement)) {
+                if (inTitleStmt > 0) {
+                  title = "";
+                  inTitle++;
+                }
+              } else if (isAuthor(currentElement)) {
+                if (inTitleStmt > 0) {
+                  authorMap = new TreeMap<String, String>();
+                  authorMap.put("name", "");
+                  inAuthor++;
+                }
+              }
             }
+            break;
 
-            parser.close();
+          case XMLStreamConstants.END_ELEMENT:
+            {
+              String localName = parser.getLocalName();
+
+              if (isBiblFull(localName)) {
+                inBiblFull--;
+              }
+
+              if (isTitleStmt(localName) && (inBiblFull > 0)) {
+                inTitleStmt--;
+              }
+
+              if (inBiblFull <= 0) {
+                done = seenBiblFull;
+              } else {
+                if (isAuthor(localName)) {
+                  inAuthor--;
+
+                  if (authorMap != null) {
+                    authorList.add(new TEIHeaderAuthor(authorMap));
+                  }
+
+                  authorMap = null;
+                } else if (isTitle(localName)) {
+                  inTitle--;
+                }
+              }
+
+              currentElement = "";
+            }
+            break;
+
+          case XMLStreamConstants.CDATA:
+          case XMLStreamConstants.CHARACTERS:
+            {
+              if ((inBiblFull > 0) && (currentElement.length() > 0)) {
+                if (inAuthor > 0) {
+                  authorMap.put("name", authorMap.get("name") + parser.getText());
+                } else if (inTitle > 0) {
+                  title += parser.getText();
+                }
+              }
+            }
+            break;
         }
-        catch ( java.io.IOException e )
-        {
-            System.err.println( e );
-        }
-        catch ( Exception e )
-        {
-            System.err.println( e );
-        }
+      }
+
+      parser.close();
+    } catch (java.io.IOException e) {
+      System.err.println(e);
+    } catch (Exception e) {
+      System.err.println(e);
     }
+  }
 
-    /** Determine if this is a biblFull element or not.
-     *
-     *  @param  name    tag name
-     *  @return         true if tag name is "biblFull".
-     */
+  /**
+   * Determine if this is a biblFull element or not.
+   *
+   * @param name tag name
+   * @return true if tag name is "biblFull".
+   */
+  protected static boolean isBiblFull(String name) {
+    //      return name.equals( "biblFull" );
+    return name.equals("fileDesc");
+  }
 
-    protected static boolean isBiblFull( String name )
-    {
-//      return name.equals( "biblFull" );
-        return name.equals( "fileDesc" );
-    }
+  /**
+   * Determine if this is a titleStmt element or not.
+   *
+   * @param name tag name
+   * @return true if tag name is "titleStmt".
+   */
+  protected static boolean isTitleStmt(String name) {
+    return name.equals("titleStmt");
+  }
 
-    /** Determine if this is a titleStmt element or not.
-     *
-     *  @param  name    tag name
-     *  @return         true if tag name is "titleStmt".
-     */
+  /**
+   * Determine if this is a title element or not.
+   *
+   * @param name tag name
+   * @return true if tag name is "title".
+   */
+  protected static boolean isTitle(String name) {
+    return name.equals("title");
+  }
 
-    protected static boolean isTitleStmt( String name )
-    {
-        return name.equals( "titleStmt" );
-    }
+  /**
+   * Determine if this is an author element or not.
+   *
+   * @param name tag name
+   * @return true if tag name is "author".
+   */
+  protected static boolean isAuthor(String name) {
+    return name.equals("author");
+  }
 
-    /** Determine if this is a title element or not.
-     *
-     *  @param  name    tag name
-     *  @return         true if tag name is "title".
-     */
-
-    protected static boolean isTitle( String name )
-    {
-        return name.equals( "title" );
-    }
-
-    /** Determine if this is an author element or not.
-     *
-     *  @param  name    tag name
-     *  @return         true if tag name is "author".
-     */
-
-    protected static boolean isAuthor( String name )
-    {
-        return name.equals( "author" );
-    }
-
-    /** Return string ensuring null is set to empty string.
-     *
-     *  @param  s   String to check.
-     *
-     *  @return     Original value of "s" if s is not null,
-     *              or empty string if "s" is null.
-     */
-
-    protected String safeString( String s )
-    {
-        return ( s == null ) ? "" : s;
-    }
+  /**
+   * Return string ensuring null is set to empty string.
+   *
+   * @param s String to check.
+   * @return Original value of "s" if s is not null, or empty string if "s" is null.
+   */
+  protected String safeString(String s) {
+    return (s == null) ? "" : s;
+  }
 }
 
 /*
@@ -324,6 +257,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

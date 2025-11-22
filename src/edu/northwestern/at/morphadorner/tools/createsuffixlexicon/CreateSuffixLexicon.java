@@ -2,392 +2,289 @@ package edu.northwestern.at.morphadorner.tools.createsuffixlexicon;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+import edu.northwestern.at.utils.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
-
-/** Generate suffix lexicon from a word lexicon.
+/**
+ * Generate suffix lexicon from a word lexicon.
  *
- *  <p>
- *  <code>
+ * <p><code>
  *  java -Xmx512m edu.northwestern.at.morphadorner.tools.createsuffixlexicon.CreateSuffixLexicon
  *  inputwordlexicon outputsuffixlexicon maxsuffixlength maxsuffixcount allowedpostagsfilename
  *  </code>
- *  </p>
  *
- *  <ul>
- *  <li>
- *  <p>
- *  <strong>inputwordlexicon</strong> specifies the name of the
- *  input file containng the word lexicon from which to extract
- *  a suffix lexicon.
- *  </p>
- *  </li>
- *
- *  <li>
- *  <p>
- *  <strong>outputsuffixlexicon</strong> specifies the name of the
- *  output file to receive the suffix lexicon.
- *  </p>
- *  </li>
- *
- *  <li>
- *  <p>
- *  <strong>maxsuffixlength</strong> specifies the maximum length
- *  suffix generated for the suffix lexicon.  The default is 6.
- *  </p>
- *  </li>
- *
- *  <li>
- *  <p>
- *  <strong>maxsuffixcount</strong> specifies the maximum number
- *  of times a spelling can appear in order for its suffix to be
- *  added to the suffix lexicon.  The default is to include
- *  all words regardless of count.
- *  </p>
- *
- *  <p>
- *  For some applications you may want to restrict the
- *  suffix lexicon to contain suffixes only for infrequently
- *  occurring words.  Values of 10 (only include spellings which appear
- *  10 or less times in the training data) or 1 (only include spellings
- *  which appear once in the training data) are popular choices.
- *  </p>
- *  </li>
- *
- *  <li>
- *  <p>
- *  <strong>allowedpostagsfilename</strong> specifies the name
- *  of a file containing a list of part of speech tags to use
- *  when constructing the suffix lexicon.  Part of speech not on this
- *  list will typically be parts of speech for closed word classes
- *  to which new words should not be added.  The default is to include
- *  all part of speech tags.
- *  </p>
- *  </li>
- *  </ul>
+ * <ul>
+ *   <li>
+ *       <p><strong>inputwordlexicon</strong> specifies the name of the input file containng the
+ *       word lexicon from which to extract a suffix lexicon.
+ *   <li>
+ *       <p><strong>outputsuffixlexicon</strong> specifies the name of the output file to receive
+ *       the suffix lexicon.
+ *   <li>
+ *       <p><strong>maxsuffixlength</strong> specifies the maximum length suffix generated for the
+ *       suffix lexicon. The default is 6.
+ *   <li>
+ *       <p><strong>maxsuffixcount</strong> specifies the maximum number of times a spelling can
+ *       appear in order for its suffix to be added to the suffix lexicon. The default is to include
+ *       all words regardless of count.
+ *       <p>For some applications you may want to restrict the suffix lexicon to contain suffixes
+ *       only for infrequently occurring words. Values of 10 (only include spellings which appear 10
+ *       or less times in the training data) or 1 (only include spellings which appear once in the
+ *       training data) are popular choices.
+ *   <li>
+ *       <p><strong>allowedpostagsfilename</strong> specifies the name of a file containing a list
+ *       of part of speech tags to use when constructing the suffix lexicon. Part of speech not on
+ *       this list will typically be parts of speech for closed word classes to which new words
+ *       should not be added. The default is to include all part of speech tags.
+ * </ul>
  */
+public class CreateSuffixLexicon {
+  /** Input word lexicon file name. */
+  protected static String wordLexiconFileName;
 
-public class CreateSuffixLexicon
-{
-    /** Input word lexicon file name. */
+  /** Output suffix lexicon file name. */
+  protected static String suffixLexiconFileName;
 
-    protected static String wordLexiconFileName;
+  /**
+   * Only use words less than maxSuffixCount to generate suffix lexicon.
+   *
+   * <p>The default is to use all words regardless of word count.
+   */
+  protected static int maxSuffixCount = Integer.MAX_VALUE;
 
-    /** Output suffix lexicon file name. */
+  /** Maximum and minimum length suffixes to generated. */
+  protected static int maxSuffixLength = 6;
 
-    protected static String suffixLexiconFileName;
+  protected static int minSuffixLength = 1;
 
-    /** Only use words less than maxSuffixCount to generate
-     *  suffix lexicon.
-     *
-     *  <p>
-     *  The default is to use all words regardless of word count.
-     *  </p>
-     */
+  /**
+   * File name containing list of part of speech tags to be used when creating the suffix lexicon
+   * entries.
+   */
+  protected static String allowedPosTagsFileName;
 
-    protected static int maxSuffixCount = Integer.MAX_VALUE;
+  /** Holds allowed pos tags. */
+  protected static Set<String> allowedPosTags = SetFactory.createNewSet();
 
-    /** Maximum and minimum length suffixes to generated.
-     */
+  /** Generate suffix lexicon. */
+  private static void generateSuffixLexicon() throws IOException {
+    long startTime = System.currentTimeMillis();
 
-    protected static int maxSuffixLength        = 6;
-    protected static int minSuffixLength        = 1;
+    //  Load word lexicon.
 
-    /** File name containing list of part of speech tags
-     *  to be used when creating the suffix lexicon entries.
-     */
+    BaseLexicon wordLexicon = new BaseLexicon();
 
-    protected static String allowedPosTagsFileName;
+    //  Load default word lexicon.
 
-    /** Holds allowed pos tags. */
+    wordLexicon.loadLexicon(new File(wordLexiconFileName).toURI().toURL(), "utf-8");
+    //  Create empty suffix lexicon.
 
-    protected static Set<String> allowedPosTags =
-        SetFactory.createNewSet();
+    BaseLexicon suffixLexicon = new BaseLexicon();
 
-    /** Generate suffix lexicon.
-     */
+    //  Generate suffix lexicon from
+    //  word lexicon.  We can't do this
+    //  in parallel with the word lexicon
+    //  creation because we need the
+    //  word counts.
 
-    private static void generateSuffixLexicon()
-        throws IOException
-    {
-        long startTime  = System.currentTimeMillis();
+    String[] entries = wordLexicon.getEntries();
 
-                                //  Load word lexicon.
+    for (int i = 0; i < entries.length; i++) {
+      String entry = entries[i];
+      int entryCount = wordLexicon.getEntryCount(entry);
 
-        BaseLexicon wordLexicon = new BaseLexicon();
+      //  See if entry contains gap characters.
 
-                                //  Load default word lexicon.
+      boolean hasGap = (entry.indexOf(CharUtils.CHAR_GAP_MARKER_STRING) >= 0);
 
-        wordLexicon.loadLexicon
-        (
-            new File( wordLexiconFileName ).toURI().toURL() ,
-            "utf-8"
-        );
-                                //  Create empty suffix lexicon.
+      //  If the entry has gap characters,
+      //  do not use it to generate entries
+      //  in the suffix lexicon.
+      //
+      //  If we haven't exceeded the number of
+      //  words from which to generate the suffix
+      //  lexicon, keep going.
 
-        BaseLexicon suffixLexicon   = new BaseLexicon();
+      if (!hasGap && (entryCount <= maxSuffixCount)) {
+        String lowerCaseEntry = entry.toLowerCase();
 
-                                //  Generate suffix lexicon from
-                                //  word lexicon.  We can't do this
-                                //  in parallel with the word lexicon
-                                //  creation because we need the
-                                //  word counts.
+        int l = lowerCaseEntry.length();
 
-        String[] entries    = wordLexicon.getEntries();
+        Map<String, MutableInteger> categoryCounts = wordLexicon.getCategoryCountsForEntry(entry);
 
-        for ( int i = 0 ; i < entries.length ; i++ )
-        {
-            String entry    = entries[ i ];
-            int entryCount  = wordLexicon.getEntryCount( entry );
+        //  Loop over each category for the
+        //  entry.
 
-                                //  See if entry contains gap characters.
+        Iterator<String> iterator = categoryCounts.keySet().iterator();
 
-            boolean hasGap  =
-                ( entry.indexOf( CharUtils.CHAR_GAP_MARKER_STRING ) >=0 );
+        while (iterator.hasNext()) {
+          //  Get category name and count.
 
-                                //  If the entry has gap characters,
-                                //  do not use it to generate entries
-                                //  in the suffix lexicon.
-                                //
-                                //  If we haven't exceeded the number of
-                                //  words from which to generate the suffix
-                                //  lexicon, keep going.
+          String categoryName = iterator.next();
 
-            if ( !hasGap && ( entryCount <= maxSuffixCount ) )
-            {
-                String lowerCaseEntry   = entry.toLowerCase();
+          //  Ignore this category if it does not
+          //  appear on the list of tags to allow.
 
-                int l   = lowerCaseEntry.length();
+          boolean ignoreCategory =
+              (allowedPosTags.size() > 0) && !allowedPosTags.contains(categoryName);
 
-                Map<String, MutableInteger> categoryCounts      =
-                    wordLexicon.getCategoryCountsForEntry( entry );
+          if (!ignoreCategory) {
+            //  Get the category count.
 
-                                //  Loop over each category for the
-                                //  entry.
+            int categoryCount = categoryCounts.get(categoryName).intValue();
 
-                Iterator<String> iterator   =
-                    categoryCounts.keySet().iterator();
+            //  Extract suffixes of decreasing length
+            //  and add to suffix lexicon.
 
-                while ( iterator.hasNext() )
-                {
-                                //  Get category name and count.
-
-                    String categoryName = iterator.next();
-
-                                //  Ignore this category if it does not
-                                //  appear on the list of tags to allow.
-
-                    boolean ignoreCategory  =
-                        ( allowedPosTags.size() > 0 ) &&
-                        !allowedPosTags.contains( categoryName );
-
-                    if ( !ignoreCategory )
-                    {
-                                //  Get the category count.
-
-                        int categoryCount   =
-                            categoryCounts.get( categoryName ).intValue();
-
-                                //  Extract suffixes of decreasing length
-                                //  and add to suffix lexicon.
-
-                        for (   int j = maxSuffixLength ;
-                                j > minSuffixLength - 1 ;
-                                j--
-                            )
-                        {
-                            if ( lowerCaseEntry.length() > j )
-                            {
-                                suffixLexicon.updateEntryCount
-                                (
-                                    lowerCaseEntry.substring( l - j , l ) ,
-                                    categoryName ,
-                                    "*" ,
-                                    categoryCount
-                                );
-                            }
-                        }
-                    }
-                }
+            for (int j = maxSuffixLength; j > minSuffixLength - 1; j--) {
+              if (lowerCaseEntry.length() > j) {
+                suffixLexicon.updateEntryCount(
+                    lowerCaseEntry.substring(l - j, l), categoryName, "*", categoryCount);
+              }
             }
+          }
         }
-                                //  Output suffix lexicon.
-        System.out.println(
-            "Writing suffix lexicon to " + suffixLexiconFileName + " .");
+      }
+    }
+    //  Output suffix lexicon.
+    System.out.println("Writing suffix lexicon to " + suffixLexiconFileName + " .");
 
-        System.out.println(
-            "   Maximum suffix length is " + maxSuffixLength + " .");
+    System.out.println("   Maximum suffix length is " + maxSuffixLength + " .");
 
-        if ( maxSuffixCount == Integer.MAX_VALUE )
-        {
-            System.out.println(
-                "   Suffixes generated from all spellings." );
-        }
-        else
-        {
-            System.out.println(
-                "   Suffixes generated from spellings appearing no more than " +
-                Formatters.formatIntegerWithCommas( maxSuffixCount ) +
-                " time" + ( maxSuffixCount == 1 ? "" : "s" ) +
-                "." );
-        }
-
-        suffixLexicon.saveLexiconToTextFile(
-            suffixLexiconFileName , "utf-8" );
-
-                                //  Report time and statistics for
-                                //  creation.
-        long endTime    =
-            ( System.currentTimeMillis() - startTime + 999 ) / 1000;
-
-        System.out.println(
-            "Lexicon generated in " +
-            Formatters.formatLongWithCommas( endTime ) + " seconds." );
-
-        System.out.println(
-            "Suffix lexicon contains " +
-            Formatters.formatIntegerWithCommas(
-                suffixLexicon.getLexiconSize() ) +
-            " entries." );
-
-        wordLexicon.close();
-        suffixLexicon.close();
+    if (maxSuffixCount == Integer.MAX_VALUE) {
+      System.out.println("   Suffixes generated from all spellings.");
+    } else {
+      System.out.println(
+          "   Suffixes generated from spellings appearing no more than "
+              + Formatters.formatIntegerWithCommas(maxSuffixCount)
+              + " time"
+              + (maxSuffixCount == 1 ? "" : "s")
+              + ".");
     }
 
-    /** Display brief help.
-     */
+    suffixLexicon.saveLexiconToTextFile(suffixLexiconFileName, "utf-8");
 
-    protected static void help()
-    {
-        System.out.println( "Usage: " );
-        System.out.println( "" );
-        System.out.println( "java -Xmx512m edu.northwestern.at.createlexicon.CreateSuffixLexicon ^" );
-        System.out.println( "   inputwordlexicon outputsuffixlexicon maxsuffixlength maxsuffixcount allowedpostagsfilename" );
-        System.out.println( "" );
-        System.out.println( "-- inputwordlexicon specifies the input word lexicon (required)." );
-        System.out.println( "-- outputsuffixlexicon receives output suffix lexicon (required)." );
-        System.out.println( "-- maxsuffixlength is maximum length suffix to generate (optional, default is 6)." );
-        System.out.println( "-- maxsuffixcount is maximum count for spelling to include in suffix lexicon (optional, default is no maximum)." );
-        System.out.println( "-- allowedpostagsfilename is file name containing pos tags to use" );
-        System.out.println( "   when building suffix lexicon entries (optional)." );
+    //  Report time and statistics for
+    //  creation.
+    long endTime = (System.currentTimeMillis() - startTime + 999) / 1000;
+
+    System.out.println(
+        "Lexicon generated in " + Formatters.formatLongWithCommas(endTime) + " seconds.");
+
+    System.out.println(
+        "Suffix lexicon contains "
+            + Formatters.formatIntegerWithCommas(suffixLexicon.getLexiconSize())
+            + " entries.");
+
+    wordLexicon.close();
+    suffixLexicon.close();
+  }
+
+  /** Display brief help. */
+  protected static void help() {
+    System.out.println("Usage: ");
+    System.out.println("");
+    System.out.println("java -Xmx512m edu.northwestern.at.createlexicon.CreateSuffixLexicon ^");
+    System.out.println(
+        "   inputwordlexicon outputsuffixlexicon maxsuffixlength maxsuffixcount"
+            + " allowedpostagsfilename");
+    System.out.println("");
+    System.out.println("-- inputwordlexicon specifies the input word lexicon (required).");
+    System.out.println("-- outputsuffixlexicon receives output suffix lexicon (required).");
+    System.out.println(
+        "-- maxsuffixlength is maximum length suffix to generate (optional, default is 6).");
+    System.out.println(
+        "-- maxsuffixcount is maximum count for spelling to include in suffix lexicon (optional,"
+            + " default is no maximum).");
+    System.out.println("-- allowedpostagsfilename is file name containing pos tags to use");
+    System.out.println("   when building suffix lexicon entries (optional).");
+  }
+
+  /**
+   * Initialize.
+   *
+   * @param args Command line arguments.
+   */
+  protected static boolean initialize(String[] args) {
+    boolean result = true;
+
+    if (args.length < 2) {
+      result = false;
+
+      help();
+    } else {
+      wordLexiconFileName = args[0];
+      suffixLexiconFileName = args[1];
+
+      if (args.length > 2) {
+        try {
+          maxSuffixLength = Integer.parseInt(args[2]);
+        } catch (Exception e) {
+          result = false;
+
+          System.out.println("Bad maximum suffix length.");
+        }
+      }
+
+      if (args.length > 3) {
+        try {
+          maxSuffixCount = Integer.parseInt(args[3]);
+        } catch (Exception e) {
+          result = false;
+
+          System.out.println("Bad maximum suffix count.");
+        }
+      }
+
+      if (args.length > 4) {
+        allowedPosTagsFileName = args[4];
+
+        try {
+          allowedPosTags = SetUtils.loadSet(allowedPosTagsFileName, "utf-8");
+
+          System.out.println(
+              "Loaded " + allowedPosTags.size() + " allowed part of speech tags from " + args[4]);
+        } catch (Exception e) {
+          result = false;
+
+          System.out.println(
+              "Unable to load part of speech tags to allow " + " from " + allowedPosTagsFileName);
+        }
+      }
     }
 
-    /** Initialize.
-     *
-     *  @param  args    Command line arguments.
-     */
+    return result;
+  }
 
-    protected static boolean initialize( String[] args )
-    {
-        boolean result  = true;
+  /**
+   * Main program.
+   *
+   * @param args Command line arguments.
+   */
+  public static void main(String args[]) {
+    //  If initialization succeeds ...
+    int returnCode = 0;
 
-        if ( args.length < 2 )
-        {
-            result  = false;
+    if (initialize(args)) {
+      //  Generate the lexicons.
+      try {
+        generateSuffixLexicon();
+      } catch (Exception e) {
+        e.printStackTrace();
 
-            help();
-        }
-        else
-        {
-            wordLexiconFileName     = args[ 0 ];
-            suffixLexiconFileName   = args[ 1 ];
-
-            if ( args.length > 2 )
-            {
-                try
-                {
-                    maxSuffixLength = Integer.parseInt( args[ 2 ] );
-                }
-                catch ( Exception e )
-                {
-                    result  = false;
-
-                    System.out.println( "Bad maximum suffix length." );
-                }
-            }
-
-            if ( args.length > 3 )
-            {
-                try
-                {
-                    maxSuffixCount  = Integer.parseInt( args[ 3 ] );
-                }
-                catch ( Exception e )
-                {
-                    result  = false;
-
-                    System.out.println( "Bad maximum suffix count." );
-                }
-            }
-
-            if ( args.length > 4 )
-            {
-                allowedPosTagsFileName  = args[ 4 ];
-
-                try
-                {
-                    allowedPosTags  =
-                        SetUtils.loadSet( allowedPosTagsFileName , "utf-8" );
-
-                    System.out.println
-                    (
-                        "Loaded " + allowedPosTags.size() +
-                        " allowed part of speech tags from " +
-                        args[ 4 ]
-                    );
-                }
-                catch ( Exception e )
-                {
-                    result  = false;
-
-                    System.out.println
-                    (
-                        "Unable to load part of speech tags to allow " +
-                        " from " + allowedPosTagsFileName
-                    );
-                }
-            }
-        }
-
-        return result;
+        returnCode = 1;
+      }
     }
+    //  Halt with error 1 if any error.
 
-    /** Main program.
-     *
-     *  @param  args    Command line arguments.
-     */
-
-    public static void main( String args[] )
-    {
-                                //  If initialization succeeds ...
-        int returnCode  = 0;
-
-        if ( initialize( args ) )
-        {
-                                //  Generate the lexicons.
-            try
-            {
-                generateSuffixLexicon();
-            }
-            catch ( Exception e )
-            {
-                e.printStackTrace();
-
-                returnCode  = 1;
-            }
-        }
-                                //  Halt with error 1 if any error.
-
-        if ( returnCode != 0 )
-        {
-            System.exit( returnCode );
-        }
+    if (returnCode != 0) {
+      System.exit(returnCode);
     }
+  }
 }
 
 /*
@@ -430,6 +327,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

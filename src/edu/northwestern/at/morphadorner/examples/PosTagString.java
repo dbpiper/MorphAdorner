@@ -2,163 +2,126 @@ package edu.northwestern.at.morphadorner.examples;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
 import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** PosTagString: Adorn a string with parts of speech.
+/**
+ * PosTagString: Adorn a string with parts of speech.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  <code>
+ * <p><code>
  *  java -Xmx256m edu.northwestern.at.morphadorner.example.PosTagString "Text to adorn."
  *  </code>
- *  </p>
  *
- *  <p>
- *  where "Text to adorn." specifies one or more sentences of text to
- *  adorn with part of speech tags.  The default tokenizer,
- *  sentence splitter, lexicons, and part of speech tagger are used.
- *  </p>
+ * <p>where "Text to adorn." specifies one or more sentences of text to adorn with part of speech
+ * tags. The default tokenizer, sentence splitter, lexicons, and part of speech tagger are used.
  *
- *  <p>
- *  Example:
- *  </p>
+ * <p>Example:
  *
- *  <p>
- *  <code>
+ * <p><code>
  *  java -Xmx256m edu.northwestern.at.morphadorner.example.PosTagString "Mary had a little lamb.  Its fleece was white as snow."
  *  </code>
- *  </p>
  */
+public class PosTagString {
+  /**
+   * Main program.
+   *
+   * @param args Program parameters.
+   */
+  public static void main(String[] args) {
+    try {
+      adornText(args);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-public class PosTagString
-{
-    /** Main program.
-     *
-     *  @param  args    Program parameters.
-     */
+  /**
+   * Adorn text specified as a program parameter.
+   *
+   * @param args The program parameters.
+   *     <p>args[ 0 ] contains the text to adorn. The text may contain one or more sentences with
+   *     punctuation.
+   */
+  public static void adornText(String[] args) throws Exception {
+    //  Get text to adorn.  Report error
+    //  and quit if none.
 
-    public static void main( String[] args )
-    {
-        try
-        {
-            adornText( args );
-        }
-        catch( Exception e )
-        {
-            e.printStackTrace();
-        }
+    if (args.length < 1) {
+      System.out.println("No text to adorn.");
+      System.exit(1);
     }
 
-    /** Adorn text specified as a program parameter.
-     *
-     *  @param  args    The program parameters.
-     *
-     *  <p>
-     *  args[ 0 ] contains the text to adorn.  The text may contain
-     *  one or more sentences with punctuation.
-     *  </p>
-     */
+    String textToAdorn = args[0];
 
-    public static void adornText( String[] args )
-        throws Exception
-    {
-                                //  Get text to adorn.  Report error
-                                //  and quit if none.
+    //  Get default part of speech tagger.
 
-        if ( args.length < 1 )
-        {
-            System.out.println( "No text to adorn." );
-            System.exit( 1 );
-        }
+    PartOfSpeechTagger partOfSpeechTagger = new DefaultPartOfSpeechTagger();
 
-        String textToAdorn  = args[ 0 ];
+    //  Get default word tokenizer.
 
-                                //  Get default part of speech tagger.
+    WordTokenizer wordTokenizer = new DefaultWordTokenizer();
 
-        PartOfSpeechTagger partOfSpeechTagger   =
-            new DefaultPartOfSpeechTagger();
+    //  Get default sentence splitter.
 
-                                //  Get default word tokenizer.
+    SentenceSplitter sentenceSplitter = new DefaultSentenceSplitter();
 
-        WordTokenizer wordTokenizer = new DefaultWordTokenizer();
+    //  Get the part of speech
+    //  guesser from the part of
+    //  speech tagger.  Set this into
+    //  sentence splitter to improve
+    //  sentence boundary recognition.
 
-                                //  Get default sentence splitter.
+    sentenceSplitter.setPartOfSpeechGuesser(partOfSpeechTagger.getPartOfSpeechGuesser());
+    //  Split text into sentences
+    //  and words.  Here "sentences"
+    //  contains a list of sentences.
+    //  Each sentence is itself a list of words.
 
-        SentenceSplitter sentenceSplitter   =
-            new DefaultSentenceSplitter();
+    List<List<String>> sentences = sentenceSplitter.extractSentences(textToAdorn, wordTokenizer);
 
-                                //  Get the part of speech
-                                //  guesser from the part of
-                                //  speech tagger.  Set this into
-                                //  sentence splitter to improve
-                                //  sentence boundary recognition.
+    //  Assign part of speech tags to
+    //  each word in each sentence.
+    //  Here "taggedSentences" contains
+    //  a list of List<AdornedWord> entries,
+    //  one for each sentence.
 
-        sentenceSplitter.setPartOfSpeechGuesser
-        (
-            partOfSpeechTagger.getPartOfSpeechGuesser()
-        );
-                                //  Split text into sentences
-                                //  and words.  Here "sentences"
-                                //  contains a list of sentences.
-                                //  Each sentence is itself a list of words.
+    List<List<AdornedWord>> taggedSentences = partOfSpeechTagger.tagSentences(sentences);
 
-        List<List<String>> sentences    =
-            sentenceSplitter.extractSentences(
-                textToAdorn , wordTokenizer );
+    //  Display tagged words.
 
-                                //  Assign part of speech tags to
-                                //  each word in each sentence.
-                                //  Here "taggedSentences" contains
-                                //  a list of List<AdornedWord> entries,
-                                //  one for each sentence.
+    for (int i = 0; i < sentences.size(); i++) {
+      //  Get the next adorned sentence.
+      //  This contains a list of adorned
+      //  words.  Only the spellings
+      //  and part of speech tags are
+      //  guaranteed to be defined.
 
-        List<List<AdornedWord>> taggedSentences =
-            partOfSpeechTagger.tagSentences( sentences );
+      List<AdornedWord> sentence = taggedSentences.get(i);
 
-                                //  Display tagged words.
+      System.out.println("---------- Sentence " + (i + 1) + "----------");
 
-        for ( int i = 0 ; i < sentences.size() ; i++ )
-        {
-                                //  Get the next adorned sentence.
-                                //  This contains a list of adorned
-                                //  words.  Only the spellings
-                                //  and part of speech tags are
-                                //  guaranteed to be defined.
+      //  Print out the spelling and part(s)
+      //  of speech for each word in the
+      //  sentence.  Punctuation is treated
+      //  as a word too.
 
-            List<AdornedWord> sentence  = taggedSentences.get( i );
+      for (int j = 0; j < sentence.size(); j++) {
+        AdornedWord adornedWord = sentence.get(j);
 
-            System.out.println
-            (
-                "---------- Sentence " + ( i + 1 ) + "----------"
-            );
-
-                                //  Print out the spelling and part(s)
-                                //  of speech for each word in the
-                                //  sentence.  Punctuation is treated
-                                //  as a word too.
-
-            for ( int j = 0 ; j < sentence.size() ; j++ )
-            {
-                AdornedWord adornedWord = sentence.get( j );
-
-                System.out.println
-                (
-                    StringUtils.rpad( ( j + 1 ) + "" , 3  ) + ": " +
-                    StringUtils.rpad( adornedWord.getSpelling() , 20 ) +
-                    adornedWord.getPartsOfSpeech()
-                );
-            }
-        }
+        System.out.println(
+            StringUtils.rpad((j + 1) + "", 3)
+                + ": "
+                + StringUtils.rpad(adornedWord.getSpelling(), 20)
+                + adornedWord.getPartsOfSpeech());
+      }
     }
+  }
 }
 
 /*
@@ -201,6 +164,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

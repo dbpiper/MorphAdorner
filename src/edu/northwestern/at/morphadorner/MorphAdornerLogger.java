@@ -2,213 +2,151 @@ package edu.northwestern.at.morphadorner;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.logger.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.morphadorner.*;
-import edu.northwestern.at.utils.logger.*;
-
-/** MorphAdorner log manager.
+/**
+ * MorphAdorner log manager.
  *
- *  <p>
- *  This class wraps a singleton instance of a
- *  {@link edu.northwestern.at.utils.logger.BaseLogger}
- *  for the class "edu.northwestern.at.morphadorner".
- *  </p>
+ * <p>This class wraps a singleton instance of a {@link edu.northwestern.at.utils.logger.BaseLogger}
+ * for the class "edu.northwestern.at.morphadorner".
  */
+public class MorphAdornerLogger implements Serializable {
+  /** The wrapped logger. */
+  protected Logger logger = null;
 
-public class MorphAdornerLogger implements Serializable
-{
-    /** The wrapped logger. */
+  /** MorphAdorner settings. */
+  protected MorphAdornerSettings morphAdornerSettings = null;
 
-    protected Logger logger = null;
+  /**
+   * Create a logger.
+   *
+   * @param configFileName Log configuration file name.
+   * @param logFileDirectory Directory into which to write log.
+   *     <p>Reads the log configuration file and configures the logger.
+   * @throws Exception
+   */
+  public MorphAdornerLogger(
+      String configFileName, String logFileDirectory, MorphAdornerSettings morphAdornerSettings)
+      throws FileNotFoundException, IOException {
+    this.logger = createWrappedLogger(configFileName, logFileDirectory);
 
-    /** MorphAdorner settings. */
+    this.morphAdornerSettings = morphAdornerSettings;
+  }
 
-    protected MorphAdornerSettings morphAdornerSettings = null;
+  /** Terminates the logger. */
+  public void terminate() {
+    logger.terminate();
+  }
 
-    /** Create a logger.
-     *
-     *  @param  configFileName      Log configuration file name.
-     *  @param  logFileDirectory    Directory into which to write log.
-     *
-     *  <p>
-     *  Reads the log configuration file and configures
-     *  the logger.
-     *  </p>
-     *
-     *  @throws Exception
-     */
+  /**
+   * Create the wrapped logger.
+   *
+   * @param logFileDirectory
+   * @param configFileName
+   *     <p>If the log file directory or config file name is null, a dummy logger which generates no
+   *     output is created.
+   */
+  public Logger createWrappedLogger(String configFileName, String logFileDirectory) {
+    Logger logger = null;
 
-    public MorphAdornerLogger
-    (
-        String configFileName ,
-        String logFileDirectory ,
-        MorphAdornerSettings morphAdornerSettings
-    )
-        throws FileNotFoundException, IOException
-    {
-        this.logger                 =
-            createWrappedLogger( configFileName , logFileDirectory );
-
-        this.morphAdornerSettings   = morphAdornerSettings;
+    try {
+      if ((logFileDirectory == null) || (configFileName == null)) {
+        logger = new DummyLogger();
+      } else {
+        logger =
+            new BaseLogger(
+                "edu.northwestern.at.morphadorner.MorphAdorner", logFileDirectory, configFileName);
+      }
+    } catch (Exception e) {
+      logger = new StandardOutputLogger();
     }
 
-    /** Terminates the logger.
-     */
+    return logger;
+  }
 
-    public void terminate()
-    {
-        logger.terminate();
-    }
+  /**
+   * Logs Debug message.
+   *
+   * @param str Log message.
+   */
+  public void logDebug(String str) {
+    logger.logDebug(str);
+  }
 
-    /** Create the wrapped logger.
-     *
-     *  @param  logFileDirectory
-     *  @param  configFileName
-     *
-     *  <p>
-     *  If the log file directory or config file name is null,
-     *  a dummy logger which generates no output is created.
-     *  </p>
-     */
+  /**
+   * Logs Info message.
+   *
+   * @param str Log message.
+   */
+  public void logInfo(String str) {
+    logger.logInfo(str);
+  }
 
-     public Logger createWrappedLogger
-     (
-        String configFileName ,
-        String logFileDirectory
-     )
-     {
-        Logger logger   = null;
+  /**
+   * Logs error message.
+   *
+   * @param str Log message.
+   */
+  public void logError(String str) {
+    logger.logError(str);
+  }
 
-        try
-        {
-            if  (   ( logFileDirectory == null ) ||
-                    ( configFileName == null )
-                )
-            {
-                logger  = new DummyLogger();
-            }
-            else
-            {
-                logger  =
-                    new BaseLogger
-                    (
-                        "edu.northwestern.at.morphadorner.MorphAdorner" ,
-                        logFileDirectory ,
-                        configFileName
-                    );
-            }
-        }
-        catch ( Exception e )
-        {
-            logger  = new StandardOutputLogger();
-        }
+  /**
+   * Get the wrapped logger.
+   *
+   * @return The wrapped logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-        return logger;
-    }
+  /**
+   * Set the wrapped logger.
+   *
+   * @param logger The logger to set.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-    /** Logs Debug message.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Print a string to log file.
+   *
+   * @param formatString Resource string name to print.
+   */
+  public void println(String formatString) {
+    logInfo(morphAdornerSettings.getString(formatString));
+  }
 
-    public void logDebug( String str )
-    {
-        logger.logDebug( str );
-    }
+  /**
+   * Print a string to log file.
+   *
+   * @param formatString Resource string name to print.
+   * @param value String to output in format fornatString
+   */
+  public void println(String formatString, String value) {
+    StringBuilder sb = new StringBuilder();
 
-    /** Logs Info message.
-     *
-     *  @param  str         Log message.
-     */
+    new Formatter(sb).format(morphAdornerSettings.getString(formatString), value);
 
-    public void logInfo( String str )
-    {
-        logger.logInfo( str );
-    }
+    logInfo(sb.toString());
+  }
 
-    /** Logs error message.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Print formatted elements to log file.
+   *
+   * @param formatString Format string name.
+   * @param objects Objects to output in format fornatString
+   */
+  public void println(String formatString, Object[] objects) {
+    StringBuilder sb = new StringBuilder();
 
-    public void logError( String str )
-    {
-        logger.logError( str );
-    }
+    new Formatter(sb).format(morphAdornerSettings.getString(formatString), objects);
 
-    /** Get the wrapped logger.
-     *
-     *  @return     The wrapped logger.
-     */
-
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the wrapped logger.
-     *
-     *  @param  logger  The logger to set.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
-
-    /** Print a string to log file.
-     *
-     *  @param  formatString    Resource string name to print.
-     */
-
-    public void println( String formatString )
-    {
-        logInfo( morphAdornerSettings.getString( formatString ) );
-    }
-
-    /** Print a string to log file.
-     *
-     *  @param  formatString    Resource string name to print.
-     *  @param  value           String to output in format fornatString
-     */
-
-    public void println
-    (
-        String formatString ,
-        String value
-    )
-    {
-        StringBuilder sb    = new StringBuilder();
-
-        new Formatter( sb ).format
-        (
-            morphAdornerSettings.getString( formatString ) ,
-            value
-        );
-
-        logInfo( sb.toString() );
-    }
-
-    /** Print formatted elements to log file.
-     *
-     *  @param  formatString    Format string name.
-     *  @param  objects         Objects to output in format fornatString
-     */
-
-    public void println( String formatString , Object[] objects )
-    {
-        StringBuilder sb    = new StringBuilder();
-
-        new Formatter( sb ).format
-        (
-            morphAdornerSettings.getString( formatString ) ,
-            objects
-        );
-
-        logInfo( sb.toString() );
-    }
+    logInfo(sb.toString());
+  }
 }
 
 /*
@@ -251,6 +189,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

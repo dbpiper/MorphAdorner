@@ -2,318 +2,228 @@ package edu.northwestern.at.morphadorner.tools.mergebrilllexicon;
 
 /*  Please see the license information at the end of this file. */
 
-import java.net.*;
-import java.io.*;
-import java.text.*;
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
 import edu.northwestern.at.utils.*;
+import java.io.*;
+import java.net.*;
+import java.text.*;
+import java.util.*;
 
-/** Merge Brill format lexicon into MorphAdorner format lexicon.
- */
+/** Merge Brill format lexicon into MorphAdorner format lexicon. */
+public class MergeBrillLexicon {
+  /** Spelling tokenizer. */
+  protected static WordTokenizer spellingTokenizer = new PennTreebankTokenizer();
 
-public class MergeBrillLexicon
-{
-    /** Spelling tokenizer. */
+  /** Lemmatizer. */
+  protected static Lemmatizer lemmatizer;
 
-    protected static WordTokenizer spellingTokenizer    =
-        new PennTreebankTokenizer();
+  /** Part of speech tags. */
+  protected static PartOfSpeechTags partOfSpeechTags;
 
-    /** Lemmatizer. */
+  /** Lemma separator character. */
+  protected static String lemmaSeparator = "|";
 
-    protected static Lemmatizer lemmatizer;
+  /**
+   * Merge Brill lexicon.
+   *
+   * @param lexiconFileName MorphAdorner lexicon file name.
+   * @param brillLexiconFileName Brill format lexicon file name.
+   * @param mergedLexiconFileName Merged lexicon file name.
+   */
+  public static void mergeBrillLexicon(
+      String lexiconFileName, String brillLexiconFileName, String mergedLexiconFileName)
+      throws IOException {
+    //  Load the MorphAdorner format lexicon.
 
-    /** Part of speech tags. */
+    Lexicon lexicon = new BaseLexicon();
 
-    protected static PartOfSpeechTags partOfSpeechTags;
+    lexicon.loadLexicon((new File(lexiconFileName)).toURI().toURL(), "utf-8");
+    //  Load parts of speech.
 
-    /** Lemma separator character. */
+    partOfSpeechTags = new NUPOSPartOfSpeechTags();
 
-    protected static String lemmaSeparator  = "|";
+    //  Create lemmatizer.
+    try {
+      lemmatizer = new DefaultLemmatizer();
+    } catch (Exception e) {
+      System.out.println("Unable to create lemmatizer.");
+      System.exit(1);
+    }
 
-    /** Merge Brill lexicon.
-     *
-     *  @param  lexiconFileName         MorphAdorner lexicon file name.
-     *  @param  brillLexiconFileName    Brill format lexicon file name.
-     *  @param  mergedLexiconFileName   Merged lexicon file name.
-     */
+    System.out.println(
+        "MorphAdorner lexicon has "
+            + Formatters.formatIntegerWithCommas(lexicon.getLexiconSize())
+            + " entries.");
+    //  Load Brill format lexicon.
 
-    public static void mergeBrillLexicon
-    (
-        String lexiconFileName ,
-        String brillLexiconFileName ,
-        String mergedLexiconFileName
-    )
-        throws IOException
-    {
-                                //  Load the MorphAdorner format lexicon.
+    BrillLexicon brillLexicon =
+        new BrillLexicon(new File(brillLexiconFileName).toURI().toURL(), "utf-8");
 
-        Lexicon lexicon = new BaseLexicon();
+    System.out.println(
+        "Brill lexicon has "
+            + Formatters.formatIntegerWithCommas(brillLexicon.size())
+            + " entries.");
+    //  Loop over entries in the Brill
+    //  lexicon.
 
-        lexicon.loadLexicon
-        (
-            (new File( lexiconFileName )).toURI().toURL() ,
-            "utf-8"
-        );
-                                //  Load parts of speech.
+    Iterator<String> iterator = brillLexicon.keySet().iterator();
 
-        partOfSpeechTags    = new NUPOSPartOfSpeechTags();
+    while (iterator.hasNext()) {
+      //  Get next word in Brill lexicon.
 
-                                //  Create lemmatizer.
-        try
-        {
-            lemmatizer  = new DefaultLemmatizer();
+      String word = iterator.next();
+
+      //  For each entry in the Brill
+      //  lexicon create an entry in the
+      //  MorphAdorner lexicon if necessary.
+      //  We won't have counts,
+      //  so assume first category has
+      //  count 2 and others have count 1.
+
+      int firstFreq = 2;
+      int otherFreq = 1;
+      String lemma = word;
+
+      List<String> posTags = brillLexicon.get(word);
+
+      //  If there is only one Brill tag,
+      //  and it is a proper noun tag,
+      //  look to see if there are existing
+      //  parts of speech for a lower case
+      //  version of the word.  If so, create
+      //  a lexicon entry with those first .
+
+      String posTag = posTags.get(0);
+
+      if ((posTags.size() == 1) && (partOfSpeechTags.isProperNounTag(posTag))) {
+        String lowerCaseWord = word.toLowerCase();
+
+        if (lexicon.containsEntry(lowerCaseWord)) {
+          LexiconEntry lexEntry = lexicon.getLexiconEntry(lowerCaseWord).deepClone();
+
+          lexEntry.entry = word;
+
+          lexicon.setLexiconEntry(word, lexEntry);
         }
-        catch ( Exception e )
-        {
-            System.out.println( "Unable to create lemmatizer." );
-            System.exit( 1 );
+
+        firstFreq = 1;
+      }
+      //  Now add the word and the parts of
+      //  speech from the Brill lexicon to
+      //  the MorphAdorner lexicon.  Skip
+      //  parts of speech that already exist
+      //  in the lexicon.
+
+      for (int i = 0; i < posTags.size(); i++) {
+        posTag = posTags.get(i);
+
+        if (lexicon.getCategoryCount(word, posTag) == 0) {
+          lemma = getLemma(word, posTag);
+
+          lexicon.updateEntryCount(word, posTag, lemma, (i == 0) ? firstFreq : otherFreq);
         }
+      }
+    }
+    //  Saved merged lexicon.
 
-        System.out.println
-        (
-            "MorphAdorner lexicon has " +
-            Formatters.formatIntegerWithCommas( lexicon.getLexiconSize() ) +
-            " entries."
-        );
-                                //  Load Brill format lexicon.
+    lexicon.saveLexiconToTextFile(mergedLexiconFileName, "utf-8");
 
-        BrillLexicon brillLexicon   =
-            new BrillLexicon
-            (
-                new File( brillLexiconFileName ).toURI().toURL() ,
-                "utf-8"
-            );
+    System.out.println(
+        "Merged lexicon has "
+            + Formatters.formatIntegerWithCommas(lexicon.getLexiconSize())
+            + " entries.");
+  }
 
-        System.out.println
-        (
-            "Brill lexicon has " +
-            Formatters.formatIntegerWithCommas( brillLexicon.size() ) +
-            " entries."
-        );
-                                //  Loop over entries in the Brill
-                                //  lexicon.
+  /**
+   * Get lemma for a word.
+   *
+   * @param spelling The word spelling.
+   * @param partOfSpeech The part of speech tag.
+   * @return The lemma.
+   */
+  public static String getLemma(String spelling, String partOfSpeech) {
+    String lemmata = spelling;
 
-        Iterator<String> iterator   = brillLexicon.keySet().iterator();
+    //  Get lemmatization word class
+    //  for part of speech.
+    String lemmaClass = partOfSpeechTags.getLemmaWordClass(partOfSpeech);
 
-        while ( iterator.hasNext() )
-        {
-                                //  Get next word in Brill lexicon.
+    //  Do not lemmatize words which
+    //  should not be lemmatized,
+    //  including proper names.
 
-            String word     = iterator.next();
+    if (lemmatizer.cantLemmatize(spelling) || lemmaClass.equals("none")) {
+    } else {
+      //  Try compound word exceptions
+      //  list first.
 
-                                //  For each entry in the Brill
-                                //  lexicon create an entry in the
-                                //  MorphAdorner lexicon if necessary.
-                                //  We won't have counts,
-                                //  so assume first category has
-                                //  count 2 and others have count 1.
+      lemmata = lemmatizer.lemmatize(spelling, "compound");
 
-            int firstFreq   = 2;
-            int otherFreq   = 1;
-            String lemma    = word;
+      //  If lemma not found, keep trying.
 
-            List<String> posTags    = brillLexicon.get( word );
+      if (lemmata.equals(spelling)) {
+        //  Extract individual word parts.
+        //  May be more than one for a
+        //  contraction.
 
-                                //  If there is only one Brill tag,
-                                //  and it is a proper noun tag,
-                                //  look to see if there are existing
-                                //  parts of speech for a lower case
-                                //  version of the word.  If so, create
-                                //  a lexicon entry with those first .
+        List wordList = spellingTokenizer.extractWords(spelling);
 
-            String posTag   = posTags.get( 0 );
+        //  If just one word part,
+        //  get its lemma.
 
-            if  (   ( posTags.size() == 1 ) &&
-                    ( partOfSpeechTags.isProperNounTag( posTag ) )
-                )
-            {
-                String lowerCaseWord    = word.toLowerCase();
+        if (!partOfSpeechTags.isCompoundTag(partOfSpeech) || (wordList.size() == 1)) {
+          if (lemmaClass.length() == 0) {
+            lemmata = lemmatizer.lemmatize(spelling);
+          } else {
+            lemmata = lemmatizer.lemmatize(spelling, lemmaClass);
+          }
+        }
+        //  More than one word part.
+        //  Get lemma for each part and
+        //  concatenate them with the
+        //  lemma separator to form a
+        //  compound lemma.
+        else {
+          lemmata = "";
+          String lemmaPiece = "";
+          String[] posTags = partOfSpeechTags.splitTag(partOfSpeech);
 
-                if ( lexicon.containsEntry( lowerCaseWord ) )
-                {
-                    LexiconEntry lexEntry   =
-                        lexicon.getLexiconEntry( lowerCaseWord ).deepClone();
+          if (posTags.length == wordList.size()) {
+            for (int i = 0; i < wordList.size(); i++) {
+              String wordPiece = (String) wordList.get(i);
 
-                    lexEntry.entry  = word;
+              if (i > 0) {
+                lemmata = lemmata + lemmaSeparator;
+              }
 
-                    lexicon.setLexiconEntry( word , lexEntry );
-                }
+              lemmaClass = partOfSpeechTags.getLemmaWordClass(posTags[i]);
 
-                firstFreq   = 1;
+              lemmaPiece = lemmatizer.lemmatize(wordPiece, lemmaClass);
+
+              lemmata = lemmata + lemmaPiece;
             }
-                                //  Now add the word and the parts of
-                                //  speech from the Brill lexicon to
-                                //  the MorphAdorner lexicon.  Skip
-                                //  parts of speech that already exist
-                                //  in the lexicon.
-
-            for ( int i = 0 ; i < posTags.size() ; i++ )
-            {
-                posTag  = posTags.get( i );
-
-                if ( lexicon.getCategoryCount( word , posTag ) == 0 )
-                {
-                    lemma   = getLemma( word , posTag );
-
-                    lexicon.updateEntryCount
-                    (
-                        word ,
-                        posTag ,
-                        lemma ,
-                        ( i == 0 ) ? firstFreq : otherFreq
-                    );
-                }
-            }
+          }
         }
-                                //  Saved merged lexicon.
-
-        lexicon.saveLexiconToTextFile( mergedLexiconFileName , "utf-8" );
-
-        System.out.println
-        (
-            "Merged lexicon has " +
-            Formatters.formatIntegerWithCommas( lexicon.getLexiconSize() ) +
-            " entries."
-        );
+      }
     }
 
-    /** Get lemma for a word.
-     *
-     *  @param  spelling        The word spelling.
-     *  @param  partOfSpeech    The part of speech tag.
-     *
-     *  @return                 The lemma.
-     */
+    return lemmata;
+  }
 
-    public static String getLemma
-    (
-        String spelling ,
-        String partOfSpeech
-    )
-    {
-        String lemmata  = spelling;
-
-                                //  Get lemmatization word class
-                                //  for part of speech.
-        String lemmaClass   =
-            partOfSpeechTags.getLemmaWordClass( partOfSpeech );
-
-                                //  Do not lemmatize words which
-                                //  should not be lemmatized,
-                                //  including proper names.
-
-        if  (   lemmatizer.cantLemmatize( spelling ) ||
-                lemmaClass.equals( "none" )
-            )
-        {
-        }
-        else
-        {
-                                //  Try compound word exceptions
-                                //  list first.
-
-            lemmata = lemmatizer.lemmatize( spelling , "compound" );
-
-                                //  If lemma not found, keep trying.
-
-            if ( lemmata.equals( spelling ) )
-            {
-                                //  Extract individual word parts.
-                                //  May be more than one for a
-                                //  contraction.
-
-                List wordList   =
-                    spellingTokenizer.extractWords( spelling );
-
-                                //  If just one word part,
-                                //  get its lemma.
-
-                if  (   !partOfSpeechTags.isCompoundTag( partOfSpeech ) ||
-                        ( wordList.size() == 1 )
-                    )
-                {
-                    if ( lemmaClass.length() == 0 )
-                    {
-                        lemmata = lemmatizer.lemmatize( spelling );
-                    }
-                    else
-                    {
-                        lemmata =
-                            lemmatizer.lemmatize( spelling , lemmaClass );
-                    }
-                }
-                                //  More than one word part.
-                                //  Get lemma for each part and
-                                //  concatenate them with the
-                                //  lemma separator to form a
-                                //  compound lemma.
-                else
-                {
-                    lemmata             = "";
-                    String lemmaPiece   = "";
-                    String[] posTags    =
-                        partOfSpeechTags.splitTag( partOfSpeech );
-
-                    if ( posTags.length == wordList.size() )
-                    {
-                        for ( int i = 0 ; i < wordList.size() ; i++ )
-                        {
-                            String wordPiece    = (String)wordList.get( i );
-
-                            if ( i > 0 )
-                            {
-                                lemmata = lemmata + lemmaSeparator;
-                            }
-
-                            lemmaClass  =
-                                partOfSpeechTags.getLemmaWordClass
-                                (
-                                    posTags[ i ]
-                                );
-
-                            lemmaPiece  =
-                                lemmatizer.lemmatize
-                                (
-                                    wordPiece ,
-                                    lemmaClass
-                                );
-
-                            lemmata = lemmata + lemmaPiece;
-                        }
-                    }
-                }
-            }
-        }
-
-        return lemmata;
+  /** Main program. */
+  public static void main(String[] args) {
+    try {
+      mergeBrillLexicon(args[0], args[1], args[2]);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
 
-    /** Main program.
-     */
-
-    public static void main( String[] args )
-    {
-        try
-        {
-            mergeBrillLexicon( args[ 0 ] , args[ 1 ] , args[ 2 ] );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
-    }
-
-    /** Allow overrides but not instantiation.
-     */
-
-    protected MergeBrillLexicon()
-    {
-    }
+  /** Allow overrides but not instantiation. */
+  protected MergeBrillLexicon() {}
 }
 
 /*
@@ -356,7 +266,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-
-

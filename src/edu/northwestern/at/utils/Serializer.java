@@ -4,32 +4,26 @@ package edu.northwestern.at.utils;
 
 import java.io.*;
 
-/** Interface for object serialization to and from an array of bytes.
- */
+/** Interface for object serialization to and from an array of bytes. */
+public interface Serializer {
+  /**
+   * Serialize an object to an array of bytes.
+   *
+   * @param object The object to serialize.
+   * @return Serialized object as an array of bytes.
+   */
+  public byte[] serializeToBytes(Object object) throws IOException;
 
-public interface Serializer
-{
-    /** Serialize an object to an array of bytes.
-     *
-     *  @param  object  The object to serialize.
-     *
-     *  @return             Serialized object as an array of bytes.
-     */
-
-    public byte[] serializeToBytes( Object object ) throws IOException;
-
-    /** Deserialize an object from an array of bytes.
-     *
-     *  @param  serializedObject    Array of bytes containing a serialized object.
-     *
-     *  @return     The deserialized object.
-     *
-     *  @throws IOException
-     *  @throws ClassNotFoundException
-     */
-
-    public Object deserializeFromBytes( byte[] serializedObject )
-        throws IOException, ClassNotFoundException;
+  /**
+   * Deserialize an object from an array of bytes.
+   *
+   * @param serializedObject Array of bytes containing a serialized object.
+   * @return The deserialized object.
+   * @throws IOException
+   * @throws ClassNotFoundException
+   */
+  public Object deserializeFromBytes(byte[] serializedObject)
+      throws IOException, ClassNotFoundException;
 }
 
 /*
@@ -72,6 +66,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

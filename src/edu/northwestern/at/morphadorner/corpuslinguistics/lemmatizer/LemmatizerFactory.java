@@ -5,114 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** Lemmatizer factory.
- */
+/** Lemmatizer factory. */
+public class LemmatizerFactory {
+  /**
+   * Get a lemmatizer.
+   *
+   * @return The lemmatizer.
+   */
+  public static Lemmatizer newLemmatizer() {
+    String className = System.getProperty("lemmatizer.class");
 
-public class LemmatizerFactory
-{
-    /** Get a lemmatizer.
-     *
-     *  @return     The lemmatizer.
-     */
-
-    public static Lemmatizer newLemmatizer()
-    {
-        String className    =
-            System.getProperty( "lemmatizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultLemmatizer";
-        }
-
-        return newLemmatizer( className );
+    if (className == null) {
+      className = "DefaultLemmatizer";
     }
 
-    /** Get a lemmatizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The lemmatizer.
-     */
+    return newLemmatizer(className);
+  }
 
-    public static Lemmatizer newLemmatizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a lemmatizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The lemmatizer.
+   */
+  public static Lemmatizer newLemmatizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "lemmatizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultLemmatizer";
-        }
-
-        return newLemmatizer( className );
+    if (properties != null) {
+      className = properties.getProperty("lemmatizer.class");
     }
 
-    /** Get a lemmatizer of a specified class name.
-     *
-     *  @param  className   Class name for the lemmatizer.
-     *
-     *  @return             The lemmatizer.
-     */
-
-    public static Lemmatizer newLemmatizer( String className )
-    {
-        Lemmatizer lemmatizer   = null;
-
-        try
-        {
-            lemmatizer  =
-                (Lemmatizer)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    LemmatizerFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                lemmatizer  =
-                    (Lemmatizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create lemmatizer of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    lemmatizer  = new DefaultLemmatizer();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null lemmatizer.
-/*
-                    System.err.println(
-                        "Unable to create lemmatizer, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return lemmatizer;
+    if (className == null) {
+      className = "DefaultLemmatizer";
     }
+
+    return newLemmatizer(className);
+  }
+
+  /**
+   * Get a lemmatizer of a specified class name.
+   *
+   * @param className Class name for the lemmatizer.
+   * @return The lemmatizer.
+   */
+  public static Lemmatizer newLemmatizer(String className) {
+    Lemmatizer lemmatizer = null;
+
+    try {
+      lemmatizer = (Lemmatizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(LemmatizerFactory.class.getName()) + "." + className;
+
+      try {
+        lemmatizer = (Lemmatizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create lemmatizer of class " + fixedClassName + ", using default.");
+
+        try {
+          lemmatizer = new DefaultLemmatizer();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null lemmatizer.
+          /*
+                              System.err.println(
+                                  "Unable to create lemmatizer, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return lemmatizer;
+  }
 }
 
 /*
@@ -155,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

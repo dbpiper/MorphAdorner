@@ -5,105 +5,73 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** SentenceSplitterIterator factory.
- */
+/** SentenceSplitterIterator factory. */
+public class SentenceSplitterIteratorFactory {
+  /**
+   * Get a sentence splitter iterator.
+   *
+   * @return The sentenceSplitterIterator.
+   */
+  public static SentenceSplitterIterator newSentenceSplitterIterator() {
+    String className = System.getProperty("sentencesplitteriterator.class");
 
-public class SentenceSplitterIteratorFactory
-{
-    /** Get a sentence splitter iterator.
-     *
-     *  @return     The sentenceSplitterIterator.
-     */
-
-    public static SentenceSplitterIterator newSentenceSplitterIterator()
-    {
-        String className    =
-            System.getProperty( "sentencesplitteriterator.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultSentenceSplitterIterator";
-        }
-
-        return newSentenceSplitterIterator( className );
+    if (className == null) {
+      className = "DefaultSentenceSplitterIterator";
     }
 
-    /** Get a sentence splitter iterator.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The sentenceSplitterIterator.
-     */
+    return newSentenceSplitterIterator(className);
+  }
 
-    public static SentenceSplitterIterator newSentenceSplitterIterator
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a sentence splitter iterator.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The sentenceSplitterIterator.
+   */
+  public static SentenceSplitterIterator newSentenceSplitterIterator(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "sentencesplitteriterator.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultSentenceSplitterIterator";
-        }
-
-        return newSentenceSplitterIterator( className );
+    if (properties != null) {
+      className = properties.getProperty("sentencesplitteriterator.class");
     }
 
-    /** Get a sentence splitter iterator of a specified class name.
-     *
-     *  @param  className   Class name for the sentence splitter iterator.
-     *
-     *  @return             The sentence splitter iterator.
-     */
-
-    public static SentenceSplitterIterator newSentenceSplitterIterator
-    (
-        String className
-    )
-    {
-        SentenceSplitterIterator sentenceSplitterIterator   = null;
-
-        try
-        {
-            sentenceSplitterIterator    =
-                (SentenceSplitterIterator)Class.forName(
-                    className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    SentenceSplitterIteratorFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                sentenceSplitterIterator    =
-                    (SentenceSplitterIterator)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create sentence splitter iterator of class " +
-                    fixedClassName + ", using default." );
-
-                sentenceSplitterIterator    =
-                    new DefaultSentenceSplitterIterator();
-            }
-        }
-
-        return sentenceSplitterIterator;
+    if (className == null) {
+      className = "DefaultSentenceSplitterIterator";
     }
+
+    return newSentenceSplitterIterator(className);
+  }
+
+  /**
+   * Get a sentence splitter iterator of a specified class name.
+   *
+   * @param className Class name for the sentence splitter iterator.
+   * @return The sentence splitter iterator.
+   */
+  public static SentenceSplitterIterator newSentenceSplitterIterator(String className) {
+    SentenceSplitterIterator sentenceSplitterIterator = null;
+
+    try {
+      sentenceSplitterIterator = (SentenceSplitterIterator) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(SentenceSplitterIteratorFactory.class.getName()) + "." + className;
+
+      try {
+        sentenceSplitterIterator =
+            (SentenceSplitterIterator) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create sentence splitter iterator of class "
+                + fixedClassName
+                + ", using default.");
+
+        sentenceSplitterIterator = new DefaultSentenceSplitterIterator();
+      }
+    }
+
+    return sentenceSplitterIterator;
+  }
 }
 
 /*
@@ -146,6 +114,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

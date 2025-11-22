@@ -2,18 +2,7 @@ package edu.northwestern.at.morphadorner.tools.relemmatize;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-
-import java.text.*;
-import java.util.*;
-
-import org.xml.sax.*;
-import org.xml.sax.helpers.*;
-
 import edu.northwestern.at.morphadorner.WordAttributeNames;
-import edu.northwestern.at.morphadorner.tools.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
@@ -24,394 +13,295 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingmapper.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.xml.*;
+import java.io.*;
+import java.text.*;
+import java.util.*;
+import org.xml.sax.*;
+import org.xml.sax.helpers.*;
 
-/** Filter to update standard spellings and lemmata in adorned file.
-  */
+/** Filter to update standard spellings and lemmata in adorned file. */
+public class RelemmatizeFilter extends ExtendedXMLFilterImpl {
+  /** Word lexicon. */
+  protected Lexicon wordLexicon;
 
-public class RelemmatizeFilter extends ExtendedXMLFilterImpl
-{
-    /** Word lexicon. */
+  /** Lemmatizer. */
+  protected Lemmatizer lemmatizer;
 
-    protected Lexicon wordLexicon;
+  /** Name standardizer. */
+  protected NameStandardizer nameStandardizer;
 
-    /** Lemmatizer. */
+  /** Spelling standardizer. */
+  protected SpellingStandardizer standardizer;
 
-    protected Lemmatizer lemmatizer;
+  /** Spelling mapper. */
+  protected SpellingMapper spellingMapper;
 
-    /** Name standardizer. */
+  /** Part of speech tags. */
+  protected PartOfSpeechTags partOfSpeechTags;
 
-    protected NameStandardizer nameStandardizer;
+  /** Spelling tokenizer. */
+  protected WordTokenizer spellingTokenizer;
 
-    /** Spelling standardizer. */
+  /** Lemma separator. */
+  protected String lemmaSeparator;
 
-    protected SpellingStandardizer standardizer;
+  /** Number of lemmata changed. */
+  protected int lemmataChanged = 0;
 
-    /** Spelling mapper. */
+  /** Number of standard spellings changed. */
+  protected int standardChanged = 0;
 
-    protected SpellingMapper spellingMapper;
+  /** Number of words processed. */
+  protected int wordsProcessed = 0;
 
-    /** Part of speech tags. */
+  /**
+   * Create adorned word info filter.
+   *
+   * @param reader XML input reader to which this filter applies.
+   */
+  public RelemmatizeFilter(
+      XMLReader reader,
+      Lexicon wordLexicon,
+      Lemmatizer lemmatizer,
+      NameStandardizer nameStandardizer,
+      SpellingStandardizer standardizer,
+      SpellingMapper spellingMapper) {
+    super(reader);
 
-    protected PartOfSpeechTags partOfSpeechTags;
+    this.wordLexicon = wordLexicon;
+    this.lemmatizer = lemmatizer;
+    this.nameStandardizer = nameStandardizer;
+    this.standardizer = standardizer;
+    this.spellingMapper = spellingMapper;
 
-    /** Spelling tokenizer. */
+    //  Get lemma separator.
 
-    protected WordTokenizer spellingTokenizer;
+    lemmaSeparator = lemmatizer.getLemmaSeparator();
 
-    /** Lemma separator. */
+    //  Get the part of speech tags from
+    //  the word lexicon.
 
-    protected String lemmaSeparator;
+    partOfSpeechTags = wordLexicon.getPartOfSpeechTags();
 
-    /** Number of lemmata changed. */
+    //  Get spelling tokenizer.
 
-    protected int lemmataChanged    = 0;
+    spellingTokenizer = new PennTreebankTokenizer();
+  }
 
-    /** Number of standard spellings changed. */
+  /**
+   * Handle start of an XML element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   * @param atts The XML element's attributes.
+   */
+  public void startElement(String uri, String localName, String qName, Attributes atts)
+      throws SAXException {
+    if (qName.equals("w")) {
+      //  Increment count of words processed.
 
-    protected int standardChanged   = 0;
+      wordsProcessed++;
+      //  Get word attributes.
 
-    /** Number of words processed. */
+      AttributesImpl newAttrs = new AttributesImpl(atts);
 
-    protected int wordsProcessed    = 0;
+      //  Get current lemma and
+      //  standard spellings.
 
-    /** Create adorned word info filter.
-      *
-      * @param  reader  XML input reader to which this filter applies.
-      */
+      String oldLemma = newAttrs.getValue(WordAttributeNames.lem);
 
-    public RelemmatizeFilter
-    (
-        XMLReader reader ,
-        Lexicon wordLexicon ,
-        Lemmatizer lemmatizer ,
-        NameStandardizer nameStandardizer ,
-        SpellingStandardizer standardizer ,
-        SpellingMapper spellingMapper
-    )
-    {
-        super( reader );
+      String partOfSpeech = newAttrs.getValue(WordAttributeNames.pos);
 
-        this.wordLexicon        = wordLexicon;
-        this.lemmatizer         = lemmatizer;
-        this.nameStandardizer   = nameStandardizer;
-        this.standardizer       = standardizer;
-        this.spellingMapper     = spellingMapper;
+      String oldStandard = newAttrs.getValue(WordAttributeNames.reg);
 
-                                //  Get lemma separator.
+      String spelling = newAttrs.getValue(WordAttributeNames.spe);
 
-        lemmaSeparator          = lemmatizer.getLemmaSeparator();
+      //  Update standard spelling.
 
-                                //  Get the part of speech tags from
-                                //  the word lexicon.
+      String standard = getStandardizedSpelling(spelling, partOfSpeech);
 
-        partOfSpeechTags        = wordLexicon.getPartOfSpeechTags();
+      //  Update lemma.
 
-                                //  Get spelling tokenizer.
+      String lemma = getLemma(spelling, partOfSpeech);
 
-        spellingTokenizer       = new PennTreebankTokenizer();
+      setAttributeValue(newAttrs, WordAttributeNames.reg, standard);
+
+      setAttributeValue(newAttrs, WordAttributeNames.lem, lemma);
+
+      //  Count number of changed standard
+      //  spellings.
+
+      if (!oldStandard.equals(standard)) {
+        standardChanged++;
+      }
+      //  Count number of changed lemmata.
+
+      if (!oldLemma.equals(lemma)) {
+        lemmataChanged++;
+      }
+
+      super.startElement(uri, localName, qName, newAttrs);
+    } else if (qName.equals("c")) {
+      AttributesImpl newAttrs = new AttributesImpl();
+
+      removeAttribute(newAttrs, WordAttributeNames.part);
+
+      super.startElement(uri, localName, qName, newAttrs);
+    } else {
+      super.startElement(uri, localName, qName, atts);
     }
+  }
 
-    /** Handle start of an XML element.
-      *
-      * @param  uri         The XML element's URI.
-      * @param  localName   The XML element's local name.
-      * @param  qName       The XML element's qname.
-      * @param  atts        The XML element's attributes.
-      */
+  /**
+   * Get lemma for a word.
+   *
+   * @param spelling The word spelling.
+   * @param partOfSpeech The part of speech.
+   *     <p>On output, sets the lemma field of the adorned word We look in the word lexicon first
+   *     for the lemma. If the lexicon does not contain the lemma, we use the lemmatizer.
+   */
+  public String getLemma(String spelling, String partOfSpeech) {
+    //  Look up lemma in lexicon first.
+    String lemmata = wordLexicon.getLemma(spelling, partOfSpeech);
 
-    public void startElement
-    (
-        String uri ,
-        String localName ,
-        String qName ,
-        Attributes atts
-    )
-        throws SAXException
-    {
-        if ( qName.equals( "w" ) )
-        {
-                                //  Increment count of words processed.
+    //  If lemma not in lexicon, use
+    //  lemmatizer.
 
-            wordsProcessed++;
-                                //  Get word attributes.
+    if (lemmata.equals("*")) {
+      //  Get lemmatization word class
+      //  for part of speech.
+      String lemmaClass = partOfSpeechTags.getLemmaWordClass(partOfSpeech);
 
-            AttributesImpl newAttrs = new AttributesImpl( atts );
+      //  Do not lemmatize words which
+      //  should not be lemmatized,
+      //  including proper names.
 
-                                //  Get current lemma and
-                                //  standard spellings.
+      if (lemmatizer.cantLemmatize(spelling) || lemmaClass.equals("none")) {
+      } else {
+        //  Extract individual word parts.
+        //  May be more than one for a
+        //  contraction.
 
-            String oldLemma     =
-                newAttrs.getValue( WordAttributeNames.lem );
+        List wordList = spellingTokenizer.extractWords(spelling);
 
-            String partOfSpeech =
-                newAttrs.getValue( WordAttributeNames.pos );
+        //  If just one word part,
+        //  get its lemma.
 
-            String oldStandard  =
-                newAttrs.getValue( WordAttributeNames.reg );
+        if (!partOfSpeechTags.isCompoundTag(partOfSpeech) || (wordList.size() == 1)) {
+          if (lemmaClass.length() == 0) {
+            lemmata = lemmatizer.lemmatize(spelling, "compound");
 
-            String spelling     =
-                newAttrs.getValue( WordAttributeNames.spe );
-
-                                //  Update standard spelling.
-
-            String standard     =
-                getStandardizedSpelling( spelling , partOfSpeech );
-
-                                //  Update lemma.
-
-            String lemma        = getLemma( spelling , partOfSpeech );
-
-            setAttributeValue(
-                newAttrs , WordAttributeNames.reg , standard );
-
-            setAttributeValue(
-                newAttrs , WordAttributeNames.lem , lemma );
-
-                                //  Count number of changed standard
-                                //  spellings.
-
-            if ( !oldStandard.equals( standard ) )
-            {
-                standardChanged++;
+            if (lemmata.equals(spelling)) {
+              lemmata = lemmatizer.lemmatize(spelling);
             }
-                                //  Count number of changed lemmata.
+          } else {
+            lemmata = lemmatizer.lemmatize(spelling, lemmaClass);
+          }
+        }
+        //  More than one word part.
+        //  Get lemma for each part and
+        //  concatenate them with the
+        //  lemma separator to form a
+        //  compound lemma.
+        else {
+          lemmata = "";
+          String lemmaPiece = "";
+          String[] posTags = partOfSpeechTags.splitTag(partOfSpeech);
 
-            if ( !oldLemma.equals( lemma ) )
-            {
-                lemmataChanged++;
+          if (posTags.length == wordList.size()) {
+            for (int i = 0; i < wordList.size(); i++) {
+              String wordPiece = (String) wordList.get(i);
+
+              if (i > 0) {
+                lemmata = lemmata + lemmaSeparator;
+              }
+
+              lemmaClass = partOfSpeechTags.getLemmaWordClass(posTags[i]);
+
+              lemmaPiece = lemmatizer.lemmatize(wordPiece, lemmaClass);
+
+              lemmata = lemmata + lemmaPiece;
             }
-
-            super.startElement( uri , localName , qName , newAttrs );
+          }
         }
-        else if ( qName.equals( "c" ) )
-        {
-            AttributesImpl newAttrs = new AttributesImpl();
+      }
+    }
+    //  Use spelling if lemmata not defined.
 
-            removeAttribute( newAttrs , WordAttributeNames.part );
+    if (lemmata.equals("*")) {
+      lemmata = spelling;
+    }
+    //  Force lemma to lowercase except
+    //  for proper noun tagged word.
 
-            super.startElement( uri , localName , qName , newAttrs );
-        }
-        else
-        {
-            super.startElement( uri , localName , qName , atts );
-        }
+    if (lemmata.indexOf(lemmaSeparator) < 0) {
+      if (!partOfSpeechTags.isProperNounTag(partOfSpeech)) {
+        lemmata = lemmata.toLowerCase();
+      }
     }
 
-    /** Get lemma for a word.
-     *
-     *  @param  spelling        The word spelling.
-     *  @param  partOfSpeech    The part of speech.
-     *
-     *  <p>
-     *  On output, sets the lemma field of the adorned word
-     *  We look in the word lexicon first for the lemma.
-     *  If the lexicon does not contain the lemma, we
-     *  use the lemmatizer.
-     *  </p>
-     */
+    return lemmata;
+  }
 
-    public String getLemma
-    (
-        String spelling ,
-        String partOfSpeech
-    )
-    {
-                                //  Look up lemma in lexicon first.
-        String lemmata      =
-            wordLexicon.getLemma( spelling , partOfSpeech );
+  /**
+   * Get standardized spelling.
+   *
+   * @param correctedSpelling The spelling.
+   * @param partOfSpeech The part of speech tag.
+   * @return Standardized spelling.
+   */
+  protected String getStandardizedSpelling(String correctedSpelling, String partOfSpeech) {
+    String spelling = correctedSpelling;
+    String result = correctedSpelling;
 
-                                //  If lemma not in lexicon, use
-                                //  lemmatizer.
+    if (partOfSpeechTags.isProperNounTag(partOfSpeech)) {
+      result = nameStandardizer.standardizeProperName(spelling);
+    } else if (partOfSpeechTags.isNounTag(partOfSpeech) && CharUtils.hasInternalCaps(spelling)) {
+    } else if (partOfSpeechTags.isForeignWordTag(partOfSpeech)) {
+    } else if (partOfSpeechTags.isNumberTag(partOfSpeech)) {
+    } else {
+      result =
+          standardizer.standardizeSpelling(
+              spelling, partOfSpeechTags.getMajorWordClass(partOfSpeech));
 
-        if ( lemmata.equals( "*" ) )
-        {
-                                //  Get lemmatization word class
-                                //  for part of speech.
-            String lemmaClass   =
-                partOfSpeechTags.getLemmaWordClass( partOfSpeech );
-
-                                //  Do not lemmatize words which
-                                //  should not be lemmatized,
-                                //  including proper names.
-
-            if  (   lemmatizer.cantLemmatize( spelling ) ||
-                    lemmaClass.equals( "none" )
-                )
-            {
-            }
-            else
-            {
-                                //  Extract individual word parts.
-                                //  May be more than one for a
-                                //  contraction.
-
-                List wordList   =
-                    spellingTokenizer.extractWords( spelling );
-
-                                //  If just one word part,
-                                //  get its lemma.
-
-                if  (   !partOfSpeechTags.isCompoundTag( partOfSpeech ) ||
-                        ( wordList.size() == 1 )
-                    )
-                {
-                    if ( lemmaClass.length() == 0 )
-                    {
-                        lemmata =
-                            lemmatizer.lemmatize( spelling , "compound" );
-
-                        if ( lemmata.equals( spelling ) )
-                        {
-                            lemmata = lemmatizer.lemmatize( spelling );
-                        }
-                    }
-                    else
-                    {
-                        lemmata =
-                            lemmatizer.lemmatize( spelling , lemmaClass );
-                    }
-                }
-                                //  More than one word part.
-                                //  Get lemma for each part and
-                                //  concatenate them with the
-                                //  lemma separator to form a
-                                //  compound lemma.
-                else
-                {
-                    lemmata             = "";
-                    String lemmaPiece   = "";
-                    String[] posTags    =
-                        partOfSpeechTags.splitTag( partOfSpeech );
-
-                    if ( posTags.length == wordList.size() )
-                    {
-                        for ( int i = 0 ; i < wordList.size() ; i++ )
-                        {
-                            String wordPiece    = (String)wordList.get( i );
-
-                            if ( i > 0 )
-                            {
-                                lemmata = lemmata + lemmaSeparator;
-                            }
-
-                            lemmaClass  =
-                                partOfSpeechTags.getLemmaWordClass
-                                (
-                                    posTags[ i ]
-                                );
-
-                            lemmaPiece  =
-                                lemmatizer.lemmatize
-                                (
-                                    wordPiece ,
-                                    lemmaClass
-                                );
-
-                            lemmata = lemmata + lemmaPiece;
-                        }
-                    }
-                }
-            }
-        }
-                                //  Use spelling if lemmata not defined.
-
-        if ( lemmata.equals( "*" ) )
-        {
-            lemmata = spelling;
-        }
-                                //  Force lemma to lowercase except
-                                //  for proper noun tagged word.
-
-        if ( lemmata.indexOf( lemmaSeparator ) < 0 )
-        {
-            if ( !partOfSpeechTags.isProperNounTag( partOfSpeech ) )
-            {
-                lemmata = lemmata.toLowerCase();
-            }
-        }
-
-        return lemmata;
+      if (result.equalsIgnoreCase(spelling)) {
+        result = spelling;
+      }
     }
 
-    /** Get standardized spelling.
-     *
-     *  @param  correctedSpelling       The spelling.
-     *  @param  partOfSpeech            The part of speech tag.
-     *
-     *  @return                         Standardized spelling.
-     */
+    return spellingMapper.mapSpelling(result);
+  }
 
-    protected String getStandardizedSpelling
-    (
-        String correctedSpelling ,
-        String partOfSpeech
-    )
-    {
-        String spelling = correctedSpelling;
-        String result   = correctedSpelling;
+  /**
+   * Return number of lemmata changed.
+   *
+   * @return Number of lemmata changed.
+   */
+  public int getLemmataChanged() {
+    return lemmataChanged;
+  }
 
-        if ( partOfSpeechTags.isProperNounTag( partOfSpeech ) )
-        {
-            result  = nameStandardizer.standardizeProperName( spelling );
-        }
-        else if (   partOfSpeechTags.isNounTag( partOfSpeech )  &&
-                    CharUtils.hasInternalCaps( spelling ) )
-        {
-        }
-        else if ( partOfSpeechTags.isForeignWordTag( partOfSpeech ) )
-        {
-        }
-        else if ( partOfSpeechTags.isNumberTag( partOfSpeech ) )
-        {
-        }
-        else
-        {
-            result  =
-                standardizer.standardizeSpelling
-                (
-                    spelling ,
-                    partOfSpeechTags.getMajorWordClass( partOfSpeech )
-                );
+  /**
+   * Return number of standard spellings changed.
+   *
+   * @return Number of standard spellings changed.
+   */
+  public int getStandardChanged() {
+    return standardChanged;
+  }
 
-            if ( result.equalsIgnoreCase( spelling ) )
-            {
-                result  = spelling;
-            }
-        }
-
-        return spellingMapper.mapSpelling( result );
-    }
-
-    /** Return number of lemmata changed.
-     *
-     *  @return     Number of lemmata changed.
-     */
-
-    public int getLemmataChanged()
-    {
-        return lemmataChanged;
-    }
-
-    /** Return number of standard spellings changed.
-     *
-     *  @return     Number of standard spellings changed.
-     */
-
-    public int getStandardChanged()
-    {
-        return standardChanged;
-    }
-
-    /** Return number of words processed.
-     *
-     *  @return     Number of words processed.
-     */
-
-    public int getWordsProcessed()
-    {
-        return wordsProcessed;
-    }
+  /**
+   * Return number of words processed.
+   *
+   * @return Number of words processed.
+   */
+  public int getWordsProcessed() {
+    return wordsProcessed;
+  }
 }
 
 /*
@@ -454,6 +344,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

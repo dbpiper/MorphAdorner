@@ -2,106 +2,75 @@ package edu.northwestern.at.morphadorner.tools.xmltotab;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.*;
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.morphadorner.*;
-import edu.northwestern.at.morphadorner.tools.*;
-import edu.northwestern.at.morphadorner.tools.xmltotab.*;
-import edu.northwestern.at.utils.*;
-
-/** Convert adorned files to verticalized (tabular) format.
+/**
+ * Convert adorned files to verticalized (tabular) format.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  java edu.northwestern.at.morphadorner.tools.xmltotab.AdornedToTabularFile
- *      outputdirectory adorned1.xml adorned2.xml ...
- *  </p>
+ * <p>java edu.northwestern.at.morphadorner.tools.xmltotab.AdornedToTabularFile outputdirectory
+ * adorned1.xml adorned2.xml ...
  *
- *  <ul>
- *  <li>outputdirectory         --  Output directory for tabular files.
- *  </li>
- *  <li>adorned.xml ...          -- List of input MorphAdorned XML files.
- *  </li>
- *  </ul>
+ * <ul>
+ *   <li>outputdirectory -- Output directory for tabular files.
+ *   <li>adorned.xml ... -- List of input MorphAdorned XML files.
+ * </ul>
  */
-
-public class AdornedToTabularFile
-{
-    /** Main program.
-     *
-     *  @param  args    Command line arguments.
-     */
-
-    public static void main( String[] args )
-    {
-        try
-        {
-            adornedToTabularFile( args );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+public class AdornedToTabularFile {
+  /**
+   * Main program.
+   *
+   * @param args Command line arguments.
+   */
+  public static void main(String[] args) {
+    try {
+      adornedToTabularFile(args);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
 
-    /** Get tabular output for batch of adorned files.
-     *
-     *  @param  args    Command line arguments.
-     */
+  /**
+   * Get tabular output for batch of adorned files.
+   *
+   * @param args Command line arguments.
+   */
+  public static void adornedToTabularFile(String[] args) throws Exception {
+    FileBatchProcessor processor =
+        new FileBatchProcessor() {
+          public void processOneFile(String inputFileName) throws Exception {
+            //  Report name of file being converted.
 
-    public static void adornedToTabularFile( String[] args )
-        throws Exception
-    {
-        FileBatchProcessor processor    =
-            new FileBatchProcessor()
-        {
-            public void processOneFile( String inputFileName )
-                throws Exception
-            {
-                                //  Report name of file being converted.
+            printStream.println("Processing " + inputFileName);
 
-                printStream.println( "Processing " + inputFileName );
+            //  Strip path from input file name.
 
-                                //  Strip path from input file name.
+            String strippedFileName = FileNameUtils.stripPathName(inputFileName);
 
-                String strippedFileName =
-                    FileNameUtils.stripPathName( inputFileName );
+            strippedFileName = FileNameUtils.changeFileExtension(strippedFileName, "");
 
-                strippedFileName    =
-                    FileNameUtils.changeFileExtension( strippedFileName , "" );
+            //  Create output file name.
 
-                                //  Create output file name.
+            String outputFileName =
+                new File(outputDirectoryName, strippedFileName + ".tab").getAbsolutePath();
 
-                String outputFileName   =
-                    new File
-                    (
-                        outputDirectoryName ,
-                        strippedFileName + ".tab"
-                    ).getAbsolutePath();
+            FileUtils.createPathForFile(outputFileName);
 
-                FileUtils.createPathForFile( outputFileName );
-
-                                //  Convert adorned file to tabular
-                                //  format.
-                new XMLToTab
-                (
-                    new String[]
-                    {
-                        inputFileName ,
-                        outputFileName
-                    }
-                );
-            }
+            //  Convert adorned file to tabular
+            //  format.
+            new XMLToTab(new String[] {inputFileName, outputFileName});
+          }
         };
 
-        processor.setOutputDirectoryName( args[ 0 ] );
-        processor.setInputFileNames( args , 1 );
-        processor.run();
-    }
+    processor.setOutputDirectoryName(args[0]);
+    processor.setInputFileNames(args, 1);
+    processor.run();
+  }
 }
 
 /*
@@ -144,6 +113,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

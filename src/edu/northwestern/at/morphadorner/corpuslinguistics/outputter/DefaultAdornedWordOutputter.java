@@ -2,22 +2,16 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.outputter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-
-/** Default outputter writes adorned words to a file.
- */
-
-public class DefaultAdornedWordOutputter
-    extends PrintStreamAdornedWordOutputter
-    implements AdornedWordOutputter
-{
-    public DefaultAdornedWordOutputter()
-    {
-        super();
-    }
+/** Default outputter writes adorned words to a file. */
+public class DefaultAdornedWordOutputter extends PrintStreamAdornedWordOutputter
+    implements AdornedWordOutputter {
+  public DefaultAdornedWordOutputter() {
+    super();
+  }
 }
 
 /*
@@ -60,6 +54,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

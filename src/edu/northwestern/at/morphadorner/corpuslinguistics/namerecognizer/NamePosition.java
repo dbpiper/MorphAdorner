@@ -2,77 +2,57 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namerecognizer;
 
 /*  Please see the license information at the end of this file. */
 
-/** Records name position in tokenized text.
+/**
+ * Records name position in tokenized text.
  *
- *  <p>
- *  Given a text split into sentences and words, a name position
- *  specifies the position of a name string as a triple consisting
- *  of the sentence number, starting word number in the sentence,
- *  and ending word number in the sentence.
- *  </p>
+ * <p>Given a text split into sentences and words, a name position specifies the position of a name
+ * string as a triple consisting of the sentence number, starting word number in the sentence, and
+ * ending word number in the sentence.
  */
+public class NamePosition {
+  /** Sentence number. */
+  public int sentence;
 
-public class NamePosition
-{
-    /** Sentence number. */
+  /** Starting word number in sentence. */
+  public int startingWord;
 
-    public int sentence;
+  /** Ending word number in sentence. */
+  public int endingWord;
 
-    /** Starting word number in sentence. */
+  /** Proper noun count. */
+  public int properNounCount;
 
-    public int startingWord;
+  /** Create empty name position. */
+  public NamePosition() {
+    sentence = 0;
+    startingWord = 0;
+    endingWord = 0;
+    properNounCount = 0;
+  }
 
-    /** Ending word number in sentence. */
+  /**
+   * Create name position from sentence and word positions.
+   *
+   * @param sentence The sentence number containing the name.
+   * @param startingWord The starting word.
+   * @param endingWord The ending word.
+   * @param properNounCount The proper noun count.
+   */
+  public NamePosition(int sentence, int startingWord, int endingWord, int properNounCount) {
+    this.sentence = sentence;
+    this.startingWord = startingWord;
+    this.endingWord = endingWord;
+    this.properNounCount = properNounCount;
+  }
 
-    public int endingWord;
-
-    /** Proper noun count. */
-
-    public int properNounCount;
-
-    /** Create empty name position.
-     *
-     */
-
-    public NamePosition()
-    {
-        sentence        = 0;
-        startingWord    = 0;
-        endingWord      = 0;
-        properNounCount = 0;
-    }
-
-    /** Create name position from sentence and word positions.
-     *
-     *  @param  sentence        The sentence number containing the name.
-     *  @param  startingWord    The starting word.
-     *  @param  endingWord      The ending word.
-     *  @param  properNounCount The proper noun count.
-     */
-
-    public NamePosition
-    (
-        int sentence ,
-        int startingWord ,
-        int endingWord ,
-        int properNounCount
-    )
-    {
-        this.sentence           = sentence;
-        this.startingWord       = startingWord;
-        this.endingWord         = endingWord;
-        this.properNounCount    = properNounCount;
-    }
-
-    /** Return name position as a string.
-     *
-     *  @return     String in form (sentence, starting word, ending word).
-     */
-
-    public String toString()
-    {
-        return "[" + sentence + "," + startingWord + "," + endingWord + "]";
-    }
+  /**
+   * Return name position as a string.
+   *
+   * @return String in form (sentence, starting word, ending word).
+   */
+  public String toString() {
+    return "[" + sentence + "," + startingWord + "," + endingWord + "]";
+  }
 }
 
 /*
@@ -115,6 +95,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

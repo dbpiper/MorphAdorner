@@ -2,128 +2,110 @@ package edu.northwestern.at.morphadorner.tools.punktabbreviationdetector;
 
 /*  Please see the license information at the end of this file. */
 
-/** A token for use by the Punkt abbreviation detection algorithm.
- */
+/** A token for use by the Punkt abbreviation detection algorithm. */
+public class PunktToken {
+  /** The text of the token. */
+  protected String tokenText;
 
-public class PunktToken
-{
-    /** The text of the token. */
+  /** The starting position of the token. */
+  protected int startPosition;
 
-    protected String tokenText;
+  /** The Punkt token type. */
+  protected PunktTokenType tokenType;
 
-    /** The starting position of the token. */
+  /**
+   * Create a Punkt token.
+   *
+   * @param tokenText The text of the token.
+   * @param start Starting position of the token.
+   * @param tokenType The type of the token.
+   */
+  public PunktToken(String tokenText, int start, PunktTokenType tokenType) {
+    this.tokenText = tokenText;
+    this.startPosition = start;
+    this.tokenType = tokenType;
+  }
 
-    protected int startPosition;
+  /**
+   * Create a Punkt token.
+   *
+   * @param tokenText The text of the token.
+   * @param tokenType The type of the token.
+   */
+  public PunktToken(String tokenText, PunktTokenType tokenType) {
+    this.tokenText = tokenText;
+    this.startPosition = 0;
+    this.tokenType = tokenType;
+  }
 
-    /** The Punkt token type. */
+  /**
+   * Get the token text.
+   *
+   * @return The token text.
+   */
+  public String getTokenText() {
+    return tokenText;
+  }
 
-    protected PunktTokenType tokenType;
+  /**
+   * Get the token type.
+   *
+   * @return The token type.
+   */
+  public PunktTokenType getTokenType() {
+    return tokenType;
+  }
 
-    /** Create a Punkt token.
-     *
-     *  @param  tokenText   The text of the token.
-     *  @param  start       Starting position of the token.
-     *  @param  tokenType   The type of the token.
-     */
+  /**
+   * Get the starting position of the token.
+   *
+   * @return The starting position of the token.
+   */
+  public int getStartPosition() {
+    return startPosition;
+  }
 
-    public PunktToken( String tokenText , int start , PunktTokenType tokenType )
-    {
-        this.tokenText      = tokenText;
-        this.startPosition  = start;
-        this.tokenType      = tokenType;
+  /**
+   * Get the ending position of the token.
+   *
+   * @return The ending position of the token.
+   */
+  public int getEndPosition() {
+    return startPosition + tokenText.length();
+  }
+
+  /**
+   * Get the character code for a single character token.
+   *
+   * @return Unicode string for character. Null if token is not a single character.
+   */
+  public String getSingleCharCode() {
+    String result = null;
+
+    if (tokenText.length() == 1) {
+      result = "u" + Integer.toHexString((int) tokenText.charAt(0));
     }
 
-    /** Create a Punkt token.
-     *
-     *  @param  tokenText   The text of the token.
-     *  @param  tokenType   The type of the token.
-     */
+    return result;
+  }
 
-    public PunktToken( String tokenText , PunktTokenType tokenType )
-    {
-        this.tokenText      = tokenText;
-        this.startPosition  = 0;
-        this.tokenType      = tokenType;
-    }
+  /**
+   * Get the length of the token.
+   *
+   * @return The length of the token.
+   */
+  public int getLength() {
+    return tokenText.length();
+  }
 
-    /** Get the token text.
-     *
-     *  @return     The token text.
-     */
-
-    public String getTokenText()
-    {
-        return tokenText;
-    }
-
-    /** Get the token type.
-     *
-     *  @return     The token type.
-     */
-
-    public PunktTokenType getTokenType()
-    {
-        return tokenType;
-    }
-
-    /** Get the starting position of the token.
-     *
-     *  @return     The starting position of the token.
-     */
-
-    public int getStartPosition()
-    {
-        return startPosition;
-    }
-
-    /** Get the ending position of the token.
-     *
-     *  @return     The ending position of the token.
-     */
-
-    public int getEndPosition()
-    {
-        return startPosition + tokenText.length();
-    }
-
-    /** Get the character code for a single character token.
-     *
-     *  @return     Unicode string for character.
-     *              Null if token is not a single character.
-     */
-
-    public String getSingleCharCode()
-    {
-        String result   = null;
-
-        if ( tokenText.length() == 1 )
-        {
-            result  =
-                "u" + Integer.toHexString( (int)tokenText.charAt( 0 ) );
-        }
-
-        return result;
-    }
-
-    /** Get the length of the token.
-     *
-     *  @return     The length of the token.
-     */
-
-    public int getLength()
-    {
-        return tokenText.length();
-    }
-
-    /** Return token as a string.
-     *
-     *  @return     The token string.
-     */
-
-    public String toString()
-    {
-        return tokenText;
-    }
+  /**
+   * Return token as a string.
+   *
+   * @return The token string.
+   */
+  public String toString() {
+    return tokenText;
+  }
 }
 
 /*
@@ -166,7 +148,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-
-

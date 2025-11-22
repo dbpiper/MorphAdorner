@@ -2,67 +2,45 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.outputter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+/** Tagged word outputter which writes to a ByteStream. */
+public class ByteStreamAdornedWordOutputter extends PrintStreamAdornedWordOutputter
+    implements AdornedWordOutputter {
+  /** Byte array output stream. */
+  protected ByteArrayOutputStream byteArrayOutputStream;
 
-/** Tagged word outputter which writes to a ByteStream.
- */
+  /** Create byte stream outputter. */
+  public ByteStreamAdornedWordOutputter() {
+    byteArrayOutputStream = new ByteArrayOutputStream(10000);
+  }
 
-public class ByteStreamAdornedWordOutputter
-    extends PrintStreamAdornedWordOutputter
-    implements AdornedWordOutputter
-{
-    /** Byte array output stream. */
+  /**
+   * Create output file.
+   *
+   * @param fileName Output file name (stored, not used).
+   * @param encoding Encoding for the output file.
+   * @param separatorCharacter Separator character for output.
+   */
+  public void createOutputFile(String fileName, String encoding, char separatorCharacter)
+      throws IOException {
+    this.fileName = fileName;
+    this.fileEncoding = encoding;
+    this.separatorCharacter = separatorCharacter;
 
-    protected ByteArrayOutputStream byteArrayOutputStream;
+    printStream = new PrintStream(byteArrayOutputStream, true, encoding);
+  }
 
-    /** Create byte stream outputter. */
+  /** Get byte array from output stream. */
+  public byte[] getBytes() {
+    return byteArrayOutputStream.toByteArray();
+  }
 
-    public ByteStreamAdornedWordOutputter()
-    {
-        byteArrayOutputStream   = new ByteArrayOutputStream( 10000 );
-    }
-
-    /** Create output file.
-     *
-     *  @param  fileName            Output file name (stored, not used).
-     *  @param  encoding            Encoding for the output file.
-     *  @param  separatorCharacter  Separator character for output.
-     */
-
-    public void createOutputFile
-    (
-        String fileName ,
-        String encoding ,
-        char separatorCharacter
-    )
-        throws IOException
-    {
-        this.fileName           = fileName;
-        this.fileEncoding       = encoding;
-        this.separatorCharacter = separatorCharacter;
-
-        printStream =
-            new PrintStream( byteArrayOutputStream , true , encoding );
-    }
-
-    /** Get byte array from output stream.
-     */
-
-    public byte[] getBytes()
-    {
-        return byteArrayOutputStream.toByteArray();
-    }
-
-    /** Close outputter.
-     */
-
-    public void close()
-    {
-    }
+  /** Close outputter. */
+  public void close() {}
 }
 
 /*
@@ -105,6 +83,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

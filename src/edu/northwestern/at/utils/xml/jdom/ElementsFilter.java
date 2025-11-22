@@ -3,169 +3,134 @@ package edu.northwestern.at.utils.xml.jdom;
 /*  Please see the license information at the end of this file. */
 
 import org.jdom2.Element;
-import org.jdom2.filter.*;
 import org.jdom2.Namespace;
+import org.jdom2.filter.*;
 
-/** A Filter that only matches one or more {@link org.jdom2.Element} objects.
- */
+/** A Filter that only matches one or more {@link org.jdom2.Element} objects. */
+public class ElementsFilter extends AbstractFilter<Element> {
+  /** JDOM2 Serialization: Default mechanism */
+  private static final long serialVersionUID = 200L;
 
-public class ElementsFilter extends AbstractFilter<Element>
-{
-    /** JDOM2 Serialization: Default mechanism  */
+  /** The element names */
+  private String[] names;
 
-    private static final long serialVersionUID = 200L;
+  /** The element namespace */
+  private Namespace namespace;
 
-    /** The element names */
+  /** Select only the Elements. */
+  public ElementsFilter() {}
 
-    private String[] names;
+  /**
+   * Select only the Elements with the supplied names in any Namespace.
+   *
+   * @param names The names of the Element.
+   */
+  public ElementsFilter(String[] names) {
+    this.names = names;
+  }
 
-    /** The element namespace */
+  /**
+   * Select only the Elements with the supplied Namespace.
+   *
+   * @param namespace The namespace the Element lives in.
+   */
+  public ElementsFilter(Namespace namespace) {
+    this.namespace = namespace;
+  }
 
-    private Namespace namespace;
+  /**
+   * Select only the Elements with the supplied names and Namespace.
+   *
+   * @param names The names of the Elements.
+   * @param namespace The namespace the Elements live in.
+   */
+  public ElementsFilter(String[] names, Namespace namespace) {
+    this.names = names;
+    this.namespace = namespace;
+  }
 
-    /** Select only the Elements.
-     */
+  /**
+   * Check to see if the object matches a predefined set of rules.
+   *
+   * @param content The object to verify.
+   * @return <code>true</code> if the objected matched a predfined set of rules.
+   */
+  @Override
+  public Element filter(Object content) {
+    if (content instanceof Element) {
+      Element el = (Element) content;
 
-    public ElementsFilter()
-    {
-    }
-
-    /** Select only the Elements with the supplied names in any Namespace.
-     *
-     * @param names   The names of the Element.
-     */
-
-    public ElementsFilter( String[] names )
-    {
-        this.names   = names;
-    }
-
-    /** Select only the Elements with the supplied Namespace.
-     *
-     * @param namespace The namespace the Element lives in.
-     */
-
-    public ElementsFilter( Namespace namespace )
-    {
-        this.namespace = namespace;
-    }
-
-    /** Select only the Elements with the supplied names and Namespace.
-     *
-     * @param names    The names of the Elements.
-     * @param namespace The namespace the Elements live in.
-     */
-
-    public ElementsFilter( String[] names , Namespace namespace )
-    {
-        this.names      = names;
-        this.namespace  = namespace;
-    }
-
-    /**
-     * Check to see if the object matches a predefined set of rules.
-     *
-     * @param content The object to verify.
-     * @return <code>true</code> if the objected matched a predfined
-     *           set of rules.
-     */
-
-    @Override
-    public Element filter( Object content )
-    {
-        if ( content instanceof Element )
-        {
-            Element el = (Element)content;
-
-            if ( names == null )
-            {
-                if ( namespace == null )
-                {
-                    return el;
-                }
-
-                return namespace.equals( el.getNamespace() ) ? el : null;
-            }
-
-            boolean found   = false;
-            String name     = el.getName();
-
-            for ( int i = 0 ; i < names.length ; i++ )
-            {
-                found   = name.equals( names[ i ] );
-                if ( found ) break;
-            }
-
-            if ( !found )
-            {
-                return null;
-            }
-
-            if ( namespace == null )
-            {
-                return el;
-            }
-
-            return namespace.equals( el.getNamespace() ) ? el : null;
+      if (names == null) {
+        if (namespace == null) {
+          return el;
         }
 
+        return namespace.equals(el.getNamespace()) ? el : null;
+      }
+
+      boolean found = false;
+      String name = el.getName();
+
+      for (int i = 0; i < names.length; i++) {
+        found = name.equals(names[i]);
+        if (found) break;
+      }
+
+      if (!found) {
         return null;
+      }
+
+      if (namespace == null) {
+        return el;
+      }
+
+      return namespace.equals(el.getNamespace()) ? el : null;
     }
 
-    /** Returns whether the two filters are equivalent (i&#46;e&#46; the
-     *  matching names and namespace are equivalent).
-     *
-     * @param   obj Object to compare against
-     * @return      true if the two filters are equal
-     */
+    return null;
+  }
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj ) return true;
-        if ( !( obj instanceof ElementsFilter ) ) return false;
+  /**
+   * Returns whether the two filters are equivalent (i&#46;e&#46; the matching names and namespace
+   * are equivalent).
+   *
+   * @param obj Object to compare against
+   * @return true if the two filters are equal
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof ElementsFilter)) return false;
 
-        final ElementsFilter filter = (ElementsFilter)obj;
+    final ElementsFilter filter = (ElementsFilter) obj;
 
-        if
-        (
-            ( names != null ) ?
-            !names.equals( filter.names ) :
-            ( filter.names != null )
-        )
-        {
-            return false;
-        }
-
-        if
-        (
-            ( namespace != null ) ?
-            !namespace.equals( filter.namespace ) :
-            ( filter.namespace != null )
-        )
-        {
-            return false;
-        }
-
-        return true;
+    if ((names != null) ? !names.equals(filter.names) : (filter.names != null)) {
+      return false;
     }
 
-    @Override
-    public int hashCode()
-    {
-        int result;
-        result = (names != null ? names.hashCode() : 0);
-        result = 29 * result + (namespace != null ? namespace.hashCode() : 0);
-        return result;
+    if ((namespace != null) ? !namespace.equals(filter.namespace) : (filter.namespace != null)) {
+      return false;
     }
 
-    @Override
-    public String toString()
-    {
-        return "[ElementFilter: Names " +
-            ( names == null ? "*any*" : names ) +
-            " with Namespace " + namespace + "]";
-    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result;
+    result = (names != null ? names.hashCode() : 0);
+    result = 29 * result + (namespace != null ? namespace.hashCode() : 0);
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "[ElementFilter: Names "
+        + (names == null ? "*any*" : names)
+        + " with Namespace "
+        + namespace
+        + "]";
+  }
 }
 
 /*
@@ -208,6 +173,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

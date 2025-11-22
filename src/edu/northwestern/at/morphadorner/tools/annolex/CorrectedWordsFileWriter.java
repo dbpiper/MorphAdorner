@@ -2,79 +2,55 @@ package edu.northwestern.at.morphadorner.tools.annolex;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.Env;
 import java.io.*;
 import java.text.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.Env;
+/** Write word correction information file. */
+public class CorrectedWordsFileWriter {
+  /**
+   * Create corrected words file writer.
+   *
+   * @param correctedWords List of corrected words to output.
+   * @param outputFileName Output file name.
+   * @param append True to append to existing contents.
+   */
+  public CorrectedWordsFileWriter(
+      List<CorrectedWord> correctedWords, String outputFileName, boolean append)
+      throws java.io.IOException {
+    //  Write corrections.
 
-/** Write word correction information file.
-*/
+    writeCorrectedWords(correctedWords, outputFileName, append);
+  }
 
-public class CorrectedWordsFileWriter
-{
-    /** Create corrected words file writer.
-     *
-     *  @param  correctedWords  List of corrected words to output.
-     *  @param  outputFileName  Output file name.
-     *  @param  append          True to append to existing contents.
-     */
+  /**
+   * Writes corrected words to file.
+   *
+   * @param correctedWords List of corrected words to output.
+   * @param outputFileName The output file name.
+   * @param append True to append to existing contents.
+   */
+  protected void writeCorrectedWords(
+      List<CorrectedWord> correctedWords, String outputFileName, boolean append)
+      throws java.io.IOException {
+    FileOutputStream outputStream = new FileOutputStream(new File(outputFileName), append);
 
-    public CorrectedWordsFileWriter
-    (
-        List<CorrectedWord> correctedWords ,
-        String outputFileName ,
-        boolean append
-    )
-        throws java.io.IOException
-    {
-                                //  Write corrections.
+    BufferedOutputStream bufferedStream = new BufferedOutputStream(outputStream);
 
-        writeCorrectedWords( correctedWords , outputFileName , append );
+    OutputStreamWriter outputWriter = new OutputStreamWriter(bufferedStream, "utf-8");
+
+    if (correctedWords != null) {
+      for (int i = 0; i < correctedWords.size(); i++) {
+        CorrectedWord correctedWord = correctedWords.get(i);
+
+        outputWriter.write(correctedWord.toString());
+        outputWriter.write(Env.LINE_SEPARATOR);
+      }
     }
 
-    /** Writes corrected words to file.
-     *
-     *  @param  correctedWords  List of corrected words to output.
-     *  @param  outputFileName  The output file name.
-     *  @param  append          True to append to existing contents.
-     */
-
-    protected void writeCorrectedWords
-    (
-        List<CorrectedWord> correctedWords ,
-        String outputFileName ,
-        boolean append
-    )
-        throws java.io.IOException
-    {
-        FileOutputStream outputStream           =
-            new FileOutputStream( new File( outputFileName ) , append );
-
-        BufferedOutputStream bufferedStream =
-            new BufferedOutputStream( outputStream );
-
-        OutputStreamWriter outputWriter =
-            new OutputStreamWriter
-            (
-                bufferedStream ,
-                "utf-8"
-            );
-
-        if ( correctedWords != null )
-        {
-            for ( int i = 0 ; i < correctedWords.size() ; i++ )
-            {
-                CorrectedWord correctedWord =
-                    correctedWords.get( i );
-
-                outputWriter.write( correctedWord.toString() );
-                outputWriter.write( Env.LINE_SEPARATOR );
-            }
-        }
-
-        outputWriter.close();
-    }
+    outputWriter.close();
+  }
 }
 
 /*
@@ -117,6 +93,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

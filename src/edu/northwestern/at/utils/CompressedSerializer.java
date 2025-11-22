@@ -5,103 +5,84 @@ package edu.northwestern.at.utils;
 import java.io.*;
 import java.util.zip.*;
 
-/** Serialize and unserialize objects with GZIP compression.
- */
+/** Serialize and unserialize objects with GZIP compression. */
+public class CompressedSerializer implements Serializer {
+  /** Create a compressed serializer. */
+  public CompressedSerializer() {}
 
-public class CompressedSerializer implements Serializer
-{
-    /** Create a compressed serializer.
-     */
+  /**
+   * Serialize an object to a compressed array of bytes.
+   *
+   * @param object The object to serialize.
+   * @return Serialized object as a compressed array of bytes.
+   */
+  public byte[] serializeToBytes(Object object) throws IOException {
+    //  Get byte array output stream.
 
-    public CompressedSerializer()
-    {
-    }
+    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 
-    /** Serialize an object to a compressed array of bytes.
-     *
-     *  @param  object  The object to serialize.
-     *
-     *  @return             Serialized object as a compressed array of bytes.
-     */
+    //  Get GZIP output stream over
+    //  byte stream.   This will compress
+    //  the byte stream written below.
 
-    public byte[] serializeToBytes( Object object )
-        throws IOException
-    {
-                                //  Get byte array output stream.
+    GZIPOutputStream gzipStream = new GZIPOutputStream(byteStream);
 
-        ByteArrayOutputStream byteStream    = new ByteArrayOutputStream();
+    //  Create object output stream over
+    //  byte output stream.
 
-                                //  Get GZIP output stream over
-                                //  byte stream.   This will compress
-                                //  the byte stream written below.
+    ObjectOutputStream objectStream = new ObjectOutputStream(gzipStream);
 
-        GZIPOutputStream gzipStream =
-            new GZIPOutputStream( byteStream );
+    //  Write object to output stream, which
+    //  serializes the object.
 
-                                //  Create object output stream over
-                                //  byte output stream.
+    objectStream.writeObject(object);
 
-        ObjectOutputStream objectStream =
-            new ObjectOutputStream( gzipStream );
+    //  Close object stream.
+    objectStream.close();
+    //  Return serialized object as array
+    //  of bytes.
 
-                                //  Write object to output stream, which
-                                //  serializes the object.
+    return byteStream.toByteArray();
+  }
 
-        objectStream.writeObject( object );
+  /**
+   * Deserialize an object from a compressed array of bytes.
+   *
+   * @param serializedObject Array of bytes containing a compressed serialized object.
+   * @return The deserialized object.
+   * @throws IOException
+   * @throws ClassNotFoundException
+   */
+  public Object deserializeFromBytes(byte[] serializedObject)
+      throws IOException, ClassNotFoundException {
+    //  Open byte input stream over
+    //  serialized object bytes.
 
-                                //  Close object stream.
-        objectStream.close();
-                                //  Return serialized object as array
-                                //  of bytes.
+    ByteArrayInputStream byteStream = new ByteArrayInputStream(serializedObject);
 
-        return byteStream.toByteArray();
-    }
+    //  Get GZIP input stream over
+    //  byte stream.   This will decompress
+    //  the byte stream read below.
 
-    /** Deserialize an object from a compressed array of bytes.
-     *
-     *  @param  serializedObject    Array of bytes containing a
-     *              compressed serialized object.
-     *
-     *  @return     The deserialized object.
-     *
-     *  @throws IOException
-     *  @throws ClassNotFoundException
-     */
+    GZIPInputStream gzipStream = new GZIPInputStream(byteStream);
 
-    public Object deserializeFromBytes( byte[] serializedObject )
-        throws IOException, ClassNotFoundException
-    {
-                                //  Open byte input stream over
-                                //  serialized object bytes.
+    //  Open object stream over
+    //  byte input stream.
 
-        ByteArrayInputStream byteStream =
-            new ByteArrayInputStream( serializedObject );
+    ObjectInputStream objectStream = new ObjectInputStream(gzipStream);
 
-                                //  Get GZIP input stream over
-                                //  byte stream.   This will decompress
-                                //  the byte stream read below.
+    //  Read object, which deserializes the
+    //  object.
 
-        GZIPInputStream gzipStream  =
-            new GZIPInputStream( byteStream );
+    Object result = objectStream.readObject();
 
-                                //  Open object stream over
-                                //  byte input stream.
+    //  Close object stream.
 
-        ObjectInputStream objectStream  =
-            new ObjectInputStream( gzipStream );
+    objectStream.close();
 
-                                //  Read object, which deserializes the
-                                //  object.
-
-        Object result   = objectStream.readObject();
-
-                                //  Close object stream.
-
-        objectStream.close();
-
-                                //  Return deserialized object.
-        return result;
-    }
+    //  Return deserialized object.
+    return result;
+  }
 }
 
 /*
@@ -144,6 +125,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

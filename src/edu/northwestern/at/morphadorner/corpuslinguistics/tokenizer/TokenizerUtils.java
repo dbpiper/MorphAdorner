@@ -2,75 +2,50 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.abbreviations.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
-import edu.northwestern.at.morphadorner.corpuslinguistics.abbreviations.*;
-import edu.northwestern.at.utils.*;
+/** Tokenizer utilities. */
+public class TokenizerUtils {
+  protected static Abbreviations abbreviations = new Abbreviations();
 
-/** Tokenizer utilities.
- */
+  /**
+   * Get token type.
+   *
+   * @param token The token.
+   * @return Token type (plain, abbreviation, punctuation, etc.)
+   */
+  public static String getTokenType(String token) {
+    String result = "token";
 
-public class TokenizerUtils
-{
-    protected static Abbreviations abbreviations    = new Abbreviations();
-
-    /** Get token type.
-     *
-     *  @param  token   The token.
-     *
-     *  @return         Token type (plain, abbreviation, punctuation, etc.)
-     */
-
-    public static String getTokenType( String token )
-    {
-        String result   = "token";
-
-        if ( CharUtils.isPunctuation( token ) )
-        {
-            result  = "punctuation";
-        }
-        else if ( CharUtils.isNumber( token ) )
-        {
-            result  = "number";
-        }
-        else if ( CharUtils.isUSCurrency( token ) )
-        {
-            result  = "US currency";
-        }
-        else if ( CharUtils.isUSCurrencyCents( token ) )
-        {
-            result  = "US currency";
-        }
-        else if ( CharUtils.isCurrency( token ) )
-        {
-            result  = "currency";
-        }
-        else if ( abbreviations.isAbbreviation( token ) )
-        {
-            result  = "abbreviation";
-        }
-        else if ( CharUtils.isSymbol( token ) )
-        {
-            result  = "symbol";
-        }
-        else if ( RomanNumeralUtils.isRomanNumeral( token ) )
-        {
-            if ( !token.equals( "I" ) )
-            {
-                result  = "Roman numeral";
-            }
-        }
-
-        return result;
+    if (CharUtils.isPunctuation(token)) {
+      result = "punctuation";
+    } else if (CharUtils.isNumber(token)) {
+      result = "number";
+    } else if (CharUtils.isUSCurrency(token)) {
+      result = "US currency";
+    } else if (CharUtils.isUSCurrencyCents(token)) {
+      result = "US currency";
+    } else if (CharUtils.isCurrency(token)) {
+      result = "currency";
+    } else if (abbreviations.isAbbreviation(token)) {
+      result = "abbreviation";
+    } else if (CharUtils.isSymbol(token)) {
+      result = "symbol";
+    } else if (RomanNumeralUtils.isRomanNumeral(token)) {
+      if (!token.equals("I")) {
+        result = "Roman numeral";
+      }
     }
 
-    /** Don't allow instantiation, do allow overrides. */
+    return result;
+  }
 
-    protected TokenizerUtils()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected TokenizerUtils() {}
 }
 
 /*
@@ -113,6 +88,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

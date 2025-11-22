@@ -5,12 +5,8 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector;
 import edu.northwestern.at.morphadorner.corpuslinguistics.inflector.conjugator.Conjugator;
 import edu.northwestern.at.morphadorner.corpuslinguistics.inflector.pluralizer.Pluralizer;
 
-/** Defines an interface for inflecting a word.
- */
-
-public interface Inflector extends Conjugator , Pluralizer
-{
-}
+/** Defines an interface for inflecting a word. */
+public interface Inflector extends Conjugator, Pluralizer {}
 
 /*
 Copyright (c) 2008, 2013 by Northwestern University.
@@ -52,6 +48,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

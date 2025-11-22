@@ -3,16 +3,12 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 /*  Please see the license information at the end of this file. */
 
 /** Interface for tokenizer which can split tokens around a period. */
+public interface CanSplitAroundPeriods {
+  /** Get splitting around periods. */
+  public boolean getSplitAroundPeriods();
 
-public interface CanSplitAroundPeriods
-{
-    /** Get splitting around periods. */
-
-    public boolean getSplitAroundPeriods();
-
-    /** Set splitting around periods. */
-
-    public void setSplitAroundPeriods( boolean splitAroundPeriods );
+  /** Set splitting around periods. */
+  public void setSplitAroundPeriods(boolean splitAroundPeriods);
 }
 
 /*
@@ -55,6 +51,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

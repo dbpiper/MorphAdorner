@@ -2,152 +2,121 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.iretagger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
+import java.util.*;
 
-/** "I" retagger.
+/**
+ * "I" retagger.
  *
- *  <p>
- *  This retagger applies a short list of rules to improve tagging
- *  of "I" spellings.
- *  </p>
+ * <p>This retagger applies a short list of rules to improve tagging of "I" spellings.
  */
+public class IRetagger extends UnigramTagger implements PartOfSpeechRetagger {
+  /** Part of speech tags. */
+  protected static PartOfSpeechTags posTags;
 
-public class IRetagger
-    extends UnigramTagger
-    implements PartOfSpeechRetagger
-{
-    /** Part of speech tags. */
+  /** Retagger allowed to add or delete words? */
+  protected boolean canAddOrDeleteWords = true;
 
-    protected static PartOfSpeechTags posTags;
+  /** Create "I" retagger. */
+  public IRetagger() {
+    super();
+  }
 
-    /** Retagger allowed to add or delete words? */
+  /**
+   * Retag a sentence.
+   *
+   * @param sentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
+   * @return The sentence with words retagged.
+   */
+  @SuppressWarnings("unchecked")
+  public <T extends AdornedWord> List<T> retagSentence(List<T> sentence) {
+    //  Get part of speech tags
+    //  if we don't already have them.
 
-    protected boolean canAddOrDeleteWords   = true;
-
-    /** Create "I" retagger.
-     */
-
-    public IRetagger()
-    {
-        super();
+    if (posTags == null) {
+      posTags = getLexicon().getPartOfSpeechTags();
     }
+    //  Find all "I." spellings in the sentence.
+    //  Split off the trailing period into a
+    //  new adorned word for those
+    //  marked as pronouns.
 
-    /** Retag a sentence.
-     *
-     *  @param  sentence    The sentence as an
-     *                      {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
-     *
-     *  @return             The sentence with words retagged.
-     */
+    int i = 0;
+    String prevPosTag = "";
 
-    @SuppressWarnings("unchecked")
-    public<T extends AdornedWord> List<T> retagSentence
-    (
-        List<T> sentence
-    )
-    {
-                                //  Get part of speech tags
-                                //  if we don't already have them.
+    while (i < sentence.size()) {
+      //  Get next word in sentence.
 
-        if ( posTags == null )
-        {
-            posTags = getLexicon().getPartOfSpeechTags();
+      T adornedWord = sentence.get(i);
+
+      //  Get parts of speech for previous
+      //  adorned word.
+
+      if (i > 0) {
+        prevPosTag = sentence.get(i - 1).getPartsOfSpeech();
+      }
+      //  Is spelling "I."?
+
+      if (adornedWord.getSpelling().equals("I.")) {
+        String partsOfSpeech = adornedWord.getPartsOfSpeech();
+
+        //  Is this "I." a pronoun?
+        //  If so, change its spelling to
+        //  "I", and add a new period token
+        //  right after.
+
+        if (canAddOrDeleteWords) {
+          if (posTags.isPronounTag(partsOfSpeech)) {
+            adornedWord.setToken("I");
+            adornedWord.setSpelling("I");
+            adornedWord.setStandardSpelling("I");
+
+            AdornedWord period = new BaseAdornedWord(".", ".");
+
+            sentence.set(i, adornedWord);
+            sentence.add(i + 1, (T) period);
+          }
+        } else if (posTags.isNounTag(prevPosTag) && posTags.isInterjectionTag(partsOfSpeech)) {
+          adornedWord.setPartsOfSpeech("crd");
         }
-                                //  Find all "I." spellings in the sentence.
-                                //  Split off the trailing period into a
-                                //  new adorned word for those
-                                //  marked as pronouns.
+      }
 
-        int i               = 0;
-        String prevPosTag   = "";
-
-        while ( i < sentence.size() )
-        {
-                                //  Get next word in sentence.
-
-            T adornedWord   = sentence.get( i );
-
-                                //  Get parts of speech for previous
-                                //  adorned word.
-
-            if ( i > 0 )
-            {
-                prevPosTag  = sentence.get( i - 1 ).getPartsOfSpeech();
-            }
-                                //  Is spelling "I."?
-
-            if ( adornedWord.getSpelling().equals( "I." ) )
-            {
-                String partsOfSpeech    = adornedWord.getPartsOfSpeech();
-
-                                //  Is this "I." a pronoun?
-                                //  If so, change its spelling to
-                                //  "I", and add a new period token
-                                //  right after.
-
-                if ( canAddOrDeleteWords )
-                {
-                    if ( posTags.isPronounTag( partsOfSpeech ) )
-                    {
-                        adornedWord.setToken( "I" );
-                        adornedWord.setSpelling( "I" );
-                        adornedWord.setStandardSpelling( "I" );
-
-                        AdornedWord period  = new BaseAdornedWord( "." , "." );
-
-                        sentence.set( i , adornedWord );
-                        sentence.add( i + 1 , (T)period );
-                    }
-                }
-                else if (   posTags.isNounTag( prevPosTag ) &&
-                            posTags.isInterjectionTag( partsOfSpeech )
-                        )
-                {
-                    adornedWord.setPartsOfSpeech( "crd" );
-                }
-            }
-
-            i++;
-        }
-                                //  Return updated sentence.
-        return sentence;
+      i++;
     }
+    //  Return updated sentence.
+    return sentence;
+  }
 
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @return     true if retagger can add or delete words.
-     */
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @return true if retagger can add or delete words.
+   */
+  public boolean getCanAddOrDeleteWords() {
+    return canAddOrDeleteWords;
+  }
 
-    public boolean getCanAddOrDeleteWords()
-    {
-        return canAddOrDeleteWords;
-    }
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @param canAddOrDeleteWords true if retagger can add or delete words.
+   */
+  public void setCanAddOrDeleteWords(boolean canAddOrDeleteWords) {
+    this.canAddOrDeleteWords = canAddOrDeleteWords;
+  }
 
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @param  canAddOrDeleteWords     true if retagger can add or
-     *                                  delete words.
-     */
-
-    public void setCanAddOrDeleteWords( boolean canAddOrDeleteWords )
-    {
-        this.canAddOrDeleteWords    = canAddOrDeleteWords;
-    }
-
-    /** Return retagger description.
-     *
-     *  @return     Retagger description.
-     */
-
-    public String toString()
-    {
-        return "I retagger";
-    }
+  /**
+   * Return retagger description.
+   *
+   * @return Retagger description.
+   */
+  public String toString() {
+    return "I retagger";
+  }
 }
 
 /*
@@ -190,6 +159,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

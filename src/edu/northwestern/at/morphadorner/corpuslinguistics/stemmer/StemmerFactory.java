@@ -5,114 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.stemmer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** Stemmer factory.
- */
+/** Stemmer factory. */
+public class StemmerFactory {
+  /**
+   * Get a stemmer.
+   *
+   * @return The stemmer.
+   */
+  public static Stemmer newStemmer() {
+    String className = System.getProperty("stemmer.class");
 
-public class StemmerFactory
-{
-    /** Get a stemmer.
-     *
-     *  @return     The stemmer.
-     */
-
-    public static Stemmer newStemmer()
-    {
-        String className    =
-            System.getProperty( "stemmer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultStemmer";
-        }
-
-        return newStemmer( className );
+    if (className == null) {
+      className = "DefaultStemmer";
     }
 
-    /** Get a stemmer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The stemmer.
-     */
+    return newStemmer(className);
+  }
 
-    public static Stemmer newStemmer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a stemmer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The stemmer.
+   */
+  public static Stemmer newStemmer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "stemmer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultStemmer";
-        }
-
-        return newStemmer( className );
+    if (properties != null) {
+      className = properties.getProperty("stemmer.class");
     }
 
-    /** Get a stemmer of a specified class name.
-     *
-     *  @param  className   Class name for the stemmer.
-     *
-     *  @return             The stemmer.
-     */
-
-    public static Stemmer newStemmer( String className )
-    {
-        Stemmer stemmer = null;
-
-        try
-        {
-            stemmer =
-                (Stemmer)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    StemmerFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                stemmer =
-                    (Stemmer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create stemmer of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    stemmer = new DefaultStemmer();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null stemmer.
-/*
-                    System.err.println(
-                        "Unable to create stemmer, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return stemmer;
+    if (className == null) {
+      className = "DefaultStemmer";
     }
+
+    return newStemmer(className);
+  }
+
+  /**
+   * Get a stemmer of a specified class name.
+   *
+   * @param className Class name for the stemmer.
+   * @return The stemmer.
+   */
+  public static Stemmer newStemmer(String className) {
+    Stemmer stemmer = null;
+
+    try {
+      stemmer = (Stemmer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(StemmerFactory.class.getName()) + "." + className;
+
+      try {
+        stemmer = (Stemmer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create stemmer of class " + fixedClassName + ", using default.");
+
+        try {
+          stemmer = new DefaultStemmer();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null stemmer.
+          /*
+                              System.err.println(
+                                  "Unable to create stemmer, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return stemmer;
+  }
 }
 
 /*
@@ -155,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

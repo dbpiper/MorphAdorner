@@ -5,114 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.thesaurus;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** Thesaurus factory.
- */
+/** Thesaurus factory. */
+public class ThesaurusFactory {
+  /**
+   * Get a thesaurus.
+   *
+   * @return The thesaurus.
+   */
+  public static Thesaurus newThesaurus() {
+    String className = System.getProperty("thesaurus.class");
 
-public class ThesaurusFactory
-{
-    /** Get a thesaurus.
-     *
-     *  @return     The thesaurus.
-     */
-
-    public static Thesaurus newThesaurus()
-    {
-        String className    =
-            System.getProperty( "thesaurus.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultThesaurus";
-        }
-
-        return newThesaurus( className );
+    if (className == null) {
+      className = "DefaultThesaurus";
     }
 
-    /** Get a thesaurus.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The thesaurus.
-     */
+    return newThesaurus(className);
+  }
 
-    public static Thesaurus newThesaurus
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a thesaurus.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The thesaurus.
+   */
+  public static Thesaurus newThesaurus(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "thesaurus.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultThesaurus";
-        }
-
-        return newThesaurus( className );
+    if (properties != null) {
+      className = properties.getProperty("thesaurus.class");
     }
 
-    /** Get a thesaurus of a specified class name.
-     *
-     *  @param  className   Class name for the thesaurus.
-     *
-     *  @return             The thesaurus.
-     */
-
-    public static Thesaurus newThesaurus( String className )
-    {
-        Thesaurus thesaurus = null;
-
-        try
-        {
-            thesaurus   =
-                (Thesaurus)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    ThesaurusFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                thesaurus   =
-                    (Thesaurus)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create thesaurus of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    thesaurus   = new DefaultThesaurus();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null thesaurus.
-/*
-                    System.err.println(
-                        "Unable to create thesaurus, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return thesaurus;
+    if (className == null) {
+      className = "DefaultThesaurus";
     }
+
+    return newThesaurus(className);
+  }
+
+  /**
+   * Get a thesaurus of a specified class name.
+   *
+   * @param className Class name for the thesaurus.
+   * @return The thesaurus.
+   */
+  public static Thesaurus newThesaurus(String className) {
+    Thesaurus thesaurus = null;
+
+    try {
+      thesaurus = (Thesaurus) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(ThesaurusFactory.class.getName()) + "." + className;
+
+      try {
+        thesaurus = (Thesaurus) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create thesaurus of class " + fixedClassName + ", using default.");
+
+        try {
+          thesaurus = new DefaultThesaurus();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null thesaurus.
+          /*
+                              System.err.println(
+                                  "Unable to create thesaurus, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return thesaurus;
+  }
 }
 
 /*
@@ -155,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

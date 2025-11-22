@@ -2,65 +2,51 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.adornedword;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.SetFactory;
 import java.util.*;
 
-import edu.northwestern.at.utils.SetFactory;
+/** An Adorned word stop word filter. */
+public class AdornedWordStopWordFilter implements AdornedWordFilter {
+  /** Stop words. */
+  protected Set<String> stopWordsSet = SetFactory.createNewSet();
 
-/** An Adorned word stop word filter.
- */
+  /** Create the stop word filter. */
+  public AdornedWordStopWordFilter() {}
 
-public class AdornedWordStopWordFilter implements AdornedWordFilter
-{
-    /** Stop words. */
+  /**
+   * Add word to stop word list.
+   *
+   * @param stopWord Stop word to add.
+   */
+  public void addStopWord(String stopWord) {
+    stopWordsSet.add(stopWord);
+  }
 
-    protected Set<String> stopWordsSet  =
-        SetFactory.createNewSet();
+  /**
+   * Add words to stop word list.
+   *
+   * @param stopWords Collection of stop words to add.
+   */
+  public void addStopWords(Collection<String> stopWords) {
+    stopWordsSet.addAll(stopWords);
+  }
 
-    /** Create the stop word filter.
-     */
+  /**
+   * Tests if a specified adorned word should be included.
+   *
+   * @param adornedWord The adorned word to check.
+   * @return true to accept the adorned word.
+   */
+  public boolean accept(AdornedWord adornedWord) {
+    //  Get spelling in lowercase.
 
-    public AdornedWordStopWordFilter()
-    {
-    }
+    String spelling = adornedWord.getSpelling().toLowerCase();
 
-    /** Add word to stop word list.
-     *
-     *  @param  stopWord    Stop word to add.
-     */
+    //  Accept the spelling only if it does
+    //  not appear in the list of stop words.
 
-    public void addStopWord( String stopWord )
-    {
-        stopWordsSet.add( stopWord );
-    }
-
-    /** Add words to stop word list.
-     *
-     *  @param  stopWords   Collection of stop words to add.
-     */
-
-    public void addStopWords( Collection<String> stopWords )
-    {
-        stopWordsSet.addAll( stopWords );
-    }
-
-    /** Tests if a specified adorned word should be included.
-     *
-     *  @param  adornedWord     The adorned word to check.
-     *
-     *  @return                 true to accept the adorned word.
-     */
-
-    public boolean accept( AdornedWord adornedWord )
-    {
-                                //  Get spelling in lowercase.
-
-        String spelling = adornedWord.getSpelling().toLowerCase();
-
-                                //  Accept the spelling only if it does
-                                //  not appear in the list of stop words.
-
-        return !stopWordsSet.contains( spelling );
-    }
+    return !stopWordsSet.contains(spelling);
+  }
 }
 
 /*
@@ -103,6 +89,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

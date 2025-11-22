@@ -4,36 +4,28 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector.pluralizer;
 
 import edu.northwestern.at.morphadorner.corpuslinguistics.inflector.*;
 
-/** Noop pluralizer which returns a noun or pronoun unpluralized.
- */
+/** Noop pluralizer which returns a noun or pronoun unpluralized. */
+public class NoopPluralizer implements Pluralizer {
+  /**
+   * Pluralize a noun or pronoun.
+   *
+   * @param nounOrPronoun The singular form of the noun or pronoun.
+   * @return The plural form of the noun or pronoun.
+   */
+  public String pluralize(String nounOrPronoun) {
+    return nounOrPronoun;
+  }
 
-public class NoopPluralizer implements Pluralizer
-{
-    /** Pluralize a noun or pronoun.
-     *
-     *  @param  nounOrPronoun   The singular form of the noun or pronoun.
-     *
-     *  @return                 The plural form of the noun or pronoun.
-     */
-
-    public String pluralize( String nounOrPronoun )
-    {
-        return nounOrPronoun;
-    }
-
-    /** Pluralize a noun or pronoun.
-     *
-     *  @param  nounOrPronoun   The singular form of the noun or pronoun.
-     *  @param  number          The number for the noun or pronoun.
-     *
-     *  @return         The form of the noun or pronoun for the specified
-     *                  number.
-     */
-
-    public String pluralize( String nounOrPronoun , int number )
-    {
-        return nounOrPronoun;
-    }
+  /**
+   * Pluralize a noun or pronoun.
+   *
+   * @param nounOrPronoun The singular form of the noun or pronoun.
+   * @param number The number for the noun or pronoun.
+   * @return The form of the noun or pronoun for the specified number.
+   */
+  public String pluralize(String nounOrPronoun, int number) {
+    return nounOrPronoun;
+  }
 }
 
 /*
@@ -76,6 +68,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

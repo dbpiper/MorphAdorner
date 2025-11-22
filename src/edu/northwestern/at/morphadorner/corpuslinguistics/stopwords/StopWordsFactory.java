@@ -5,114 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.stopwords;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** StopWords factory.
- */
+/** StopWords factory. */
+public class StopWordsFactory {
+  /**
+   * Get stopwords.
+   *
+   * @return The stopwords.
+   */
+  public static StopWords newStopWords() {
+    String className = System.getProperty("stopwords.class");
 
-public class StopWordsFactory
-{
-    /** Get stopwords.
-     *
-     *  @return     The stopwords.
-     */
-
-    public static StopWords newStopWords()
-    {
-        String className    =
-            System.getProperty( "stopwords.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultStopWords";
-        }
-
-        return newStopWords( className );
+    if (className == null) {
+      className = "DefaultStopWords";
     }
 
-    /** Get stopwords.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The stopwords.
-     */
+    return newStopWords(className);
+  }
 
-    public static StopWords newStopWords
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get stopwords.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The stopwords.
+   */
+  public static StopWords newStopWords(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "stopwords.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultStopWords";
-        }
-
-        return newStopWords( className );
+    if (properties != null) {
+      className = properties.getProperty("stopwords.class");
     }
 
-    /** Get a stopwords of a specified class name.
-     *
-     *  @param  className   Class name for the stopwords.
-     *
-     *  @return             The stopwords.
-     */
-
-    public static StopWords newStopWords( String className )
-    {
-        StopWords stopwords = null;
-
-        try
-        {
-            stopwords   =
-                (StopWords)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    StopWordsFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                stopwords   =
-                    (StopWords)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create stopwords of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    stopwords   = new DefaultStopWords();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null stopwords.
-/*
-                    System.err.println(
-                        "Unable to create stopwords, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return stopwords;
+    if (className == null) {
+      className = "DefaultStopWords";
     }
+
+    return newStopWords(className);
+  }
+
+  /**
+   * Get a stopwords of a specified class name.
+   *
+   * @param className Class name for the stopwords.
+   * @return The stopwords.
+   */
+  public static StopWords newStopWords(String className) {
+    StopWords stopwords = null;
+
+    try {
+      stopwords = (StopWords) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(StopWordsFactory.class.getName()) + "." + className;
+
+      try {
+        stopwords = (StopWords) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create stopwords of class " + fixedClassName + ", using default.");
+
+        try {
+          stopwords = new DefaultStopWords();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null stopwords.
+          /*
+                              System.err.println(
+                                  "Unable to create stopwords, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return stopwords;
+  }
 }
 
 /*
@@ -155,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

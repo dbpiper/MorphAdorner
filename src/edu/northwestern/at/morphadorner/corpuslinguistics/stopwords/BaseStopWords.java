@@ -2,81 +2,63 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.stopwords;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.utils.ListFactory;
 import edu.northwestern.at.utils.SetFactory;
+import java.util.*;
 
-/** Base stop word list.
+/**
+ * Base stop word list.
  *
- *  <p>
- *  Creates a stop word list.
- *  </p>
+ * <p>Creates a stop word list.
  */
+public class BaseStopWords implements StopWords {
+  /** Save stop words as a set. */
+  protected Set<String> stopWordsSet = SetFactory.createNewSet();
 
-public class BaseStopWords implements StopWords
-{
-    /** Save stop words as a set. */
+  /** Create empty stop word list. */
+  public BaseStopWords() {}
 
-    protected Set<String> stopWordsSet  =
-        SetFactory.createNewSet();
+  /** Create stop word list from a collection. */
+  public BaseStopWords(Collection<String> stopWords) {
+    addStopWords(stopWords);
+  }
 
-    /** Create empty stop word list.
-     */
+  /**
+   * Add word to stop word list.
+   *
+   * @param stopWord Stop word to add.
+   */
+  public void addStopWord(String stopWord) {
+    stopWordsSet.add(stopWord);
+  }
 
-    public BaseStopWords()
-    {
-    }
+  /**
+   * Add words to stop word list.
+   *
+   * @param stopWords Collection of stop words to add.
+   */
+  public void addStopWords(Collection<String> stopWords) {
+    stopWordsSet.addAll(stopWords);
+  }
 
-    /** Create stop word list from a collection.
-     */
+  /**
+   * Tests if a specified word is a stop word.
+   *
+   * @param stopWord The word to check.
+   * @return true if word is a stop word.
+   */
+  public boolean isStopWord(String stopWord) {
+    return stopWordsSet.contains(stopWord);
+  }
 
-    public BaseStopWords( Collection<String> stopWords )
-    {
-        addStopWords( stopWords );
-    }
-
-    /** Add word to stop word list.
-     *
-     *  @param  stopWord    Stop word to add.
-     */
-
-    public void addStopWord( String stopWord )
-    {
-        stopWordsSet.add( stopWord );
-    }
-
-    /** Add words to stop word list.
-     *
-     *  @param  stopWords   Collection of stop words to add.
-     */
-
-    public void addStopWords( Collection<String> stopWords )
-    {
-        stopWordsSet.addAll( stopWords );
-    }
-
-    /** Tests if a specified word is a stop word.
-     *
-     *  @param  stopWord    The word to check.
-     *
-     *  @return             true if word is a stop word.
-     */
-
-    public boolean isStopWord( String stopWord )
-    {
-        return stopWordsSet.contains( stopWord );
-    }
-
-    /** Return stop words as a List.
-     *
-     *  @return     String list of stop words.
-     */
-
-    public List<String> getStopWords()
-    {
-        return ListFactory.createNewList( new TreeSet<String>( stopWordsSet ) );
-    }
+  /**
+   * Return stop words as a List.
+   *
+   * @return String list of stop words.
+   */
+  public List<String> getStopWords() {
+    return ListFactory.createNewList(new TreeSet<String>(stopWordsSet));
+  }
 }
 
 /*
@@ -119,6 +101,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

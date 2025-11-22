@@ -2,445 +2,321 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.util.*;
-import java.text.*;
-
 import edu.northwestern.at.utils.net.mime.*;
+import java.io.*;
+import java.text.*;
+import java.util.*;
 
-/** File name utilities.
+/**
+ * File name utilities.
  *
- *  <p>
- *  This static class provides various utility methods for manipulating
- *  file and directory names.
- *  </p>
+ * <p>This static class provides various utility methods for manipulating file and directory names.
  */
+public class FileNameUtils {
+  /** Static mime type mapper. */
+  public static MimeTypeMapper mimeTypeMapper = new MimeTypeMapper();
 
-public class FileNameUtils
-{
-    /** Static mime type mapper. */
+  /** File separator. */
+  public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
-    public static MimeTypeMapper mimeTypeMapper = new MimeTypeMapper();
+  /**
+   * Strips path from a file name.
+   *
+   * @param fileName File name with possible path.
+   * @return File name stripped of path.
+   */
+  public static String stripPathName(String fileName) {
+    return new File(fileName).getName();
+  }
 
-    /** File separator. */
+  /**
+   * Change extension of file name.
+   *
+   * @param fileName The file name whose extension is to be changed.
+   * @param newExtension The new file name extension.
+   * @return The file name with the extension changed to new extension.
+   *     <p>Null returned if file name or new extension null.
+   */
+  public static String changeFileExtension(String fileName, String newExtension) {
+    String result = null;
 
-    public static final String FILE_SEPARATOR =
-        System.getProperty( "file.separator" );
+    if ((fileName != null) && (newExtension != null)) {
+      String extension = newExtension;
 
-    /** Strips path from a file name.
-     *
-     *  @param  fileName    File name with possible path.
-     *
-     *  @return             File name stripped of path.
-     */
+      if (extension.length() > 0) {
+        if (extension.charAt(0) != '.') {
+          extension = '.' + extension;
+        }
+      }
 
-    public static String stripPathName( String fileName )
-    {
-         return new File( fileName ).getName();
+      int periodPos = fileName.lastIndexOf('.');
+
+      if (periodPos >= 0) {
+        result = fileName.substring(0, periodPos) + extension;
+      } else {
+        result = fileName + extension;
+      }
     }
 
-    /** Change extension of file name.
-     *
-     *  @param  fileName        The file name whose extension is to be changed.
-     *  @param  newExtension    The new file name extension.
-     *
-     *  @return                 The file name with the extension
-     *                              changed to new extension.
-     *
-     *  <p>
-     *  Null returned if file name or new extension null.
-     *  </p>
-     */
+    return result;
+  }
 
-    public static String changeFileExtension
-    (
-        String fileName ,
-        String newExtension
-    )
-    {
-        String result   = null;
+  /**
+   * Get file extension from file name.
+   *
+   * @param fileName The file name whose extension is wanted.
+   * @param keepPeriod Keep the period in the extension.
+   * @return The extension, if any, with the optional leading period.
+   */
+  public static String getFileExtension(String fileName, boolean keepPeriod) {
+    // Strip path from file name.
 
-        if ( ( fileName != null ) && ( newExtension != null ) )
-        {
-            String extension    = newExtension;
+    String name = stripPathName(StringUtils.safeString(fileName));
 
-            if ( extension.length() > 0 )
-            {
-                if ( extension.charAt( 0 ) != '.' )
-                {
-                    extension   = '.' + extension;
-                }
-            }
+    // Find trailing period.
+    // This marks start of extension.
+    String extension;
 
-            int periodPos = fileName.lastIndexOf( '.' );
+    int periodPos = name.lastIndexOf('.');
 
-            if ( periodPos >= 0 )
-            {
-                result  =
-                    fileName.substring( 0 , periodPos ) + extension;
-            }
-            else
-            {
-                result  = fileName + extension;
-            }
-        }
-
-        return result;
+    if (periodPos != -1) {
+      // If period found,
+      // we have an extension.
+      // Keep or delete the leading
+      // period as requested.
+      if (keepPeriod) extension = name.substring(periodPos);
+      else extension = name.substring(periodPos + 1);
+    }
+    // No extension.
+    else {
+      extension = "";
     }
 
-    /** Get file extension from file name.
-     *
-     *  @param  fileName        The file name whose extension is wanted.
-     *  @param  keepPeriod  Keep the period in the extension.
-     *
-     *  @return             The extension, if any, with the optional
-     *                          leading period.
-     */
+    return extension;
+  }
 
-    public static String getFileExtension
-    (
-        String fileName ,
-        boolean keepPeriod
-    )
-    {
-                                // Strip path from file name.
+  /**
+   * Get MIME type for a filename.
+   *
+   * @param fileName Name of file for which mime type is desired.
+   * @return The mime type, e.g., "text/plain".
+   *     <p>When the file name's extension is not found in the mime types hash table, a mime type of
+   *     "application/octet-stream" is returned.
+   */
+  public static String getContentTypeFor(String fileName) {
+    return mimeTypeMapper.getContentTypeFor(fileName);
+  }
 
-        String name = stripPathName( StringUtils.safeString( fileName ) );
+  /**
+   * Checks if a file exists.
+   *
+   * @param fileName The file name to check for existence.
+   * @return True if file exists.
+   */
+  public static boolean fileExists(String fileName) {
+    return (new File(fileName)).exists();
+  }
 
-                                // Find trailing period.
-                                // This marks start of extension.
-        String extension;
+  /**
+   * Expand file name wildcard.
+   *
+   * @param fileSpec File spec possibly containing "*" wildcard.
+   * @return String array of expanded file names. Only file names for existing files are returned,
+   *     so result may be zero length string array.
+   */
+  public static String[] expandWildcards(String fileSpec) {
+    String[] result = new String[0];
 
-        int periodPos = name.lastIndexOf( '.' );
+    //  See if the file spec contains
+    //  any "*" wildcard characters.
 
-        if ( periodPos != -1 )
-        {
-                                // If period found,
-                                // we have an extension.
-                                // Keep or delete the leading
-                                // period as requested.
-            if( keepPeriod )
-                extension = name.substring( periodPos );
-            else
-                extension = name.substring( periodPos + 1 );
+    String fileName = fileSpec;
+
+    int wildIndex = fileName.indexOf("*");
+
+    if (wildIndex == -1) {
+      //  File spec does not contain
+      //  wild cards, so it is a plain
+      //  file name.  If the file it names exists,
+      //  return that file name.
+
+      if (new File(fileName).exists()) {
+        result = new String[] {fileName};
+      }
+    } else {
+      //  File spec contains one or more
+      //  wildcard characters.
+      //
+      //  Remove duplicate "*" wildcard characters.
+
+      fileName = StringUtils.replaceAll(fileName, "**", "*");
+
+      //  Get position of first "*".
+
+      wildIndex = fileName.indexOf("*");
+
+      //  Find last occurrence of file
+      //  separator string.  If none,
+      //  there is no directory specification.
+
+      int index = fileName.lastIndexOf(FILE_SEPARATOR);
+      String path = "";
+
+      //  Extract the directory path
+      //  from the file name if present.
+      if (index > 0) {
+        path = fileName.substring(0, index);
+      }
+      //  Otherwise use current directory path.
+      else {
+        path = FileUtils.getCurrentDirectory();
+      }
+
+      File pathDir = new File(path);
+
+      //  Check that directory path exists,
+
+      if (pathDir.exists()) {
+        final String prefix = fileName.substring(index + 1, wildIndex);
+
+        String suff = "";
+
+        if ((wildIndex + 1) < fileName.length()) {
+          suff = fileName.substring(wildIndex + 1, fileName.length());
         }
-                                // No extension.
-        else
-        {
-            extension = "";
+
+        final String suffix = suff;
+
+        String listFiles[] =
+            pathDir.list(
+                new FilenameFilter() {
+                  public boolean accept(File cwd, String name) {
+                    return (name.startsWith(prefix) && name.endsWith(suffix));
+                  }
+                  ;
+                });
+
+        for (int i = 0; i < listFiles.length; i++) {
+          listFiles[i] = path.concat(FILE_SEPARATOR + listFiles[i]);
         }
 
-        return extension;
+        if (listFiles.length > 0) {
+          Arrays.sort(listFiles);
+
+          result = listFiles;
+        }
+      }
     }
 
-    /** Get MIME type for a filename.
-     *
-     *  @param  fileName    Name of file for which mime type is desired.
-     *
-     *  @return             The mime type, e.g., "text/plain".
-     *
-     *  <p>
-     *  When the file name's extension is not found in the mime types
-     *  hash table, a mime type of "application/octet-stream" is returned.
-     *  </p>
-     */
+    return result;
+  }
 
-    public static String getContentTypeFor( String fileName )
-    {
-        return mimeTypeMapper.getContentTypeFor( fileName );
+  /**
+   * Fix file separators.
+   *
+   * @param fileName File name to fix.
+   * @return File name with file separators fixed.
+   *     <p>Escapes the file separators if they are "\" characters.
+   */
+  public static String fixFileSeparators(String fileName) {
+    String fixedFileName = "";
+
+    if (FILE_SEPARATOR.equals("\\")) {
+      fixedFileName = StringUtils.replaceAll(fileName, "\\", "<backslash>");
+
+      fixedFileName = StringUtils.replaceAll(fixedFileName, "<backslash>", "\\\\");
+    } else {
+      fixedFileName = fileName;
     }
 
-    /** Checks if a file exists.
-     *
-     *  @param  fileName    The file name to check for existence.
-     *
-     *  @return             True if file exists.
-     */
+    return fixedFileName;
+  }
 
-    public static boolean fileExists( String fileName )
-    {
-        return ( new File( fileName ) ).exists();
+  /**
+   * Expand the file name wildcards.
+   *
+   * @param wildCardNames File names with possible wildcards.
+   * @return String array of expanded file names.
+   *     <p>File names expressed as URLs are left untouched and any wildcard characters they
+   *     contains are left as-is.
+   */
+  public static String[] expandFileNameWildcards(String[] wildCardNames) {
+    List<String> fileNames = ListFactory.createNewList();
+
+    for (int i = 0; i < wildCardNames.length; i++) {
+      if (URLUtils.isURL(wildCardNames[i])) {
+        fileNames.add(wildCardNames[i]);
+      } else {
+        String[] expandedFileNames = expandWildcards(wildCardNames[i]);
+
+        fileNames.addAll(Arrays.asList(expandedFileNames));
+      }
     }
 
-    /** Expand file name wildcard.
-     *
-     *  @param  fileSpec    File spec possibly containing "*" wildcard.
-     *
-     *  @return             String array of expanded file names.
-     *                      Only file names for existing files are
-     *                      returned, so result may be zero length
-     *                      string array.
-     */
+    String[] result = (String[]) fileNames.toArray(new String[fileNames.size()]);
 
-    public static String[] expandWildcards( String fileSpec )
-    {
-        String[] result = new String[ 0 ];
+    Arrays.sort(result);
 
-                                //  See if the file spec contains
-                                //  any "*" wildcard characters.
+    return result;
+  }
 
-        String fileName = fileSpec;
+  /**
+   * Create versioned file name.
+   *
+   * @param fileName Candidate file name.
+   * @return Possibly revised file name with version number added if candidate file name already
+   *     exists.
+   */
+  public static String createVersionedFileName(String fileName) {
+    String result = fileName;
 
-        int wildIndex   = fileName.indexOf( "*" );
-
-        if ( wildIndex == -1 )
-        {
-                                //  File spec does not contain
-                                //  wild cards, so it is a plain
-                                //  file name.  If the file it names exists,
-                                //  return that file name.
-
-            if ( new File( fileName ).exists() )
-            {
-                    result  = new String[]{ fileName };
-            }
-        }
-        else
-        {
-                                //  File spec contains one or more
-                                //  wildcard characters.
-                                //
-                                //  Remove duplicate "*" wildcard characters.
-
-            fileName    = StringUtils.replaceAll( fileName , "**" , "*" );
-
-                                //  Get position of first "*".
-
-            wildIndex   = fileName.indexOf( "*" );
-
-                                //  Find last occurrence of file
-                                //  separator string.  If none,
-                                //  there is no directory specification.
-
-            int index   = fileName.lastIndexOf( FILE_SEPARATOR );
-            String path = "";
-
-                                //  Extract the directory path
-                                //  from the file name if present.
-            if ( index > 0 )
-            {
-                path    = fileName.substring( 0 , index );
-            }
-                                //  Otherwise use current directory path.
-            else
-            {
-                path    = FileUtils.getCurrentDirectory();
-            }
-
-            File pathDir    = new File( path );
-
-                                //  Check that directory path exists,
-
-            if ( pathDir.exists() )
-            {
-                final String prefix =
-                    fileName.substring( index + 1 , wildIndex );
-
-                String suff         = "";
-
-                if ( ( wildIndex + 1 ) < fileName.length() )
-                {
-                    suff    =
-                        fileName.substring(
-                            wildIndex + 1 , fileName.length() );
-                }
-
-                final String suffix = suff;
-
-                String listFiles[]  =
-                    pathDir.list
-                    (
-                        new FilenameFilter()
-                        {
-                            public boolean accept
-                            (
-                                File cwd ,
-                                String name
-                            )
-                            {
-                                return
-                                    (   name.startsWith( prefix ) &&
-                                        name.endsWith( suffix )
-                                    );
-                            };
-                        }
-                    );
-
-                for ( int i = 0 ; i < listFiles.length ; i++ )
-                {
-                    listFiles[ i ]  =
-                        path.concat( FILE_SEPARATOR + listFiles[ i ] );
-                }
-
-                if ( listFiles.length > 0 )
-                {
-                    Arrays.sort( listFiles );
-
-                    result  = listFiles;
-                }
-            }
-        }
-
-        return result;
+    if (new File(fileName).exists()) {
+      result = createVersionedFileName(fileName, 1, "%03d");
     }
 
-    /** Fix file separators.
-     *
-     *  @param  fileName    File name to fix.
-     *
-     *  @return             File name with file separators fixed.
-     *
-     *  <p>
-     *  Escapes the file separators if they are "\" characters.
-     *  </p>
-     */
+    return result;
+  }
 
-    public static String fixFileSeparators( String fileName )
-    {
-        String fixedFileName    = "";
+  /**
+   * Create versioned file name.
+   *
+   * @param fileName Candidate file name.
+   * @param versionNumber Candidate version number .
+   * @param versionFormat PrintF format for version number.
+   * @return Possibly revised file name with version number added if candidate file name already
+   *     exists. The version number is adjusted as necessary.
+   */
+  public static String createVersionedFileName(
+      String fileName, int versionNumber, String versionFormat) {
+    int n = fileName.lastIndexOf('.');
 
-        if ( FILE_SEPARATOR.equals( "\\" ) )
-        {
-            fixedFileName   =
-                StringUtils.replaceAll(
-                    fileName , "\\" , "<backslash>" );
+    StringBuilder sb = new StringBuilder();
 
-            fixedFileName   =
-                StringUtils.replaceAll(
-                    fixedFileName , "<backslash>" , "\\\\" );
-        }
-        else
-        {
-            fixedFileName   = fileName;
-        }
+    new Formatter(sb).format(versionFormat, versionNumber);
 
-        return fixedFileName;
+    String sVersionNumber = sb.toString();
+
+    String versionedFileName = fileName + "-" + sVersionNumber;
+
+    if (n >= 0) {
+      versionedFileName =
+          fileName.substring(0, n)
+              + "-"
+              + sVersionNumber
+              + fileName.substring(n, fileName.length());
     }
 
-    /** Expand the file name wildcards.
-     *
-     *  @param  wildCardNames   File names with possible wildcards.
-     *
-     *  @return                 String array of expanded file names.
-     *
-     *  <p>
-     *  File names expressed as URLs are left untouched and
-     *  any wildcard characters they contains are left as-is.
-     *  </p>
-     */
-
-    public static String[] expandFileNameWildcards
-    (
-        String[] wildCardNames
-    )
-    {
-        List<String> fileNames  = ListFactory.createNewList();
-
-        for ( int i = 0 ; i < wildCardNames.length ; i++ )
-        {
-            if ( URLUtils.isURL( wildCardNames[ i ] ) )
-            {
-                fileNames.add( wildCardNames[ i ] );
-            }
-            else
-            {
-                String[] expandedFileNames  =
-                    expandWildcards( wildCardNames[ i ] );
-
-                fileNames.addAll( Arrays.asList( expandedFileNames ) );
-            }
-        }
-
-        String[] result =
-            (String[])fileNames.toArray( new String[ fileNames.size() ] );
-
-        Arrays.sort( result );
-
-        return result;
+    if (new File(versionedFileName).exists()) {
+      versionedFileName = createVersionedFileName(fileName, ++versionNumber, versionFormat);
     }
 
-    /** Create versioned file name.
-     *
-     *  @param  fileName    Candidate file name.
-     *
-     *  @return             Possibly revised file name with
-     *                          version number added if
-     *                          candidate file name already exists.
-     */
+    return versionedFileName;
+  }
 
-    public static String createVersionedFileName( String fileName )
-    {
-        String result   = fileName;
-
-        if ( new File( fileName ).exists() )
-        {
-            result  = createVersionedFileName( fileName , 1 , "%03d" );
-        }
-
-        return result;
-    }
-
-    /** Create versioned file name.
-     *
-     *  @param  fileName            Candidate file name.
-     *  @param  versionNumber   Candidate version number .
-     *  @param  versionFormat       PrintF format for version number.
-     *
-     *  @return             Possibly revised file name with
-     *                          version number added if
-     *                          candidate file name already exists.
-     *                          The version number is adjusted
-     *                          as necessary.
-     */
-
-    public static String createVersionedFileName
-    (
-        String fileName ,
-        int versionNumber ,
-        String versionFormat
-    )
-    {
-        int n   = fileName.lastIndexOf( '.' );
-
-        StringBuilder sb        = new StringBuilder();
-
-        new Formatter( sb ).format
-        (
-            versionFormat ,
-            versionNumber
-        );
-
-        String sVersionNumber   = sb.toString();
-
-        String versionedFileName    = fileName + "-" + sVersionNumber;
-
-        if ( n >= 0 )
-        {
-            versionedFileName   =
-                fileName.substring( 0 , n ) + "-" + sVersionNumber +
-                fileName.substring( n , fileName.length() );
-        }
-
-        if ( new File( versionedFileName ).exists() )
-        {
-            versionedFileName   =
-                createVersionedFileName
-                (
-                    fileName ,
-                    ++versionNumber ,
-                    versionFormat
-                );
-        }
-
-        return versionedFileName;
-    }
-
-    /** Hide default no-args constructor. */
-
-    private FileNameUtils()
-    {
-        throw new UnsupportedOperationException();
-    }
+  /** Hide default no-args constructor. */
+  private FileNameUtils() {
+    throw new UnsupportedOperationException();
+  }
 }
 
 /*
@@ -483,5 +359,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

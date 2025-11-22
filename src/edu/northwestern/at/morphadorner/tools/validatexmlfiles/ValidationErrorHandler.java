@@ -6,114 +6,94 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-/** Error handler class for a JAXP Schema validation.
- */
+/** Error handler class for a JAXP Schema validation. */
+public class ValidationErrorHandler implements ErrorHandler {
+  /** Counts validation errors. */
+  protected int errorCount = 0;
 
-public class ValidationErrorHandler implements ErrorHandler
-{
-    /** Counts validation errors. */
+  /** Construct error handler. */
+  public ValidationErrorHandler() {}
 
-    protected int errorCount    = 0;
+  /** Reset the error count to zero. */
+  public void resetErrorCount() {
+    errorCount = 0;
+  }
 
-    /** Construct error handler.
-     */
+  /**
+   * Get the validation error count.
+   *
+   * @return The validation error count.
+   */
+  public int getErrorCount() {
+    return errorCount;
+  }
 
-    public ValidationErrorHandler()
-    {
+  /**
+   * Callback from a JAXP validation process for a warning.
+   *
+   * @param e SAX parser exception.
+   */
+  public void warning(SAXParseException e) throws SAXException {
+    printError(e);
+  }
+
+  /**
+   * Callback from a JAXP validation process for an error.
+   *
+   * @param e SAX parser exception.
+   */
+  public void error(SAXParseException e) throws SAXException {
+    printError(e);
+
+    errorCount++;
+  }
+
+  /**
+   * Callback from a JAXP validation process for a fatal error.
+   *
+   * @param e SAX parser exception.
+   */
+  public void fatalError(SAXParseException e) throws SAXException {
+    printError(e);
+
+    errorCount++;
+
+    throw e;
+  }
+
+  /**
+   * Print error.
+   *
+   * @param e SAX parser exception.
+   */
+  protected void printError(SAXParseException e) {
+    //  Get line and column of error.
+
+    int lineNumber = e.getLineNumber();
+    int columnNumber = e.getColumnNumber();
+
+    //  Print line number if given.
+
+    if (lineNumber >= 0) {
+      System.out.print("  Line " + lineNumber);
+    }
+    //  Print column number if given.
+
+    if (columnNumber >= 0) {
+      if (lineNumber >= 0) {
+        System.out.print(", ");
+      }
+
+      System.out.print("Column " + columnNumber);
     }
 
-    /** Reset the error count to zero.
-     */
-
-    public void resetErrorCount()
-    {
-        errorCount  = 0;
+    if ((lineNumber >= 0) || (columnNumber >= 0)) {
+      System.out.print(": ");
     }
+    //  Print error message.
 
-    /** Get the validation error count.
-     *
-     *  @return     The validation error count.
-     */
-
-    public int getErrorCount()
-    {
-        return errorCount;
-    }
-
-    /** Callback from a JAXP validation process for a warning.
-     *
-     *  @param  e   SAX parser exception.
-     */
-
-    public void warning( SAXParseException e ) throws SAXException
-    {
-        printError( e );
-    }
-
-    /** Callback from a JAXP validation process for an error.
-     *
-     *  @param  e   SAX parser exception.
-     */
-
-    public void error( SAXParseException e ) throws SAXException
-    {
-        printError( e );
-
-        errorCount++;
-    }
-
-    /** Callback from a JAXP validation process for a fatal error.
-     *
-     *  @param  e   SAX parser exception.
-     */
-
-    public void fatalError( SAXParseException e ) throws SAXException
-    {
-        printError( e );
-
-        errorCount++;
-
-        throw e;
-    }
-
-    /** Print error.
-     *
-     *  @param  e   SAX parser exception.
-     */
-
-    protected void printError( SAXParseException e )
-    {
-                                //  Get line and column of error.
-
-        int lineNumber      = e.getLineNumber();
-        int columnNumber    = e.getColumnNumber();
-
-                                //  Print line number if given.
-
-        if ( lineNumber >= 0 )
-        {
-            System.out.print( "  Line " + lineNumber );
-        }
-                                //  Print column number if given.
-
-        if ( columnNumber >= 0 )
-        {
-            if ( lineNumber >= 0 )
-            {
-                System.out.print( ", " );
-            }
-
-            System.out.print( "Column " + columnNumber );
-        }
-
-        if ( ( lineNumber >= 0 ) || ( columnNumber >= 0 ) )
-        {
-            System.out.print( ": " );
-        }
-                                //  Print error message.
-
-        System.out.println( e.getMessage() );
-    }
+    System.out.println(e.getMessage());
+  }
 }
 
 /*
@@ -156,6 +136,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

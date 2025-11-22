@@ -2,30 +2,21 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsummarizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.wordcounts.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** DefaultTextSummarizer: The default MorphAdorner text summarizer.
+/**
+ * DefaultTextSummarizer: The default MorphAdorner text summarizer.
  *
- *  <p>
- *
- *  </p>
+ * <p>
  */
-
-public class DefaultTextSummarizer
-    extends SimpleTextSummarizer
-    implements TextSummarizer
-{
-    /** Create the default summarizer.
-     */
-
-    public DefaultTextSummarizer()
-    {
-        super();
-    }
+public class DefaultTextSummarizer extends SimpleTextSummarizer implements TextSummarizer {
+  /** Create the default summarizer. */
+  public DefaultTextSummarizer() {
+    super();
+  }
 }
 
 /*
@@ -68,6 +59,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,155 +2,91 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.outputter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-
-/** Outputs adorned words to a print stream in a simple XML format.
+/**
+ * Outputs adorned words to a print stream in a simple XML format.
  *
- *  <p>
- *  The output format is as follows.
- *  </p>
+ * <p>The output format is as follows. <words> <word id="1"> <tok>Poets</tok> <spe>Poets</spe>
+ * <pos>n2</pos> <reg>Poets</reg> <lem>poet</lem> <eos>0</eos> </word> <word id="2"> ... </word> ...
+ * </words>
  *
- *  <words>
- *    <word id="1">
- *      <tok>Poets</tok>
- *      <spe>Poets</spe>
- *      <pos>n2</pos>
- *      <reg>Poets</reg>
- *      <lem>poet</lem>
- *      <eos>0</eos>
- *    </word>
- *    <word id="2">
- *      ...
- *    </word>
- *      ...
- *  </words>
- *
- *  <p>
- *  There may be more or fewer word level children depending upon
- *  which output options are chosen.
- *  </p>
+ * <p>There may be more or fewer word level children depending upon which output options are chosen.
  */
+public class SimpleXMLAdornedWordOutputter extends PrintStreamAdornedWordOutputter
+    implements AdornedWordOutputter {
+  /** Word ID. */
+  protected int id = 0;
 
-public class SimpleXMLAdornedWordOutputter
-    extends PrintStreamAdornedWordOutputter
-    implements AdornedWordOutputter
-{
-    /** Word ID. */
+  /** Create outputter. */
+  public SimpleXMLAdornedWordOutputter() {
+    super();
+  }
 
-    protected int id    = 0;
+  /**
+   * Create output file.
+   *
+   * @param fileName Output file name.
+   * @param encoding Encoding for the output file.
+   * @param separatorCharacter Output separator character.
+   */
+  public void createOutputFile(String fileName, String encoding, char separatorCharacter)
+      throws IOException {
+    super.createOutputFile(fileName, encoding, separatorCharacter);
 
-    /** Create outputter.
-     */
+    printStream.println("<words>");
+  }
 
-    public SimpleXMLAdornedWordOutputter()
-    {
-        super();
+  /**
+   * Outputs a word and its adornments (part of speech, lemmata, etc).
+   *
+   * @param wordAndAdornments Word and its adornments as an array of string.
+   * @throws IOException If an output error occurs.
+   *     <p>Outputs word and adornments as a tab-separated text line to a print stream.
+   */
+  public void outputWordAndAdornments(String[] wordAndAdornments) throws IOException {
+    printStream.println("  <word id=\"" + id++ + "\">");
+
+    for (int i = 0; i < wordAndAdornments.length; i++) {
+      printStream.print("    <" + wordAttributeNames[i] + ">");
+
+      printStream.print(wordAndAdornments[i]);
+
+      printStream.println("</" + wordAttributeNames[i] + ">");
     }
 
-    /** Create output file.
-     *
-     *  @param  fileName                Output file name.
-     *  @param  encoding                Encoding for the output file.
-     *  @param  separatorCharacter      Output separator character.
-     */
+    printStream.println("  </word>");
+  }
 
-    public void createOutputFile
-    (
-        String fileName ,
-        String encoding ,
-        char separatorCharacter
-    )
-        throws IOException
-    {
-        super.createOutputFile( fileName , encoding , separatorCharacter );
+  /**
+   * Outputs a word and its adornments (part of speech, lemmata, etc).
+   *
+   * @param wordAndAdornments Word and its adornments as a list of strings.
+   * @throws IOException If an output error occurs.
+   *     <p>Outputs word and adornments as a tab-separated text line to a print stream.
+   */
+  public void outputWordAndAdornments(List<String> wordAndAdornments) throws IOException {
+    printStream.println("  <word id=\"" + id++ + "\">");
 
-        printStream.println( "<words>" );
+    for (int i = 0; i < wordAndAdornments.size(); i++) {
+      printStream.print("    <" + wordAttributeNames[i] + ">");
+
+      printStream.print(wordAndAdornments.get(i));
+
+      printStream.println("</" + wordAttributeNames[i] + ">");
     }
 
-    /** Outputs a word and its adornments (part of speech, lemmata, etc).
-     *
-     *  @param  wordAndAdornments   Word and its adornments as an
-     *                              array of string.
-     *
-     *  @throws IOException         If an output error occurs.
-     *
-     *  <p>
-     *  Outputs word and adornments as a tab-separated text line to
-     *  a print stream.
-     *  </p>
-     */
+    printStream.println("  </word>");
+  }
 
-     public void outputWordAndAdornments( String[] wordAndAdornments )
-        throws IOException
-     {
-        printStream.println( "  <word id=\"" + id++ + "\">" );
+  /** Close outputter. */
+  public void close() {
+    printStream.println("</words>");
 
-        for ( int i = 0 ; i < wordAndAdornments.length ; i++ )
-        {
-            printStream.print
-            (
-                "    <" + wordAttributeNames[ i ] + ">"
-            );
-
-            printStream.print( wordAndAdornments[ i ] );
-
-            printStream.println
-            (
-                "</" + wordAttributeNames[ i ] + ">"
-            );
-        }
-
-        printStream.println( "  </word>" );
-     }
-
-    /** Outputs a word and its adornments (part of speech, lemmata, etc).
-     *
-     *  @param  wordAndAdornments   Word and its adornments as a list
-     *                              of strings.
-     *
-     *  @throws IOException         If an output error occurs.
-     *
-     *  <p>
-     *  Outputs word and adornments as a tab-separated text line to
-     *  a print stream.
-     *  </p>
-     */
-
-     public void outputWordAndAdornments( List<String> wordAndAdornments )
-        throws IOException
-     {
-        printStream.println( "  <word id=\"" + id++ + "\">" );
-
-        for ( int i = 0 ; i < wordAndAdornments.size() ; i++ )
-        {
-            printStream.print
-            (
-                "    <" + wordAttributeNames[ i ] + ">"
-            );
-
-            printStream.print( wordAndAdornments.get( i ) );
-
-            printStream.println
-            (
-                "</" + wordAttributeNames[ i ] + ">"
-            );
-        }
-
-        printStream.println( "  </word>" );
-     }
-
-    /** Close outputter.
-     */
-
-    public void close()
-    {
-        printStream.println( "</words>" );
-
-        super.close();
-    }
+    super.close();
+  }
 }
 
 /*
@@ -193,6 +129,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,8 +2,6 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.affix.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.allunknown.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.bigram.*;
@@ -15,206 +13,120 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.suffix.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.trigram.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.trigramhybrid.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
-
 import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** PartOfSpeechTagger factory.
- */
+/** PartOfSpeechTagger factory. */
+public class PartOfSpeechTaggerFactory {
+  /** Map from short to full class names for built-in taggers. */
+  protected static Map<String, String> taggerClassMap = MapFactory.createNewMap();
 
-public class PartOfSpeechTaggerFactory
-{
-    /** Map from short to full class names for built-in taggers. */
+  /**
+   * Get a partOfSpeechTagger.
+   *
+   * @return The partOfSpeechTagger.
+   */
+  public static PartOfSpeechTagger newPartOfSpeechTagger() {
+    String className = System.getProperty("partofspeechtagger.class");
 
-    protected static Map<String, String> taggerClassMap =
-        MapFactory.createNewMap();
-
-    /** Get a partOfSpeechTagger.
-     *
-     *  @return     The partOfSpeechTagger.
-     */
-
-    public static PartOfSpeechTagger newPartOfSpeechTagger()
-    {
-        String className    =
-            System.getProperty( "partofspeechtagger.class" );
-
-        if ( className == null )
-        {
-            className   =
-                ClassUtils.packageName
-                (
-                    PartOfSpeechTaggerFactory.class.getName()
-                ) + ".trigramtagger.TrigramTagger";
-        }
-
-        return newPartOfSpeechTagger( className );
+    if (className == null) {
+      className =
+          ClassUtils.packageName(PartOfSpeechTaggerFactory.class.getName())
+              + ".trigramtagger.TrigramTagger";
     }
 
-    /** Get a partOfSpeechTagger.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The partOfSpeechTagger.
-     */
+    return newPartOfSpeechTagger(className);
+  }
 
-    public static PartOfSpeechTagger newPartOfSpeechTagger
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a partOfSpeechTagger.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The partOfSpeechTagger.
+   */
+  public static PartOfSpeechTagger newPartOfSpeechTagger(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "partofspeechtagger.class" );
-        }
-
-        if ( className == null )
-        {
-            className   =
-                ClassUtils.packageName
-                (
-                    PartOfSpeechTaggerFactory.class.getName()
-                ) + ".trigramtagger.TrigramTagger";
-        }
-
-        return newPartOfSpeechTagger( className );
+    if (properties != null) {
+      className = properties.getProperty("partofspeechtagger.class");
     }
 
-    /** Get a partOfSpeechTagger of a specified class name.
-     *
-     *  @param  className   Class name for the partOfSpeechTagger.
-     *
-     *  @return             The partOfSpeechTagger.
-     */
-
-    public static PartOfSpeechTagger newPartOfSpeechTagger( String className )
-    {
-        PartOfSpeechTagger partOfSpeechTagger   = null;
-
-        try
-        {
-            partOfSpeechTagger  =
-                (PartOfSpeechTagger)Class.forName(
-                    className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                (String)taggerClassMap.get( className );
-
-            if ( fixedClassName != null )
-            {
-                try
-                {
-                    partOfSpeechTagger  =
-                        (PartOfSpeechTagger)Class.forName(
-                            fixedClassName ).newInstance();
-                }
-                catch ( Exception e2 )
-                {
-                    System.err.println(
-                        "Unable to create part of speech tagger of class " +
-                        fixedClassName + ", using trigram tagger." );
-
-                    partOfSpeechTagger  = new TrigramTagger();
-                }
-            }
-            else
-            {
-                System.err.println(
-                    "Unable to create part of speech tagger of class " +
-                    className + ", using trigram tagger." );
-
-                partOfSpeechTagger  = new TrigramTagger();
-            }
-        }
-
-        return partOfSpeechTagger;
+    if (className == null) {
+      className =
+          ClassUtils.packageName(PartOfSpeechTaggerFactory.class.getName())
+              + ".trigramtagger.TrigramTagger";
     }
 
-    /** Create short tagger class name -> full class names.
-     */
+    return newPartOfSpeechTagger(className);
+  }
 
-    static
-    {
-        String classPrefix  =
-            ClassUtils.packageName(
-                PartOfSpeechTaggerFactory.class.getName() );
+  /**
+   * Get a partOfSpeechTagger of a specified class name.
+   *
+   * @param className Class name for the partOfSpeechTagger.
+   * @return The partOfSpeechTagger.
+   */
+  public static PartOfSpeechTagger newPartOfSpeechTagger(String className) {
+    PartOfSpeechTagger partOfSpeechTagger = null;
 
-        taggerClassMap.put
-        (
-            "AffixTagger" ,
-            classPrefix + ".affix.AffixTagger"
-        );
+    try {
+      partOfSpeechTagger = (PartOfSpeechTagger) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName = (String) taggerClassMap.get(className);
 
-        taggerClassMap.put
-        (
-            "AllUnknownTagger" ,
-            classPrefix + ".allunknown.AllUnknownTagger"
-        );
+      if (fixedClassName != null) {
+        try {
+          partOfSpeechTagger = (PartOfSpeechTagger) Class.forName(fixedClassName).newInstance();
+        } catch (Exception e2) {
+          System.err.println(
+              "Unable to create part of speech tagger of class "
+                  + fixedClassName
+                  + ", using trigram tagger.");
 
-        taggerClassMap.put
-        (
-            "BigramTagger" ,
-            classPrefix + ".bigram.BigramTagger"
-        );
+          partOfSpeechTagger = new TrigramTagger();
+        }
+      } else {
+        System.err.println(
+            "Unable to create part of speech tagger of class "
+                + className
+                + ", using trigram tagger.");
 
-        taggerClassMap.put
-        (
-            "BigramHybridTagger" ,
-            classPrefix + ".bigramhybrid.BigramHybridTagger"
-        );
-
-        taggerClassMap.put
-        (
-            "HeppleTagger" ,
-            classPrefix + ".hepple.HeppleTagger"
-        );
-
-        taggerClassMap.put
-        (
-            "RegexpTagger" ,
-            classPrefix + ".regexp.RegexpTagger"
-        );
-
-        taggerClassMap.put
-        (
-            "SimpleTagger" ,
-            classPrefix + ".simple.SimpleTagger"
-        );
-
-        taggerClassMap.put
-        (
-            "SimpleRuleBasedTagger" ,
-            classPrefix + ".simplerulebased.SimpleRuleBasedTagger"
-        );
-
-        taggerClassMap.put
-        (
-            "SuffixTagger" ,
-            classPrefix + ".suffix.SuffixTagger"
-        );
-
-        taggerClassMap.put
-        (
-            "TrigramTagger" ,
-            classPrefix + ".trigram.TrigramTagger"
-        );
-
-        taggerClassMap.put
-        (
-            "TrigramHybridTagger" ,
-            classPrefix + ".trigramhybrid.TrigramHybridTagger"
-        );
-
-        taggerClassMap.put
-        (
-            "UnigramTagger" ,
-            classPrefix + ".unigram.UnigramTagger"
-        );
+        partOfSpeechTagger = new TrigramTagger();
+      }
     }
+
+    return partOfSpeechTagger;
+  }
+
+  /** Create short tagger class name -> full class names. */
+  static {
+    String classPrefix = ClassUtils.packageName(PartOfSpeechTaggerFactory.class.getName());
+
+    taggerClassMap.put("AffixTagger", classPrefix + ".affix.AffixTagger");
+
+    taggerClassMap.put("AllUnknownTagger", classPrefix + ".allunknown.AllUnknownTagger");
+
+    taggerClassMap.put("BigramTagger", classPrefix + ".bigram.BigramTagger");
+
+    taggerClassMap.put("BigramHybridTagger", classPrefix + ".bigramhybrid.BigramHybridTagger");
+
+    taggerClassMap.put("HeppleTagger", classPrefix + ".hepple.HeppleTagger");
+
+    taggerClassMap.put("RegexpTagger", classPrefix + ".regexp.RegexpTagger");
+
+    taggerClassMap.put("SimpleTagger", classPrefix + ".simple.SimpleTagger");
+
+    taggerClassMap.put(
+        "SimpleRuleBasedTagger", classPrefix + ".simplerulebased.SimpleRuleBasedTagger");
+
+    taggerClassMap.put("SuffixTagger", classPrefix + ".suffix.SuffixTagger");
+
+    taggerClassMap.put("TrigramTagger", classPrefix + ".trigram.TrigramTagger");
+
+    taggerClassMap.put("TrigramHybridTagger", classPrefix + ".trigramhybrid.TrigramHybridTagger");
+
+    taggerClassMap.put("UnigramTagger", classPrefix + ".unigram.UnigramTagger");
+  }
 }
 
 /*
@@ -257,6 +169,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

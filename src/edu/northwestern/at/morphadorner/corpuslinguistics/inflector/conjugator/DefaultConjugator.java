@@ -2,22 +2,16 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector.conjugator;
 
 /*  Please see the license information at the end of this file. */
 
-/** DefaultConjugator: The default MorphAdorner conjugator.
+/**
+ * DefaultConjugator: The default MorphAdorner conjugator.
  *
- *  <p>
- *  The English language conjugator is the default MorphAdorner conjugator.
- *  </p>
+ * <p>The English language conjugator is the default MorphAdorner conjugator.
  */
-
-public class DefaultConjugator extends EnglishConjugator implements Conjugator
-{
-    /** Create the default conjugator.
-     */
-
-    public DefaultConjugator()
-    {
-        super();
-    }
+public class DefaultConjugator extends EnglishConjugator implements Conjugator {
+  /** Create the default conjugator. */
+  public DefaultConjugator() {
+    super();
+  }
 }
 
 /*
@@ -60,6 +54,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

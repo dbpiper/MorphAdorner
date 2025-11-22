@@ -2,103 +2,81 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.wordcounts;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
+/** Word count utilities. */
+public class WordCountUtils {
+  /**
+   * Count words in sentences.
+   *
+   * @param sentences The sentences.
+   * @param stopWords Stop words.
+   * @return Map of words to WordCountAndSentence objects.
+   */
+  public static <W extends Comparable> Map<String, WordCountAndSentences> countWordsInSentences(
+      List<List<W>> sentences, StopWords stopWords) {
+    //  Holds map between each word
+    //  and the word's count and appearance.
 
-/** Word count utilities.
- */
+    Map<String, WordCountAndSentences> wordCounts = new TreeMap<String, WordCountAndSentences>();
 
-public class WordCountUtils
-{
-    /** Count words in sentences.
-     *
-     *  @param  sentences   The sentences.
-     *  @param  stopWords   Stop words.
-     *
-     *  @return             Map of words to WordCountAndSentence objects.
-     */
+    //  Note if we are filtering using
+    //  a stop word list.
 
-    public static <W extends Comparable> Map<String , WordCountAndSentences>
-    countWordsInSentences
-    (
-        List<List<W>> sentences ,
-        StopWords stopWords
-    )
-    {
-                                //  Holds map between each word
-                                //  and the word's count and appearance.
+    boolean checkStopWords = (stopWords != null);
 
-        Map<String , WordCountAndSentences> wordCounts  =
-            new TreeMap<String , WordCountAndSentences>();
+    //  Loop over sentences.
 
-                                //  Note if we are filtering using
-                                //  a stop word list.
+    for (int i = 0; i < sentences.size(); i++) {
+      //  Get next sentence.
 
-        boolean checkStopWords  = ( stopWords != null );
+      List<W> sentence = sentences.get(i);
 
-                                //  Loop over sentences.
+      //  Loop over words in sentence.
 
-        for ( int i = 0 ; i < sentences.size() ; i++ )
-        {
-                                //  Get next sentence.
+      for (int j = 0; j < sentence.size(); j++) {
+        //  Get next word.
 
-            List<W> sentence    = sentences.get( i );
+        W word = sentence.get(j);
 
-                                //  Loop over words in sentence.
+        //  Get string version of word in
+        //  lower case.
 
-            for ( int j = 0 ; j < sentence.size() ; j++ )
-            {
-                                //  Get next word.
+        String lcWord = word.toString().toLowerCase();
 
-                W word          = sentence.get( j );
+        //  Ignore punctuation and symbols.
 
-                                //  Get string version of word in
-                                //  lower case.
-
-                String lcWord   = word.toString().toLowerCase();
-
-                                //  Ignore punctuation and symbols.
-
-                if ( CharUtils.isPunctuationOrSymbol( lcWord ) )
-                {
-                }
-                                //  Ignore stop words.
-
-                else if ( checkStopWords && stopWords.isStopWord( lcWord ) )
-                {
-                }
-                else
-                {
-                                //  Create/update count and appearance data
-                                //  for this word.
-
-                    WordCountAndSentences wcs   = wordCounts.get( lcWord );
-
-                    if ( wcs == null )
-                    {
-                        wcs = new WordCountAndSentences( lcWord );
-                        wordCounts.put( lcWord , wcs );
-                    }
-
-                    wcs.count++;
-                    wcs.sentences.add( i );
-                }
-            }
+        if (CharUtils.isPunctuationOrSymbol(lcWord)) {
         }
+        //  Ignore stop words.
 
-        return wordCounts;
+        else if (checkStopWords && stopWords.isStopWord(lcWord)) {
+        } else {
+          //  Create/update count and appearance data
+          //  for this word.
+
+          WordCountAndSentences wcs = wordCounts.get(lcWord);
+
+          if (wcs == null) {
+            wcs = new WordCountAndSentences(lcWord);
+            wordCounts.put(lcWord, wcs);
+          }
+
+          wcs.count++;
+          wcs.sentences.add(i);
+        }
+      }
     }
 
-    /** Allow overrides but not instantiation.
-     */
+    return wordCounts;
+  }
 
-    protected WordCountUtils()
-    {
-    }
+  /** Allow overrides but not instantiation. */
+  protected WordCountUtils() {}
 }
 
 /*
@@ -141,7 +119,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-
-

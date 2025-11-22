@@ -2,38 +2,23 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.transitionm
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
+/** Default probability transition matrix for NUPOS tag set. */
+public class DefaultTransitionMatrix extends TransitionMatrix {
+  /** Resource path for default transition matrix. */
+  protected static final String transitionMatrixPath = "resources/nupostransitionmatrix.mat";
 
-/** Default probability transition matrix for NUPOS tag set.
- */
+  /** Create default transition matrix. */
+  public DefaultTransitionMatrix() throws Exception {
+    super();
 
-public class DefaultTransitionMatrix
-    extends TransitionMatrix
-{
-    /** Resource path for default transition matrix. */
-
-    protected final static String transitionMatrixPath  =
-        "resources/nupostransitionmatrix.mat";
-
-    /** Create default transition matrix.
-     */
-
-    public DefaultTransitionMatrix()
-        throws Exception
-    {
-        super();
-
-        loadTransitionMatrix
-        (
-            DefaultTransitionMatrix.class.getResource( transitionMatrixPath ) ,
-            "utf-8",
-            '\t'
-        );
-    }
+    loadTransitionMatrix(
+        DefaultTransitionMatrix.class.getResource(transitionMatrixPath), "utf-8", '\t');
+  }
 }
 
 /*
@@ -76,6 +61,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

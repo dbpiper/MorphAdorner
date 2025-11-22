@@ -2,117 +2,83 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.wordcounts;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
+/** Contains a word, its count, and sentence numbers in which it appears. */
+public class WordCountAndSentences implements Comparable {
+  /** The word. Usually a String or AdornedWord. */
+  public Comparable word;
 
-/** Contains a word, its count, and sentence numbers in which it appears.
- */
+  /** The word count. */
+  public int count;
 
-public class WordCountAndSentences implements Comparable
-{
-    /** The word.  Usually a String or AdornedWord. */
+  /** Set of sentence numbers in which the word appears. */
+  public Set<Integer> sentences;
 
-    public Comparable word;
+  /** Create empty word count and sentences. */
+  public WordCountAndSentences() {
+    this.word = null;
+    this.count = 0;
+    this.sentences = new TreeSet<Integer>();
+  }
 
-    /** The word count. */
+  /** Create word count and sentences from word. */
+  public WordCountAndSentences(Comparable word) {
+    this.word = word;
+    this.count = 0;
+    this.sentences = new TreeSet<Integer>();
+  }
 
-    public int count;
+  /**
+   * Compare this count data object with another.
+   *
+   * @param other The count data object
+   * @return < 0 if this count data object is less than the other, = 0 if the two count data objects
+   *     are equal, > 0 if this count data object is greater than the other.
+   */
+  public int compareTo(Object other) {
+    int result = 0;
 
-    /** Set of sentence numbers in which the word appears. */
+    if ((other == null) || !(other instanceof WordCountAndSentences)) {
+      result = Integer.MIN_VALUE;
+    } else {
+      WordCountAndSentences otherCa = (WordCountAndSentences) other;
 
-    public Set<Integer> sentences;
+      result = -Compare.compare(count, otherCa.count);
 
-    /** Create empty word count and sentences.
-     */
+      if (result == 0) {
+        result = Compare.compare(sentences.size(), otherCa.sentences.size());
+      }
 
-    public WordCountAndSentences()
-    {
-        this.word       = null;
-        this.count      = 0;
-        this.sentences  = new TreeSet<Integer>();
+      if (result == 0) {
+        if ((word != null) && (otherCa.word != null)) {
+          result = Compare.compare(word, otherCa.word);
+        }
+      }
     }
 
-    /** Create word count and sentences from word.
-     */
+    return result;
+  }
 
-    public WordCountAndSentences( Comparable word )
-    {
-        this.word       = word;
-        this.count      = 0;
-        this.sentences  = new TreeSet<Integer>();
+  /**
+   * Return string representation of word counts and sentences.
+   *
+   * @return String representation.
+   */
+  public String toString() {
+    String result;
+
+    if (word == null) {
+      result = "(null) (0) in []";
+    } else {
+      result = word.toString() + " (" + count + ") in " + this.sentences;
     }
 
-    /** Compare this count data object with another.
-     *
-     *  @param  other   The count data object
-     *
-     *  @return         < 0 if this count data object is less than the other,
-     *                  = 0 if the two count data objects are equal,
-     *                  > 0 if this count data object is greater than the other.
-     */
-
-    public int compareTo( Object other )
-    {
-        int result  = 0;
-
-        if ( ( other == null ) ||
-            !( other instanceof WordCountAndSentences ) )
-        {
-            result  = Integer.MIN_VALUE;
-        }
-        else
-        {
-            WordCountAndSentences otherCa   = (WordCountAndSentences)other;
-
-            result  = -Compare.compare( count , otherCa.count );
-
-            if ( result == 0 )
-            {
-                result  =
-                    Compare.compare
-                    (
-                        sentences.size() ,
-                        otherCa.sentences.size()
-                    );
-            }
-
-            if ( result == 0 )
-            {
-                if ( ( word != null ) && ( otherCa.word != null ) )
-                {
-                    result  =
-                        Compare.compare( word , otherCa.word );
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /** Return string representation of word counts and sentences.
-     *
-     *  @return     String representation.
-     */
-
-    public String toString()
-    {
-        String result;
-
-        if ( word == null )
-        {
-            result  = "(null) (0) in []";
-        }
-        else
-        {
-            result  =
-                word.toString() + " (" + count + ") in " + this.sentences;
-        }
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -155,6 +121,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

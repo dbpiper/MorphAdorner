@@ -2,38 +2,34 @@ package edu.northwestern.at.morphadorner.tools.validatexmlfiles;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-
 import javax.xml.XMLConstants;
 import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
-
-import org.w3c.dom.Document;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-/** Validate XML files.
+/**
+ * Validate XML files.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <blockquote>
- *  <pre>
+ * <blockquote>
+ *
+ * <pre>
  *  java edu.northwestern.at.morphadorner.tools.validatexmlfiles.ValidateXMLFiles [schemaURI] input1.xml input2.xml ...
  *  </pre>
- *  </blockquote>
- *  <table>
+ *
+ * </blockquote>
+ *
+ * <table>
  *  <tr>
  *  <td>schemaURI</td>
  *  <td>Optional URI for a Relax NG or W3C schema against which to validate subsequent files.
@@ -49,302 +45,200 @@ import org.xml.sax.helpers.*;
  *  </tr>
  *  </table>
  *
- *  <p>
- *  Checks that the specified XML files are valid XML.  For XML files
- *  referencing a DTD, checks that the XML is valid in the context of the
- *  DTD.  For XML files that do not specify a DTD, the XML is validated
- *  against the optional leading Relax NG or W3C schema.  If a schema
- *  file is not specified, and the XML document does not specify a DTD,
- *  the file will generally be reported as invalid.
- *  </p>
+ * <p>Checks that the specified XML files are valid XML. For XML files referencing a DTD, checks
+ * that the XML is valid in the context of the DTD. For XML files that do not specify a DTD, the XML
+ * is validated against the optional leading Relax NG or W3C schema. If a schema file is not
+ * specified, and the XML document does not specify a DTD, the file will generally be reported as
+ * invalid.
  *
- *  <p>
- *  Note: Creates a SAX parser for each document (one at a time).
- *  This allows even large adorned files to be validated.
- *  </p>
+ * <p>Note: Creates a SAX parser for each document (one at a time). This allows even large adorned
+ * files to be validated.
  */
+public class ValidateXMLFiles {
+  /** Holds compiled schema. May be null if no schema provided. */
+  protected static Schema schema = null;
 
-public class ValidateXMLFiles
-{
-    /** Holds compiled schema.  May be null if no schema provided. */
+  /** Schema validator. May be null if no schema provided. */
+  protected static Validator validator = null;
 
-    protected static Schema schema  = null;
+  /** Validation error handler. */
+  protected static ValidationErrorHandler errorHandler = new ValidationErrorHandler();
 
-    /** Schema validator.   May be null if no schema provided. */
+  /**
+   * Main program.
+   *
+   * @param args Program parameters.
+   */
+  public static void main(String[] args) {
+    //  Initialize.
 
-    protected static Validator validator    = null;
-
-    /** Validation error handler. */
-
-    protected static ValidationErrorHandler errorHandler    =
-        new ValidationErrorHandler();
-
-    /** Main program.
-     *
-     *  @param  args    Program parameters.
-     */
-
-    public static void main( String[] args )
-    {
-                                //  Initialize.
-
-        if ( !initialize( args ) )
-        {
-            System.exit( 1 );
-        }
-                                //  Process all files.
-
-        long startTime      = System.currentTimeMillis();
-
-        int filesProcessed  = processFiles( args );
-
-        long processingTime =
-            ( System.currentTimeMillis() - startTime + 999 ) / 1000;
-
-                                //  Terminate.
-
-        terminate( filesProcessed , processingTime );
+    if (!initialize(args)) {
+      System.exit(1);
     }
+    //  Process all files.
 
-    /** Initialize.
-     */
+    long startTime = System.currentTimeMillis();
 
-    protected static boolean initialize( String[] args )
-    {
-                                //  Assume initialization fails.
+    int filesProcessed = processFiles(args);
 
-        boolean result  = false;
+    long processingTime = (System.currentTimeMillis() - startTime + 999) / 1000;
 
-                                //  Get the file to check for non-standard
-                                //  spellings.
+    //  Terminate.
 
-        if ( args.length < 1 )
-        {
-            System.err.println( "No files to validate provided." );
-        }
-                                //  If first argument is a schema URI,
-                                //  compile it for subsequent use.
-        else
-        {
-            String schemaURIString      = args[ 0 ];
-            String lcSchemaURIString    = schemaURIString.toLowerCase();
+    terminate(filesProcessed, processingTime);
+  }
 
-            if  (   schemaURIString.endsWith( ".rng" ) ||
-                    schemaURIString.endsWith( ".xsd" )
-                )
-            {
-                try
-                {
-                    SchemaFactory schemaFactory = null;
+  /** Initialize. */
+  protected static boolean initialize(String[] args) {
+    //  Assume initialization fails.
 
-                    if ( schemaURIString.endsWith( ".rng" ) )
-                    {
-                        schemaFactory =
-                            SchemaFactory.newInstance
-                            (
-                                XMLConstants.RELAXNG_NS_URI
-                            );
-                    }
-                    else if ( schemaURIString.endsWith( ".xsd" ) )
-                    {
-                        schemaFactory =
-                            SchemaFactory.newInstance
-                            (
-                                XMLConstants.W3C_XML_SCHEMA_NS_URI
-                            );
-                    }
+    boolean result = false;
 
-                    if ( schemaFactory != null )
-                    {
-                        schema =
-                            schemaFactory.newSchema
-                            (
-                                new StreamSource( schemaURIString  )
-                            );
+    //  Get the file to check for non-standard
+    //  spellings.
 
-                        validator   = schema.newValidator();
+    if (args.length < 1) {
+      System.err.println("No files to validate provided.");
+    }
+    //  If first argument is a schema URI,
+    //  compile it for subsequent use.
+    else {
+      String schemaURIString = args[0];
+      String lcSchemaURIString = schemaURIString.toLowerCase();
 
-                        validator.setErrorHandler( errorHandler );
+      if (schemaURIString.endsWith(".rng") || schemaURIString.endsWith(".xsd")) {
+        try {
+          SchemaFactory schemaFactory = null;
 
-                        System.out.println
-                        (
-                            "Schema " + schemaURIString + " processed."
-                        );
-                                //  Initialization OK if we also have
-                                //  at least one more file specification.
+          if (schemaURIString.endsWith(".rng")) {
+            schemaFactory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI);
+          } else if (schemaURIString.endsWith(".xsd")) {
+            schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+          }
 
-                        result  = ( args.length > 1 );
+          if (schemaFactory != null) {
+            schema = schemaFactory.newSchema(new StreamSource(schemaURIString));
 
-                        if ( !result )
-                        {
-                            System.out.println
-                            (
-                                "No files to validate provided."
-                            );
-                        }
-                    }
-                    else
-                    {
-                        result  = true;
-                    }
-                }
-                catch ( Exception e )
-                {
-                    System.err.println( "Bad schema file: " );
-                    System.err.println( e.getMessage() );
-                }
+            validator = schema.newValidator();
+
+            validator.setErrorHandler(errorHandler);
+
+            System.out.println("Schema " + schemaURIString + " processed.");
+            //  Initialization OK if we also have
+            //  at least one more file specification.
+
+            result = (args.length > 1);
+
+            if (!result) {
+              System.out.println("No files to validate provided.");
             }
+          } else {
+            result = true;
+          }
+        } catch (Exception e) {
+          System.err.println("Bad schema file: ");
+          System.err.println(e.getMessage());
         }
-
-        return result;
+      }
     }
 
-    /** Process one file.
-     *
-     *  @param  xmlFileName     Input file name to check for Latin words.
-     */
+    return result;
+  }
 
-    protected static void processOneFile( String xmlFileName )
-    {
-                                //  Parse document via SAX and
-                                //  validate its XML.
+  /**
+   * Process one file.
+   *
+   * @param xmlFileName Input file name to check for Latin words.
+   */
+  protected static void processOneFile(String xmlFileName) {
+    //  Parse document via SAX and
+    //  validate its XML.
 
-        BufferedReader bufferedReader   = null;
+    BufferedReader bufferedReader = null;
 
-        try
-        {
-            bufferedReader  =
-                new BufferedReader
-                (
-                    new UnicodeReader
-                    (
-                        new FileInputStream( xmlFileName ) ,
-                        "utf-8"
-                    )
-                );
+    try {
+      bufferedReader =
+          new BufferedReader(new UnicodeReader(new FileInputStream(xmlFileName), "utf-8"));
 
-            InputSource inputSource = new InputSource( bufferedReader );
+      InputSource inputSource = new InputSource(bufferedReader);
 
-            SAXSource source        = new SAXSource( inputSource );
+      SAXSource source = new SAXSource(inputSource);
 
-                                //  If a schema was provided, validate the
-                                //  document against the schema.
+      //  If a schema was provided, validate the
+      //  document against the schema.
 
-            if ( validator != null )
-            {
-                                //  Reset error count in validator.
+      if (validator != null) {
+        //  Reset error count in validator.
 
-                errorHandler.resetErrorCount();
+        errorHandler.resetErrorCount();
 
-                                //  Pick up list of errors.
+        //  Pick up list of errors.
 
-                validator.validate( source );
+        validator.validate(source);
 
-                                //  If no errors, the document is valid.
+        //  If no errors, the document is valid.
 
-                if ( errorHandler.getErrorCount() > 0 )
-                {
-                    System.out.println( xmlFileName + " failed validation." );
-                }
-                else
-                {
-                    System.out.println( xmlFileName + " passed validation." );
-                }
-            }
-            else
-            {
-                System.out.println( xmlFileName + " passed validation." );
-            }
+        if (errorHandler.getErrorCount() > 0) {
+          System.out.println(xmlFileName + " failed validation.");
+        } else {
+          System.out.println(xmlFileName + " passed validation.");
         }
-        catch ( Exception e )
-        {
-            System.out.print  ( xmlFileName + " failed validation: " );
-            System.out.println( e.getMessage() );
+      } else {
+        System.out.println(xmlFileName + " passed validation.");
+      }
+    } catch (Exception e) {
+      System.out.print(xmlFileName + " failed validation: ");
+      System.out.println(e.getMessage());
+    } finally {
+      if (bufferedReader != null) {
+        try {
+          bufferedReader.close();
+        } catch (Exception e) {
         }
-        finally
-        {
-            if ( bufferedReader != null )
-            {
-                try
-                {
-                    bufferedReader.close();
-                }
-                catch ( Exception e )
-                {
-                }
-            }
-        }
+      }
+    }
+  }
+
+  /** Process files. */
+  protected static int processFiles(String[] args) {
+    int result = 0;
+    //  Get file name/file wildcard specs.
+
+    int schemaBias = (schema == null ? 0 : 1);
+
+    String[] wildCards = new String[args.length - schemaBias];
+
+    for (int i = schemaBias; i < args.length; i++) {
+      wildCards[i - schemaBias] = args[i];
+    }
+    //  Expand wildcards to list of
+    //  file names,
+
+    String[] fileNames = FileNameUtils.expandFileNameWildcards(wildCards);
+
+    //  Process each file.
+
+    for (int i = 0; i < fileNames.length; i++) {
+      processOneFile(fileNames[i]);
     }
 
-    /** Process files.
-     */
+    return fileNames.length;
+  }
 
-    protected static int processFiles( String[] args )
-    {
-        int result  = 0;
-                                //  Get file name/file wildcard specs.
-
-        int schemaBias      = ( schema == null ? 0 : 1 );
-
-        String[] wildCards  = new String[ args.length - schemaBias ];
-
-        for ( int i = schemaBias ; i < args.length ; i++ )
-        {
-            wildCards[ i - schemaBias ] = args[ i ];
-        }
-                                //  Expand wildcards to list of
-                                //  file names,
-
-        String[] fileNames  =
-            FileNameUtils.expandFileNameWildcards( wildCards );
-
-                                //  Process each file.
-
-        for ( int i = 0 ; i < fileNames.length ; i++ )
-        {
-            processOneFile( fileNames[ i ] );
-        }
-
-        return fileNames.length;
-    }
-
-    /** Terminate.
-     *
-     *  @param  filesProcessed  Number of files processed.
-     *  @param  processingTime  Processing time in seconds.
-     */
-
-    protected static void terminate
-    (
-        int filesProcessed ,
-        long processingTime
-    )
-    {
-        System.out.println
-        (
-            "Processed " +
-            Formatters.formatIntegerWithCommas
-            (
-                filesProcessed
-            ) +
-            StringUtils.pluralize
-            (
-                filesProcessed ,
-                " file in " ,
-                " files in "
-            ) +
-            Formatters.formatLongWithCommas
-            (
-                processingTime
-            ) +
-            StringUtils.pluralize
-            (
-                processingTime ,
-                " second." ,
-                " seconds."
-            )
-        );
-    }
+  /**
+   * Terminate.
+   *
+   * @param filesProcessed Number of files processed.
+   * @param processingTime Processing time in seconds.
+   */
+  protected static void terminate(int filesProcessed, long processingTime) {
+    System.out.println(
+        "Processed "
+            + Formatters.formatIntegerWithCommas(filesProcessed)
+            + StringUtils.pluralize(filesProcessed, " file in ", " files in ")
+            + Formatters.formatLongWithCommas(processingTime)
+            + StringUtils.pluralize(processingTime, " second.", " seconds."));
+  }
 }
 
 /*
@@ -387,6 +281,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

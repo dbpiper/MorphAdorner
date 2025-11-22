@@ -2,367 +2,265 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
-
 /** A rule-based lemmatizer. */
+public class RuleBasedLemmatizer extends AbstractLemmatizer implements Lemmatizer {
+  /**
+   * Irregular forms.
+   *
+   * <p>Irregular forms are stored in a HashMap2D. The compound key consists of the word class and
+   * irregular word form, and the value is the lemma.
+   */
+  protected Map2D<String, String, String> irregularForms = Map2DFactory.createNewMap2D();
 
-public class RuleBasedLemmatizer
-    extends AbstractLemmatizer
-    implements Lemmatizer
-{
-    /** Irregular forms.
-     *
-     *  <p>
-     *  Irregular forms are stored in a HashMap2D.
-     *  The compound key consists of the word class and irregular word form,
-     *  and the value is the lemma.
-     *  </p>
-     */
+  /** Word classes of irregular forms. */
+  protected Set<String> irregularFormsWordClasses = new TreeSet<String>();
 
-    protected Map2D<String, String, String> irregularForms  =
-        Map2DFactory.createNewMap2D();
+  /**
+   * Lemmatizing rules.
+   *
+   * <p>The rules are stored in a map with the word class as a key and a list of LemmatizerRule
+   * entries as the value.
+   */
+  protected Map<String, List<LemmatizerRule>> rules = MapFactory.createNewMap();
 
-    /** Word classes of irregular forms.
-     */
+  /** Word classes covered by rules. */
+  protected Set<String> rulesWordClasses = new TreeSet<String>();
 
-    protected Set<String> irregularFormsWordClasses = new TreeSet<String>();
+  /** Create a rule-based lemmatizer. */
+  public RuleBasedLemmatizer() throws Exception {}
 
-    /** Lemmatizing rules.
-     *
-     *  <p>
-     *  The rules are stored in a map with the word class as a key
-     *  and a list of LemmatizerRule entries as the value.
-     *  </p>
-     */
+  /**
+   * Loads lemmatization rules from a URL.
+   *
+   * @param url URL containing lemmatization rules.
+   * @param encoding Character set encoding for rules.
+   */
+  public void loadRules(URL url, String encoding) throws IOException {
+    String line = null;
+    //  Load rules.
 
-    protected Map<String,List<LemmatizerRule>> rules    =
-        MapFactory.createNewMap();
+    BufferedReader buffer = new BufferedReader(new UnicodeReader(url.openStream(), encoding));
 
-    /** Word classes covered by rules.
-     */
+    String posTag = "";
+    String[] tokens = new String[2];
 
-    protected Set<String> rulesWordClasses  = new TreeSet<String>();
+    List<LemmatizerRule> rulesForTag = ListFactory.createNewList();
 
-    /** Create a rule-based lemmatizer. */
+    while ((line = buffer.readLine()) != null) {
+      line = line.trim();
 
-    public RuleBasedLemmatizer()
-        throws Exception
-    {
-    }
+      if ((line.length() > 0) && (line.charAt(0) != '#')) {
+        tokens = StringUtils.makeTokenArray(line);
 
-    /** Loads lemmatization rules from a URL.
-     *
-     *  @param  url         URL containing lemmatization rules.
-     *  @param  encoding    Character set encoding for rules.
-     */
+        if (tokens.length > 0) {
+          int l = tokens[0].length();
 
-    public void loadRules
-    (
-        URL url ,
-        String encoding
-    )
-        throws IOException
-    {
-        String line = null;
-                                //  Load rules.
+          if (tokens[0].charAt(l - 1) == ':') {
+            if (rulesForTag.size() > 0) {
+              rules.put(posTag, rulesForTag);
 
-        BufferedReader buffer =
-            new BufferedReader
-            (
-                new UnicodeReader( url.openStream() , encoding )
-            );
-
-        String posTag   = "";
-        String[] tokens = new String[ 2 ];
-
-        List<LemmatizerRule> rulesForTag    = ListFactory.createNewList();
-
-        while ( ( line = buffer.readLine() ) != null )
-        {
-            line    = line.trim();
-
-            if ( ( line.length() > 0 ) && ( line.charAt( 0 ) != '#' ) )
-            {
-                tokens  = StringUtils.makeTokenArray( line );
-
-                if ( tokens.length > 0 )
-                {
-                    int l   = tokens[ 0 ].length();
-
-                    if ( tokens[ 0 ].charAt( l - 1 ) == ':' )
-                    {
-                        if ( rulesForTag.size() > 0 )
-                        {
-                            rules.put( posTag , rulesForTag );
-
-                            rulesForTag = ListFactory.createNewList();
-                        }
-
-                        posTag  = tokens[ 0 ].substring( 0 , l - 1 );
-
-                        rulesWordClasses.add( posTag );
-                    }
-                    else
-                    {
-                        rulesForTag.add( new DefaultLemmatizerRule( line ) );
-                    }
-                }
+              rulesForTag = ListFactory.createNewList();
             }
-        }
 
-        if ( rulesForTag.size() > 0 )
-        {
-            rules.put( posTag , rulesForTag );
-        }
+            posTag = tokens[0].substring(0, l - 1);
 
-        buffer.close();
+            rulesWordClasses.add(posTag);
+          } else {
+            rulesForTag.add(new DefaultLemmatizerRule(line));
+          }
+        }
+      }
     }
 
-    /** Loads irregular forms from a URL.
-     *
-     *  @param  url         URL containing irregular forms.
-     *  @param  encoding    Character set encoding for irregular forms.
-     */
+    if (rulesForTag.size() > 0) {
+      rules.put(posTag, rulesForTag);
+    }
 
-    public void loadIrregularForms
-    (
-        URL url ,
-        String encoding
-    )
-        throws IOException
-    {
-        String line = null;
-                                //  Load irregular forms.
+    buffer.close();
+  }
 
-        BufferedReader buffer =
-            new BufferedReader
-            (
-                new UnicodeReader( url.openStream() , encoding )
-            );
+  /**
+   * Loads irregular forms from a URL.
+   *
+   * @param url URL containing irregular forms.
+   * @param encoding Character set encoding for irregular forms.
+   */
+  public void loadIrregularForms(URL url, String encoding) throws IOException {
+    String line = null;
+    //  Load irregular forms.
 
-        String posTag   = "";
-        String lemma    = "";
-        String[] tokens = new String[ 2 ];
+    BufferedReader buffer = new BufferedReader(new UnicodeReader(url.openStream(), encoding));
 
-        while ( ( line = buffer.readLine() ) != null )
-        {
-            line    = line.trim();
+    String posTag = "";
+    String lemma = "";
+    String[] tokens = new String[2];
 
-            if ( ( line.length() > 0 ) && ( line.charAt( 0 ) != '#' ) )
-            {
-                tokens  = StringUtils.makeTokenArray( line );
+    while ((line = buffer.readLine()) != null) {
+      line = line.trim();
 
-                if ( tokens.length > 0 )
-                {
-                    int l   = tokens[ 0 ].length();
+      if ((line.length() > 0) && (line.charAt(0) != '#')) {
+        tokens = StringUtils.makeTokenArray(line);
 
-                    if ( tokens[ 0 ].charAt( l - 1 ) == ':' )
-                    {
-                        posTag  = tokens[ 0 ].substring( 0 , l - 1 );
+        if (tokens.length > 0) {
+          int l = tokens[0].length();
 
-                        irregularFormsWordClasses.add( posTag );
-                    }
-                    else
-                    {
-                        if ( tokens.length > 1 )
-                        {
-                            lemma   = tokens[ 1 ];
-                        }
-                        else
-                        {
-                            lemma   = tokens[ 0 ];
-                        }
+          if (tokens[0].charAt(l - 1) == ':') {
+            posTag = tokens[0].substring(0, l - 1);
 
-                        irregularForms.put( posTag , tokens[ 0 ] , lemma );
-                    }
-                }
+            irregularFormsWordClasses.add(posTag);
+          } else {
+            if (tokens.length > 1) {
+              lemma = tokens[1];
+            } else {
+              lemma = tokens[0];
             }
-        }
 
-        buffer.close();
+            irregularForms.put(posTag, tokens[0], lemma);
+          }
+        }
+      }
     }
 
-    /** Returns a lemma given a word and a word class.
-     *
-     *  @param  spelling    The spelling.
-     *  @param  wordClass   The word class.  Ignored if null or empty.
-     *                      May contain more than one word class
-     *                      separated by commas, in which case
-     *                      the lemma rules for each class are applied
-     *                      in order.
-     *
-     *  @return     The lemma.  The spelling is returned when a
-     *              lemma cannot be found.
-     */
+    buffer.close();
+  }
 
-    public String lemmatize( String spelling , String wordClass )
-    {
-        if ( wordClass == null )
-        {
-            return lemmatize( spelling );
-        }
+  /**
+   * Returns a lemma given a word and a word class.
+   *
+   * @param spelling The spelling.
+   * @param wordClass The word class. Ignored if null or empty. May contain more than one word class
+   *     separated by commas, in which case the lemma rules for each class are applied in order.
+   * @return The lemma. The spelling is returned when a lemma cannot be found.
+   */
+  public String lemmatize(String spelling, String wordClass) {
+    if (wordClass == null) {
+      return lemmatize(spelling);
+    }
 
-        String lcWordClass  = wordClass.trim().toLowerCase();
+    String lcWordClass = wordClass.trim().toLowerCase();
 
-        if ( wordClass.length() == 0 )
-        {
-            return lemmatize( spelling );
-        }
-                                //  Don't bother trying to lemmatize
-                                //  abbreviations, punctuation, etc.
+    if (wordClass.length() == 0) {
+      return lemmatize(spelling);
+    }
+    //  Don't bother trying to lemmatize
+    //  abbreviations, punctuation, etc.
 
-        if ( cantLemmatize( spelling ) )
-        {
-            return spelling;
-        }
+    if (cantLemmatize(spelling)) {
+      return spelling;
+    }
 
-        String[] lcWordClasses  = lcWordClass.split( "," );
+    String[] lcWordClasses = lcWordClass.split(",");
 
-        String lcSpelling   = spelling.toLowerCase();
+    String lcSpelling = spelling.toLowerCase();
 
-        String lemma    = irregularForms.get( lcWordClass , spelling );
+    String lemma = irregularForms.get(lcWordClass, spelling);
 
-        if ( lemma == null )
-        {
-            lemma   = irregularForms.get( lcWordClass , lcSpelling );
-        }
+    if (lemma == null) {
+      lemma = irregularForms.get(lcWordClass, lcSpelling);
+    }
 
-        if ( lemma == null )
-        {
-            lemma   = lcSpelling;
+    if (lemma == null) {
+      lemma = lcSpelling;
 
-            for ( int i = 0 ; i < lcWordClasses.length ; i++ )
-            {
-                List<LemmatizerRule> rulesForWordClass  =
-                    rules.get( lcWordClasses[ i ] );
+      for (int i = 0; i < lcWordClasses.length; i++) {
+        List<LemmatizerRule> rulesForWordClass = rules.get(lcWordClasses[i]);
 
-                if  (   ( rulesForWordClass != null ) &&
-                        ( rulesForWordClass.size() > 0 )
-                    )
-                {
-                    LemmatizerRule[] wordClassRules =
-                        (LemmatizerRule[])rulesForWordClass.toArray(
-                            new LemmatizerRule[ rulesForWordClass.size() ] );
+        if ((rulesForWordClass != null) && (rulesForWordClass.size() > 0)) {
+          LemmatizerRule[] wordClassRules =
+              (LemmatizerRule[])
+                  rulesForWordClass.toArray(new LemmatizerRule[rulesForWordClass.size()]);
 
-                    for ( int j = 0 ; j < wordClassRules.length ; j++ )
-                    {
-                        String newLemma =
-                            wordClassRules[ j ].apply( lemma , dictionary );
+          for (int j = 0; j < wordClassRules.length; j++) {
+            String newLemma = wordClassRules[j].apply(lemma, dictionary);
 
-                        if ( !newLemma.equals( lemma ) )
-                        {
-                            lemma   = newLemma;
-                            break;
-                        }
-                    }
-                }
+            if (!newLemma.equals(lemma)) {
+              lemma = newLemma;
+              break;
             }
+          }
         }
-
-        return ( ( lemma == null ) || ( lemma.length() == 0 ) ) ?
-            spelling : cleanUpLemma( lemma );
+      }
     }
 
-    /** Clean up lemma.
-     *
-     *  @param  lemma   The lemma to clean.
-     *
-     *  @return The clean lemma.
-     *
-     *  <p>
-     *  A lemma may contain extraneous "!" characters added to ensure
-     *  a specific ending is retained.  The "!" marks are removed here.
-     *  </p>
-     */
+    return ((lemma == null) || (lemma.length() == 0)) ? spelling : cleanUpLemma(lemma);
+  }
 
-    public String cleanUpLemma( String lemma )
-    {
-        return StringUtils.replaceAll( lemma , "!" , "" );
+  /**
+   * Clean up lemma.
+   *
+   * @param lemma The lemma to clean.
+   * @return The clean lemma.
+   *     <p>A lemma may contain extraneous "!" characters added to ensure a specific ending is
+   *     retained. The "!" marks are removed here.
+   */
+  public String cleanUpLemma(String lemma) {
+    return StringUtils.replaceAll(lemma, "!", "");
+  }
+
+  /**
+   * Returns a lemma given a spelling.
+   *
+   * @param spelling The spelling.
+   * @return The lemma. The spelling is returned if a lemma cannot be found.
+   */
+  public String lemmatize(String spelling) {
+    String result = spelling;
+
+    //  Don't bother trying to lemmatize
+    //  abbreviations or numbers.
+
+    if (cantLemmatize(spelling)) {
+      return spelling;
+    }
+    //  Check all irregular forms first.
+
+    for (Iterator<String> iterator = irregularFormsWordClasses.iterator(); iterator.hasNext(); ) {
+      String wordClass = iterator.next().toLowerCase();
+
+      result = irregularForms.get(wordClass, spelling);
+
+      if (result != null) {
+        if (!result.equals(spelling)) {
+          return cleanUpLemma(result);
+        }
+      }
+    }
+    //  Check all rules.
+
+    String lemma = spelling.toLowerCase();
+
+    for (Iterator<String> iterator = rulesWordClasses.iterator(); iterator.hasNext(); ) {
+      String wordClass = iterator.next().toLowerCase();
+
+      List<LemmatizerRule> rulesForWordClass = rules.get(wordClass);
+
+      if ((rulesForWordClass != null) && (rulesForWordClass.size() > 0)) {
+        LemmatizerRule[] wordClassRules =
+            (LemmatizerRule[])
+                rulesForWordClass.toArray(new LemmatizerRule[rulesForWordClass.size()]);
+
+        for (int i = 0; i < wordClassRules.length; i++) {
+          String newLemma = wordClassRules[i].apply(lemma, dictionary);
+
+          if (!newLemma.equals(lemma)) {
+            return cleanUpLemma(newLemma);
+          }
+        }
+      }
     }
 
-    /** Returns a lemma given a spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return The lemma.  The spelling is returned if a lemma
-     *              cannot be found.
-     */
-
-     public String lemmatize( String spelling )
-     {
-        String result           = spelling;
-
-                                //  Don't bother trying to lemmatize
-                                //  abbreviations or numbers.
-
-        if ( cantLemmatize( spelling ) )
-        {
-            return spelling;
-        }
-                                //  Check all irregular forms first.
-
-        for (   Iterator<String> iterator   =
-                    irregularFormsWordClasses.iterator() ;
-                iterator.hasNext() ; )
-        {
-            String wordClass    = iterator.next().toLowerCase();
-
-            result              = irregularForms.get( wordClass , spelling );
-
-            if ( result != null )
-            {
-                if ( !result.equals( spelling ) )
-                {
-                    return cleanUpLemma( result );
-                }
-            }
-        }
-                                //  Check all rules.
-
-        String lemma    = spelling.toLowerCase();
-
-        for (   Iterator<String> iterator   = rulesWordClasses.iterator() ;
-                iterator.hasNext() ; )
-        {
-            String wordClass    = iterator.next().toLowerCase();
-
-            List<LemmatizerRule> rulesForWordClass  =
-                rules.get( wordClass );
-
-            if  (   ( rulesForWordClass != null ) &&
-                    ( rulesForWordClass.size() > 0 )
-                )
-            {
-                LemmatizerRule[] wordClassRules =
-                    (LemmatizerRule[])rulesForWordClass.toArray(
-                        new LemmatizerRule[ rulesForWordClass.size() ] );
-
-                for ( int i = 0 ; i < wordClassRules.length ; i++ )
-                {
-                    String newLemma =
-                        wordClassRules[ i ].apply( lemma , dictionary );
-
-                    if ( !newLemma.equals( lemma ) )
-                    {
-                        return cleanUpLemma( newLemma );
-                    }
-                }
-            }
-        }
-
-        if ( ( result == null ) || ( result.length() == 0 ) )
-        {
-            result = spelling;
-        }
-
-        return cleanUpLemma( result );
+    if ((result == null) || (result.length() == 0)) {
+      result = spelling;
     }
+
+    return cleanUpLemma(result);
+  }
 }
 
 /*
@@ -405,6 +303,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

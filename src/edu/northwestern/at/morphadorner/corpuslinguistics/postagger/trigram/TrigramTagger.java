@@ -2,400 +2,292 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.trigram;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.logger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.contextual.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.lexical.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.logger.*;
 import edu.northwestern.at.utils.math.*;
+import java.util.*;
 
-/** Trigram Part of Speech tagger.
+/**
+ * Trigram Part of Speech tagger.
  *
- *  <p>
- *  The trigram part of speech tagger assigns tags to words in a sentence
- *  assigning the most probable set of tags as determined by a trigram
- *  hidden Markov model given the possible tags of the previous words.
- *  The Viterbi algorithm is used to reduce the
- *  amount of computation required to find the optimal tag assignments.
- *  </p>
+ * <p>The trigram part of speech tagger assigns tags to words in a sentence assigning the most
+ * probable set of tags as determined by a trigram hidden Markov model given the possible tags of
+ * the previous words. The Viterbi algorithm is used to reduce the amount of computation required to
+ * find the optimal tag assignments.
  */
+public class TrigramTagger extends AbstractPartOfSpeechTagger implements PartOfSpeechTagger {
+  /** True for debug output. */
+  protected boolean debug = false;
 
-public class TrigramTagger
-    extends AbstractPartOfSpeechTagger
-    implements PartOfSpeechTagger
-{
-    /** True for debug output. */
+  /** Contextual probabilities for a word in a sentence. */
+  protected Map3D<String, String, String, Probability> contextualProbabilities =
+      Map3DFactory.createNewMap3D();
 
-    protected boolean debug     = false;
+  /** Total number of states rejected by beam search criterion. */
+  protected int beamSearchRejections = 0;
 
-    /** Contextual probabilities for a word in a sentence.
-     */
+  /** Viterbi trellis for tags and probability scores. */
+  protected Viterbi viterbi = new Viterbi();
 
-    protected Map3D<String, String, String, Probability>
-        contextualProbabilities = Map3DFactory.createNewMap3D();
+  /** Count of lines tagged. */
+  protected int linesTagged = 0;
 
-    /** Total number of states rejected by beam search criterion.
-     */
+  /** Count of words tagged. */
+  protected int wordsTagged = 0;
 
-    protected int beamSearchRejections  = 0;
+  /** Create a trigram tagger. */
+  public TrigramTagger() {
+    super();
+    //  Get a lexical smoother.
+    lexicalSmoother = LexicalSmootherFactory.newLexicalSmoother();
 
-    /** Viterbi trellis for tags and probability scores.
-     */
+    lexicalSmoother.setPartOfSpeechTagger(this);
 
-    protected Viterbi viterbi   = new Viterbi();
+    //  Get a contextual smoother.
 
-    /** Count of lines tagged. */
+    contextualSmoother = ContextualSmootherFactory.newContextualSmoother();
 
-    protected int linesTagged   = 0;
+    contextualSmoother.setPartOfSpeechTagger(this);
+  }
 
-    /** Count of words tagged. */
+  /**
+   * See if tagger uses a probability transition matrix.
+   *
+   * @return True since trigram tagger uses a probability transition matrix.
+   */
+  public boolean usesTransitionProbabilities() {
+    return true;
+  }
 
-    protected int wordsTagged   = 0;
+  /** Report end of tagging statistics. */
+  protected void reportEndOfTaggingStats() {
+    //  Report cache usage.
+    if (debug) {
+      logger.logDebug(
+          "      # of cached lexical probabilties   : "
+              + lexicalSmoother.cachedProbabilitiesCount());
 
-    /** Create a trigram tagger.
-     */
+      logger.logDebug(
+          "      # of cached contextual probabilties: "
+              + contextualSmoother.cachedProbabilitiesCount());
 
-    public TrigramTagger()
-    {
-        super();
-                                //  Get a lexical smoother.
-        lexicalSmoother =
-            LexicalSmootherFactory.newLexicalSmoother();
+      logger.logDebug("      # of states rejected by beam search: " + beamSearchRejections);
 
-        lexicalSmoother.setPartOfSpeechTagger( this );
-
-                                //  Get a contextual smoother.
-
-        contextualSmoother  =
-            ContextualSmootherFactory.newContextualSmoother();
-
-        contextualSmoother.setPartOfSpeechTagger( this );
+      if (retagger != null) {
+        logger.logDebug(
+            "      # of corrections applied by rules  : " + retagger.getRuleCorrections());
+      }
     }
 
-    /** See if tagger uses a probability transition matrix.
-     *
-     *  @return     True since trigram tagger uses a probability
-     *                  transition matrix.
-     */
+    logger.logInfo(
+        "      lines: "
+            + Formatters.formatIntegerWithCommas(linesTagged)
+            + "; words: "
+            + Formatters.formatIntegerWithCommas(wordsTagged));
+  }
 
-    public boolean usesTransitionProbabilities()
-    {
-        return true;
+  /**
+   * Tag a list of sentences.
+   *
+   * @param sentences The list of sentences.
+   *     <p>The sentences are a {@link java.util.List} of {@link java.util.List}s of words to be
+   *     tagged. Each sentence is represented as a list of words.
+   */
+  public List<List<AdornedWord>> tagSentences(List<List<String>> sentences) {
+    //  Tag the words in the sentences.
+
+    List<List<AdornedWord>> result = super.tagSentences(sentences);
+
+    //  Report end of tagging statistics.
+
+    reportEndOfTaggingStats();
+
+    return result;
+  }
+
+  /**
+   * Tag a list of sentences containing adorned words.
+   *
+   * @param sentences The list of sentences.
+   * @param regIDSet Word IDs of words requiring special handling.
+   *     <p>The sentences are a {@link java.util.List} of {@link java.util.List}s of adorn words to
+   *     be tagged. Each sentence is represented as a list of words.
+   */
+  public <T extends AdornedWord> List<List<T>> tagAdornedWordSentences(
+      List<List<T>> sentences, Set<String> regIDSet) {
+    //  Tag the words in the sentences.
+
+    List<List<T>> result = super.tagAdornedWordSentences(sentences, regIDSet);
+
+    //  Report end of tagging statistics.
+
+    reportEndOfTaggingStats();
+
+    return result;
+  }
+
+  /**
+   * Tag a sentence comprised of a list of adorned words.
+   *
+   * @param taggedSentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
+   * @return An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
+   *     of the words in the sentence tagged with parts of speech.
+   *     <p>The input sentence is a {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} of words to be
+   *     tagged. The output is the same list of words with parts of speech added.
+   */
+  public <T extends AdornedWord> List<T> tagAdornedWordList(List<T> taggedSentence) {
+    //  Reset Viterbi trellis.
+    viterbi.reset();
+    //  Assume period as previous word tags.
+
+    List<String> previousTags = ListFactory.createNewList();
+
+    previousTags.add(".");
+
+    List<String> previousPreviousTags = ListFactory.createNewList();
+
+    previousPreviousTags.add(".");
+
+    //  Part of speech tags for a word.
+
+    List<String> tags = null;
+    AdornedWord word = null;
+
+    //  Loop over words in sentence.
+
+    for (int i = 0; i < taggedSentence.size(); i++) {
+      //  Get next word.
+
+      word = taggedSentence.get(i);
+
+      //  Get part of speech tags for this
+      //  this word.
+
+      tags = getTagsForWord(word.getStandardSpelling());
+
+      //  Process word.  The returned tags
+      //  for the current word are those which
+      //  passed the Viterbi beam search
+      //  criterion.  These possibly pruned tags
+      //  will be the previous tags for the
+      //  next word.
+      tags = processWord(i, word.getStandardSpelling(), previousPreviousTags, previousTags, tags);
+      //  These tags will be previous tags
+      //  for the next word.
+
+      previousPreviousTags = previousTags;
+      previousTags = tags;
     }
+    //  Retrieve optimal part of speech tags and
+    //  adorn each word with its proper tag.
 
-    /** Report end of tagging statistics.
-     */
+    List<String> optimalTags = viterbi.optimalTags(taggedSentence.size(), tags);
 
-    protected void reportEndOfTaggingStats()
-    {
-                                //  Report cache usage.
-        if ( debug )
-        {
-            logger.logDebug
-            (
-                "      # of cached lexical probabilties   : " +
-                lexicalSmoother.cachedProbabilitiesCount()
-            );
+    for (int i = 0; i < taggedSentence.size(); i++) {
+      //  Get next word.
 
-            logger.logDebug
-            (
-                "      # of cached contextual probabilties: " +
-                contextualSmoother.cachedProbabilitiesCount()
-            );
+      word = taggedSentence.get(i);
 
-            logger.logDebug
-            (
-                "      # of states rejected by beam search: " +
-                beamSearchRejections
-            );
+      //  Add part of speech tag to word.
 
-            if ( retagger != null )
-            {
-                logger.logDebug
-                (
-                    "      # of corrections applied by rules  : " +
-                    retagger.getRuleCorrections()
-                );
-            }
+      word.setPartsOfSpeech((String) optimalTags.get(i));
+    }
+    //  Increment total count of states
+    //  rejections by beam search criterion.
+
+    beamSearchRejections += viterbi.getBeamSearchRejections();
+
+    //  Increment counts of lines and
+    //  words tagged.
+    linesTagged++;
+    wordsTagged += taggedSentence.size();
+
+    if ((linesTagged % 1000) == 0) {
+      logger.logInfo(
+          "      lines: "
+              + Formatters.formatIntegerWithCommas(linesTagged)
+              + "; words: "
+              + Formatters.formatIntegerWithCommas(wordsTagged));
+    }
+    //  We have a new finished sentence.
+
+    return taggedSentence;
+  }
+
+  /**
+   * Process a single word.
+   *
+   * @param wordIndex Index of word in sentence (starts at 0).
+   * @param word Word being processed.
+   * @param previousPreviousTags The previous word's previous word's tags.
+   * @param previousTags The previous word's tags.
+   * @param tags The current word's tags.
+   * @return Updated tag list.
+   */
+  protected List<String> processWord(
+      int wordIndex,
+      String word,
+      List<String> previousPreviousTags,
+      List<String> previousTags,
+      List<String> tags) {
+    //  Find tag with largest probability
+    //  combined with previous word's tag.
+
+    contextualProbabilities.clear();
+
+    int nTags = tags.size();
+    Probability[] lexicalProbs = new Probability[nTags];
+
+    for (int i = 0; i < nTags; i++) {
+      String tagI = (String) tags.get(i);
+
+      lexicalProbs[i] = lexicalSmoother.lexicalProbability(word, tagI);
+
+      for (int j = 0; j < previousTags.size(); j++) {
+        String previousTagJ = (String) previousTags.get(j);
+
+        for (int k = 0; k < previousPreviousTags.size(); k++) {
+          contextualProbabilities.put(
+              tagI,
+              previousTagJ,
+              previousPreviousTags.get(k),
+              contextualSmoother.contextualProbability(
+                  tagI, previousTagJ, previousPreviousTags.get(k)));
         }
-
-        logger.logInfo
-        (
-            "      lines: " +
-            Formatters.formatIntegerWithCommas( linesTagged ) +
-            "; words: " +
-            Formatters.formatIntegerWithCommas( wordsTagged )
-        );
+      }
     }
 
-    /** Tag a list of sentences.
-     *
-     *  @param  sentences   The list of sentences.
-     *
-     *  <p>
-     *  The sentences are a {@link java.util.List} of
-     *  {@link java.util.List}s of words to be tagged.
-     *  Each sentence is represented as a list of
-     *  words.
-     *  </p>
-     */
+    return viterbi.updateScore(
+        wordIndex, lexicalProbs, contextualProbabilities, tags, previousTags, previousPreviousTags);
+  }
 
-    public List<List<AdornedWord>> tagSentences( List<List<String>> sentences )
-    {
-                                //  Tag the words in the sentences.
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
 
-        List<List<AdornedWord>> result  = super.tagSentences( sentences );
+    ((UsesLogger) lexicalSmoother).setLogger(logger);
+    ((UsesLogger) contextualSmoother).setLogger(logger);
+    viterbi.setLogger(logger);
+  }
 
-                                //  Report end of tagging statistics.
-
-        reportEndOfTaggingStats();
-
-        return result;
-    }
-
-    /** Tag a list of sentences containing adorned words.
-     *
-     *  @param  sentences   The list of sentences.
-     *  @param  regIDSet    Word IDs of words requiring special handling.
-     *
-     *  <p>
-     *  The sentences are a {@link java.util.List} of
-     *  {@link java.util.List}s of adorn words to be tagged.
-     *  Each sentence is represented as a list of
-     *  words.
-     *  </p>
-     */
-
-    public<T extends AdornedWord> List<List<T>> tagAdornedWordSentences
-    (
-        List<List<T>> sentences ,
-        Set<String> regIDSet
-    )
-    {
-                                //  Tag the words in the sentences.
-
-        List<List<T>> result    =
-            super.tagAdornedWordSentences( sentences , regIDSet );
-
-                                //  Report end of tagging statistics.
-
-        reportEndOfTaggingStats();
-
-        return result;
-    }
-
-    /** Tag a sentence comprised of a list of adorned words.
-     *
-     *  @param  taggedSentence  The sentence as an
-     *                          {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
-     *
-     *  @return                 An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *                          of the words in the sentence tagged with
-     *                          parts of speech.
-     *
-     *  <p>
-     *  The input sentence is a
-     *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *  of words to be tagged.  The output is the same list of words with
-     *  parts of speech added.
-     *  </p>
-     */
-
-    public<T extends AdornedWord> List<T> tagAdornedWordList
-    (
-        List<T> taggedSentence
-    )
-    {
-                                //  Reset Viterbi trellis.
-        viterbi.reset();
-                                //  Assume period as previous word tags.
-
-        List<String> previousTags   =
-            ListFactory.createNewList();
-
-        previousTags.add( "." );
-
-        List<String> previousPreviousTags   =
-            ListFactory.createNewList();
-
-        previousPreviousTags.add( "." );
-
-                                //  Part of speech tags for a word.
-
-        List<String> tags   = null;
-        AdornedWord word    = null;
-
-                                //  Loop over words in sentence.
-
-        for ( int i = 0 ; i < taggedSentence.size() ; i++ )
-        {
-                                //  Get next word.
-
-            word    = taggedSentence.get( i );
-
-                                //  Get part of speech tags for this
-                                //  this word.
-
-            tags    = getTagsForWord( word.getStandardSpelling() );
-
-                                //  Process word.  The returned tags
-                                //  for the current word are those which
-                                //  passed the Viterbi beam search
-                                //  criterion.  These possibly pruned tags
-                                //  will be the previous tags for the
-                                //  next word.
-            tags    =
-                processWord
-                (
-                    i ,
-                    word.getStandardSpelling() ,
-                    previousPreviousTags ,
-                    previousTags ,
-                    tags
-                );
-                                //  These tags will be previous tags
-                                //  for the next word.
-
-            previousPreviousTags    = previousTags;
-            previousTags            = tags;
-        }
-                                //  Retrieve optimal part of speech tags and
-                                //  adorn each word with its proper tag.
-
-        List<String> optimalTags    =
-            viterbi.optimalTags( taggedSentence.size() , tags );
-
-        for ( int i = 0 ; i < taggedSentence.size() ; i++ )
-        {
-                                //  Get next word.
-
-            word    = taggedSentence.get( i );
-
-                                //  Add part of speech tag to word.
-
-            word.setPartsOfSpeech( (String)optimalTags.get( i ) );
-        }
-                                //  Increment total count of states
-                                //  rejections by beam search criterion.
-
-        beamSearchRejections    += viterbi.getBeamSearchRejections();
-
-                                //  Increment counts of lines and
-                                //  words tagged.
-        linesTagged++;
-        wordsTagged += taggedSentence.size();
-
-        if ( ( linesTagged % 1000 ) == 0 )
-        {
-            logger.logInfo
-            (
-                "      lines: " +
-                Formatters.formatIntegerWithCommas( linesTagged ) +
-                "; words: " +
-                Formatters.formatIntegerWithCommas( wordsTagged )
-            );
-        }
-                                //  We have a new finished sentence.
-
-        return taggedSentence;
-    }
-
-    /** Process a single word.
-     *
-     *  @param  wordIndex               Index of word in sentence
-     *                                      (starts at 0).
-     *  @param  word                    Word being processed.
-     *  @param  previousPreviousTags    The previous word's previous
-     *                                      word's tags.
-     *  @param  previousTags            The previous word's tags.
-     *  @param  tags                    The current word's tags.
-     *
-     *  @return                         Updated tag list.
-     */
-
-    protected List<String> processWord
-    (
-        int wordIndex ,
-        String word ,
-        List<String> previousPreviousTags ,
-        List<String> previousTags ,
-        List<String> tags
-    )
-    {
-                                //  Find tag with largest probability
-                                //  combined with previous word's tag.
-
-        contextualProbabilities.clear();
-
-        int nTags                   = tags.size();
-        Probability[] lexicalProbs  = new Probability[ nTags ];
-
-        for ( int i = 0 ; i < nTags ; i++ )
-        {
-            String tagI = (String)tags.get( i );
-
-            lexicalProbs[ i ]   =
-                lexicalSmoother.lexicalProbability( word , tagI );
-
-            for ( int j = 0 ; j < previousTags.size() ; j++ )
-            {
-                String previousTagJ = (String)previousTags.get( j );
-
-                for ( int k = 0 ; k < previousPreviousTags.size() ; k++ )
-                {
-                    contextualProbabilities.put
-                    (
-                        tagI,
-                        previousTagJ ,
-                        previousPreviousTags.get( k ) ,
-                        contextualSmoother.contextualProbability
-                        (
-                            tagI ,
-                            previousTagJ ,
-                            previousPreviousTags.get( k )
-                        )
-                    );
-                }
-            }
-        }
-
-        return viterbi.updateScore
-        (
-            wordIndex ,
-            lexicalProbs ,
-            contextualProbabilities ,
-            tags ,
-            previousTags ,
-            previousPreviousTags
-        );
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-
-        ((UsesLogger)lexicalSmoother).setLogger( logger );
-        ((UsesLogger)contextualSmoother).setLogger( logger );
-        viterbi.setLogger( logger );
-    }
-
-    /** Return tagger description.
-     *
-     *  @return     Tagger description.
-     */
-
-    public String toString()
-    {
-        return "Trigram tagger";
-    }
+  /**
+   * Return tagger description.
+   *
+   * @return Tagger description.
+   */
+  public String toString() {
+    return "Trigram tagger";
+  }
 }
 
 /*
@@ -438,6 +330,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

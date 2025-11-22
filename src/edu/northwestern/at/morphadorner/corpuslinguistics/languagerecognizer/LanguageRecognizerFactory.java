@@ -5,107 +5,74 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.languagerecognizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** LanguageRecognizer factory.
- */
+/** LanguageRecognizer factory. */
+public class LanguageRecognizerFactory {
+  /**
+   * Get a name recognizer.
+   *
+   * @return The name recognizer.
+   */
+  public static LanguageRecognizer newLanguageRecognizer() {
+    String className = System.getProperty("languagerecognizer.class");
 
-public class LanguageRecognizerFactory
-{
-    /** Get a name recognizer.
-     *
-     *  @return     The name recognizer.
-     */
-
-    public static LanguageRecognizer newLanguageRecognizer()
-    {
-        String className    =
-            System.getProperty( "languagerecognizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultLanguageRecognizer";
-        }
-
-        return newLanguageRecognizer( className );
+    if (className == null) {
+      className = "DefaultLanguageRecognizer";
     }
 
-    /** Get a name recognizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The name recognizer.
-     */
+    return newLanguageRecognizer(className);
+  }
 
-    public static LanguageRecognizer newLanguageRecognizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a name recognizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The name recognizer.
+   */
+  public static LanguageRecognizer newLanguageRecognizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "languagerecognizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultLanguageRecognizer";
-        }
-
-        return newLanguageRecognizer( className );
+    if (properties != null) {
+      className = properties.getProperty("languagerecognizer.class");
     }
 
-    /** Get a name recognizer of a specified class name.
-     *
-     *  @param  className   Class name for the name recognizer.
-     *
-     *  @return             The name recognizer.
-     */
-
-    public static LanguageRecognizer newLanguageRecognizer( String className )
-    {
-        LanguageRecognizer languageRecognizer   = null;
-
-        try
-        {
-            languageRecognizer  =
-                (LanguageRecognizer)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    LanguageRecognizerFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                languageRecognizer  =
-                    (LanguageRecognizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create language recognizer of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    languageRecognizer  = new DefaultLanguageRecognizer();
-                }
-                catch ( Exception e3 )
-                {
-                    System.err.println(
-                        "Unable to create default language recognizer." );
-                }
-            }
-        }
-
-        return languageRecognizer;
+    if (className == null) {
+      className = "DefaultLanguageRecognizer";
     }
+
+    return newLanguageRecognizer(className);
+  }
+
+  /**
+   * Get a name recognizer of a specified class name.
+   *
+   * @param className Class name for the name recognizer.
+   * @return The name recognizer.
+   */
+  public static LanguageRecognizer newLanguageRecognizer(String className) {
+    LanguageRecognizer languageRecognizer = null;
+
+    try {
+      languageRecognizer = (LanguageRecognizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(LanguageRecognizerFactory.class.getName()) + "." + className;
+
+      try {
+        languageRecognizer = (LanguageRecognizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create language recognizer of class " + fixedClassName + ", using default.");
+
+        try {
+          languageRecognizer = new DefaultLanguageRecognizer();
+        } catch (Exception e3) {
+          System.err.println("Unable to create default language recognizer.");
+        }
+      }
+    }
+
+    return languageRecognizer;
+  }
 }
 
 /*
@@ -148,6 +115,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

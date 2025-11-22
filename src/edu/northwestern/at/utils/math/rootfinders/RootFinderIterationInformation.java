@@ -4,28 +4,18 @@ package edu.northwestern.at.utils.math.rootfinders;
 
 import edu.northwestern.at.utils.math.*;
 
-/** Interface for returning iteration information from root finders.
- */
-
-public interface RootFinderIterationInformation
-{
-    /** Interface for returning iteration information from root finders.
-     *
-     *  @param  x                       Current value of x.
-     *  @param  fx                      Current function value at x.
-     *  @param  dfx                     Current function derivative value at x.
-     *                                  Set to NAN if not used by a specific
-     *                                  root finder method.
-     *  @param  currentIteration        Current iteration number.
-     */
-
-    public void iterationInformation
-    (
-        double x ,
-        double fx ,
-        double dfx ,
-        int currentIteration
-    );
+/** Interface for returning iteration information from root finders. */
+public interface RootFinderIterationInformation {
+  /**
+   * Interface for returning iteration information from root finders.
+   *
+   * @param x Current value of x.
+   * @param fx Current function value at x.
+   * @param dfx Current function derivative value at x. Set to NAN if not used by a specific root
+   *     finder method.
+   * @param currentIteration Current iteration number.
+   */
+  public void iterationInformation(double x, double fx, double dfx, int currentIteration);
 }
 
 /*
@@ -68,5 +58,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

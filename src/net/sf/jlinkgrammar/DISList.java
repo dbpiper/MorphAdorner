@@ -1,11 +1,7 @@
 package net.sf.jlinkgrammar;
 
-/**
- * TODO add javadoc
- *
- */
+/** TODO add javadoc */
 public class DISList {
-    DISList next;
-    DISNode dn;
-
+  DISList next;
+  DISNode dn;
 }

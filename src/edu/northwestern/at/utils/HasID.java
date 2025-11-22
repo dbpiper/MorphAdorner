@@ -2,17 +2,14 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-/** HasID -- interface for objects which have ID fields.
- */
-
-public interface HasID
-{
-    /** Get ID.
-     *
-     *  @return     The ID.
-     */
-
-    public String getID();
+/** HasID -- interface for objects which have ID fields. */
+public interface HasID {
+  /**
+   * Get ID.
+   *
+   * @return The ID.
+   */
+  public String getID();
 }
 
 /*
@@ -55,6 +52,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

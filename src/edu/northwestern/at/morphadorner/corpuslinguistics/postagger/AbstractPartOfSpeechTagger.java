@@ -2,896 +2,707 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.logger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.contextual.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.lexical.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.transitionmatrix.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.logger.*;
+import java.util.*;
 
-/** Abstract Part of Speech tagger.
+/**
+ * Abstract Part of Speech tagger.
  *
- *  <p>
- *  Provides default implementations for all of the PartOfSpeech
- *  interface methods.  To create a new PartOfSpeech tagger,
- *  extend this class and override methods as needed.  You must
- *  override the tagSentence method as a minimum.
- *  </p>
+ * <p>Provides default implementations for all of the PartOfSpeech interface methods. To create a
+ * new PartOfSpeech tagger, extend this class and override methods as needed. You must override the
+ * tagSentence method as a minimum.
  */
+public abstract class AbstractPartOfSpeechTagger extends IsCloseableObject
+    implements PartOfSpeechTagger, IsCloseable, UsesLexicon, UsesLogger {
+  /** Static lexicon used by tagger. */
+  protected Lexicon lexicon;
 
-abstract public class AbstractPartOfSpeechTagger
-    extends IsCloseableObject
-    implements PartOfSpeechTagger, IsCloseable, UsesLexicon, UsesLogger
-{
-    /** Static lexicon used by tagger. */
+  /** Dynamic lexicon built on-the-fly for words not in static lexicon. */
+  protected Lexicon dynamicLexicon;
 
-    protected Lexicon lexicon;
+  /** Transition matrix used by tagger. */
+  protected TransitionMatrix transitionMatrix;
 
-    /** Dynamic lexicon built on-the-fly for words not in static lexicon. */
+  /** Context rules. */
+  protected String[] contextRules;
 
-    protected Lexicon dynamicLexicon;
+  /** Lexical rules. */
+  protected String[] lexicalRules;
 
-    /** Transition matrix used by tagger. */
+  /** Lexical smoother. */
+  protected LexicalSmoother lexicalSmoother;
 
-    protected TransitionMatrix transitionMatrix;
+  /** Contextual smoother. */
+  protected ContextualSmoother contextualSmoother;
 
-    /** Context rules. */
+  /** Fixup retagger. */
+  protected PartOfSpeechRetagger retagger;
 
-    protected String[] contextRules;
+  /** Part of speech guesser for words not in lexicon. */
+  protected PartOfSpeechGuesser partOfSpeechGuesser;
 
-    /** Lexical rules. */
+  /** PostTokenizer for mapping raw tokens to initial spellings. */
+  protected PostTokenizer postTokenizer;
 
-    protected String[] lexicalRules;
+  /** Number of corrections applied by rules. */
+  protected int ruleCorrections = 0;
 
-    /** Lexical smoother. */
+  /** Logger used for output. */
+  protected Logger logger;
 
-    protected LexicalSmoother lexicalSmoother;
+  /** Create tagger. */
+  public AbstractPartOfSpeechTagger() {
+    //  Default lexicons are empty.
 
-    /** Contextual smoother. */
+    lexicon = LexiconFactory.newLexicon();
+    dynamicLexicon = LexiconFactory.newLexicon();
 
-    protected ContextualSmoother contextualSmoother;
+    //  Create post tokenizer.
 
-    /** Fixup retagger. */
+    postTokenizer = PostTokenizerFactory.newPostTokenizer();
 
-    protected PartOfSpeechRetagger retagger;
+    //  Create dummy logger.
 
-    /** Part of speech guesser for words not in lexicon. */
+    logger = new DummyLogger();
+  }
 
-    protected PartOfSpeechGuesser partOfSpeechGuesser;
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    /** PostTokenizer for mapping raw tokens to initial spellings. */
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-    protected PostTokenizer postTokenizer;
+  /**
+   * See if tagger uses context rules.
+   *
+   * @return True if tagger uses context rules.
+   */
+  public boolean usesContextRules() {
+    return false;
+  }
 
-    /** Number of corrections applied by rules. */
+  /**
+   * See if tagger uses lexical rules.
+   *
+   * @return True if tagger uses lexical rules.
+   */
+  public boolean usesLexicalRules() {
+    return false;
+  }
 
-    protected int ruleCorrections   = 0;
+  /**
+   * See if tagger uses a probability transition matrix.
+   *
+   * @return True if tagger uses probability transition matrix.
+   */
+  public boolean usesTransitionProbabilities() {
+    return false;
+  }
 
-    /** Logger used for output. */
+  /**
+   * Set context rules for tagging.
+   *
+   * @param contextRules String array of context rules.
+   * @throws InvalidRuleException if a rule is bad.
+   *     <p>For taggers which do not use context rules, this is a no-op.
+   */
+  public void setContextRules(String[] contextRules) throws InvalidRuleException {
+    this.contextRules = contextRules;
 
-    protected Logger logger;
+    //  Set context rules in fixup retagger
+    //  if it exists.
 
-    /** Create tagger.
-     */
+    if (retagger != null) {
+      retagger.setContextRules(contextRules);
+    }
+  }
 
-    public AbstractPartOfSpeechTagger()
-    {
-                                //  Default lexicons are empty.
+  /**
+   * Set lexical rules for tagging.
+   *
+   * @param lexicalRules String array of lexical rules.
+   * @throws InvalidRuleException if a rule is bad.
+   *     <p>For taggers which do not use lexical rules, this is a no-op.
+   */
+  public void setLexicalRules(String[] lexicalRules) throws InvalidRuleException {
+    this.lexicalRules = lexicalRules;
 
-        lexicon         = LexiconFactory.newLexicon();
-        dynamicLexicon  = LexiconFactory.newLexicon();
+    //  Set lexicl rules in fixup tagger
+    //  if it exists.
 
-                                //  Create post tokenizer.
+    if (retagger != null) {
+      retagger.setLexicalRules(lexicalRules);
+    }
+  }
 
-        postTokenizer   = PostTokenizerFactory.newPostTokenizer();
+  /**
+   * Get the static word lexicon.
+   *
+   * @return The static word lexicon.
+   */
+  public Lexicon getLexicon() {
+    return lexicon;
+  }
 
-                                //  Create dummy logger.
+  /**
+   * Get the dynamic word lexicon.
+   *
+   * @return The dynamic lexicon.
+   */
+  public Lexicon getDynamicLexicon() {
+    return dynamicLexicon;
+  }
 
-        logger          = new DummyLogger();
+  /**
+   * Get the lexicon associated with a specific word.
+   *
+   * @param word The word whose source lexicon is sought.
+   * @return The lexicon.
+   *     <p>Most words do not have a source lexicon defined, in which case they come from the main
+   *     static word lexicon. Usually only words derived by a suffix analysis have a source lexicon
+   *     defined, which will of course be the suffix lexicon.
+   */
+  public Lexicon getLexicon(String word) {
+    Lexicon result = lexicon;
+
+    if (partOfSpeechGuesser != null) {
+      result = partOfSpeechGuesser.getCachedLexiconForWord(word);
     }
 
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
+    return result;
+  }
 
-    public Logger getLogger()
-    {
-        return logger;
+  /**
+   * Set the lexicon.
+   *
+   * @param lexicon Lexicon used for tagging.
+   */
+  public void setLexicon(Lexicon lexicon) {
+    this.lexicon = lexicon;
+
+    //  Set lexicon into fixup tagger
+    //  if it exists.
+
+    if (retagger != null) {
+      retagger.setLexicon(this.lexicon);
+    }
+  }
+
+  /**
+   * Get tag transition probabilities matrix.
+   *
+   * @return Tag probabilities transition matrix. May be null for taggers which do not use a
+   *     transition matrix.
+   */
+  public TransitionMatrix getTransitionMatrix() {
+    return transitionMatrix;
+  }
+
+  /**
+   * Set tag transition probabilities matrix.
+   *
+   * @param transitionMatrix Tag probabilities transition matrix.
+   *     <p>For taggers which do not use transition matrices, this is a no-op.
+   */
+  public void setTransitionMatrix(TransitionMatrix transitionMatrix) {
+    this.transitionMatrix = transitionMatrix;
+  }
+
+  /**
+   * Get part of speech guesser.
+   *
+   * @return The part of speech guesser.
+   */
+  public PartOfSpeechGuesser getPartOfSpeechGuesser() {
+    return this.partOfSpeechGuesser;
+  }
+
+  /**
+   * Set part of speech guesser.
+   *
+   * @param partOfSpeechGuesser The part of speech guesser.
+   */
+  public void setPartOfSpeechGuesser(PartOfSpeechGuesser partOfSpeechGuesser) {
+    this.partOfSpeechGuesser = partOfSpeechGuesser;
+  }
+
+  /**
+   * Get part of speech retagger.
+   *
+   * @return The part of speech retagger. May be null.
+   */
+  public PartOfSpeechRetagger getRetagger() {
+    return retagger;
+  }
+
+  /**
+   * Set part of speech retagger.
+   *
+   * @param retagger The part of speech retagger.
+   */
+  public void setRetagger(PartOfSpeechRetagger retagger) {
+    this.retagger = retagger;
+  }
+
+  /**
+   * Get the postTokenizer.
+   *
+   * @return The postTokenizer.
+   */
+  public PostTokenizer getPostTokenizer() {
+    return postTokenizer;
+  }
+
+  /**
+   * Set the postTokenizer.
+   *
+   * @param postTokenizer The postTokenizer.
+   */
+  public void setPostTokenizer(PostTokenizer postTokenizer) {
+    this.postTokenizer = postTokenizer;
+  }
+
+  /**
+   * Get the contextual smoother.
+   *
+   * @return The contextual smoother.
+   */
+  public ContextualSmoother getContextualSmoother() {
+    return contextualSmoother;
+  }
+
+  /**
+   * Set the contextual smoother.
+   *
+   * @param contextualSmoother The contextual smoother.
+   */
+  public void setContextualSmoother(ContextualSmoother contextualSmoother) {
+    this.contextualSmoother = contextualSmoother;
+  }
+
+  /**
+   * Get the lexical smoother.
+   *
+   * @return The lexical smoother.
+   */
+  public LexicalSmoother getLexicalSmoother() {
+    return lexicalSmoother;
+  }
+
+  /**
+   * Set the lexical smoother.
+   *
+   * @param lexicalSmoother The lexical smoother.
+   */
+  public void setLexicalSmoother(LexicalSmoother lexicalSmoother) {
+    this.lexicalSmoother = lexicalSmoother;
+  }
+
+  /**
+   * Get potential part of speech tags for a word.
+   *
+   * @param word The word whose part of speech tags we want.
+   * @return List of part of speech tags. May be null or empty.
+   *     <p>When the word does not appear in the lexicon, the part of speech guesser is used to
+   *     determine the tags based upon features of the word (suffix analysis, etc.).
+   */
+  public List<String> getTagsForWord(String word) {
+    //  Get part of speech tags for this word
+    //  from main or dynamic lexicon.
+
+    Set<String> tagSet = null;
+
+    //  Word in main lexicon?
+
+    if (lexicon.containsEntry(word)) {
+      tagSet = lexicon.getCategoriesForEntry(word);
+    }
+    //  Word in dynamic lexicon?
+
+    else if (dynamicLexicon.containsEntry(word)) {
+      tagSet = dynamicLexicon.getCategoriesForEntry(word);
+    }
+    //  Word in neither lexicon.
+    //  Get potential parts of speech
+    //  and counts from guesser.
+    //  Add the guesser results to the
+    //  dynamic lexicon.
+    else {
+      //  If we don't have a part of speech
+      //  guesser, create one now.
+
+      if (partOfSpeechGuesser == null) {
+        createPartOfSpeechGuesser();
+      }
+
+      Map<String, MutableInteger> tagMap = partOfSpeechGuesser.guessPartsOfSpeech(word);
+
+      tagSet = tagMap.keySet();
+
+      Iterator<String> iterator = tagSet.iterator();
+
+      while (iterator.hasNext()) {
+        String category = iterator.next();
+        MutableInteger count = tagMap.get(category);
+
+        dynamicLexicon.updateEntryCount(word, category, "*", count.intValue());
+      }
     }
 
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
+    List<String> result = ListFactory.createNewList(tagSet);
 
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
+    return result;
+  }
+
+  /**
+   * Get count of times a word appears with a given tag.
+   *
+   * @param word The word.
+   * @param tag The part of speech tag.
+   * @return The number of times the word appears with the given tag.
+   *     <p>When the word does not appear in the lexicon, the part of speech guesser is used to
+   *     compute a count based upon features of the word (suffix analysis, etc.).
+   */
+  public int getTagCount(String word, String tag) {
+    //  Total number of times this word
+    //  appeared with this tag in the
+    //  training data.
+    int result = 0;
+
+    //  Word in main lexicon?
+
+    if (lexicon.containsEntry(word)) {
+      result = lexicon.getCategoryCount(word, tag);
+    }
+    //  Word in dynamic lexicon?
+
+    else if (dynamicLexicon.containsEntry(word)) {
+      result = dynamicLexicon.getCategoryCount(word, tag);
+    }
+    //  Word in neither lexicon.
+    //  Add the guesser results to the
+    //  dynamic lexicon.
+    else {
+      getTagsForWord(word);
+
+      result = dynamicLexicon.getCategoryCount(word, tag);
     }
 
-    /** See if tagger uses context rules.
-     *
-     *  @return     True if tagger uses context rules.
-     */
+    return Math.max(result, 1);
+  }
 
-    public boolean usesContextRules()
-    {
-        return false;
+  /**
+   * Get the most common tag for a word.
+   *
+   * @param word The word.
+   * @return The most common part of speech tag for the word.
+   */
+  public String getMostCommonTag(String word) {
+    String result = "";
+
+    //  Word in main lexicon?
+
+    if (lexicon.containsEntry(word)) {
+      result = lexicon.getLargestCategory(word);
+    }
+    //  Word in dynamic lexicon?
+
+    else if (dynamicLexicon.containsEntry(word)) {
+      result = dynamicLexicon.getLargestCategory(word);
+    }
+    //  Word in neither lexicon.
+    //  Add the guesser results to the
+    //  dynamic lexicon.
+    else {
+      getTagsForWord(word);
+
+      result = dynamicLexicon.getLargestCategory(word);
     }
 
-    /** See if tagger uses lexical rules.
-     *
-     *  @return     True if tagger uses lexical rules.
-     */
+    return result;
+  }
 
-    public boolean usesLexicalRules()
-    {
-        return false;
+  /**
+   * Tag a list of sentences.
+   *
+   * @param sentences The list of sentences.
+   * @return The sentences with words adorned with parts of speech.
+   *     <p>The sentences are a {@link java.util.List} of {@link java.util.List}s of words to be
+   *     tagged. Each sentence is represented as a list of words. The output is a list of {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}s.
+   */
+  public List<List<AdornedWord>> tagSentences(List<List<String>> sentences) {
+    //  Holds list of tagged sentences.
+
+    List<List<AdornedWord>> output = ListFactory.createNewList();
+
+    //  Iterator over sentences.
+
+    Iterator<List<String>> sentencesIter = sentences.iterator();
+
+    //  Tag each sentence in list of sentences.
+
+    while (sentencesIter.hasNext()) {
+      //  Get next sentence,
+
+      List<String> sentence = sentencesIter.next();
+
+      //  Tag sentence and add to output list.
+
+      output.add(retagWords(tagSentence(sentence)));
     }
 
-    /** See if tagger uses a probability transition matrix.
-     *
-     *  @return     True if tagger uses probability transition matrix.
-     */
+    return output;
+  }
 
-    public boolean usesTransitionProbabilities()
-    {
-        return false;
+  /**
+   * Tag a list of sentences.
+   *
+   * @param sentences The list of sentences.
+   * @param regIDSet Set of word IDs of words requiring special handling.
+   * @return The sentences with words adorned with parts of speech.
+   *     <p>The sentences are a {@link java.util.List} of {@link java.util.List}s of adorned words
+   *     to be tagged. Each sentence is represented as a list of words. The output is a list of
+   *     {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}s.
+   */
+  public <T extends AdornedWord> List<List<T>> tagAdornedWordSentences(
+      List<List<T>> sentences, Set<String> regIDSet) {
+    //  Iterator over sentences.
+
+    Iterator<List<T>> sentencesIter = sentences.iterator();
+
+    //  Tag each sentence in list of sentences.
+
+    while (sentencesIter.hasNext()) {
+      //  Get next sentence,
+
+      List<T> sentence = sentencesIter.next();
+
+      //  Tag sentence and add to output list.
+
+      retagWords(tagAdornedWordSentence(sentence, regIDSet));
     }
 
-    /** Set context rules for tagging.
-     *
-     *  @param  contextRules    String array of context rules.
-     *
-     *  @throws InvalidRuleException if a rule is bad.
-     *
-     *  <p>
-     *  For taggers which do not use context rules, this is a no-op.
-     *  </p>
-     */
+    return sentences;
+  }
 
-    public void setContextRules( String[] contextRules )
-        throws InvalidRuleException
-    {
-        this.contextRules   = contextRules;
+  /**
+   * Retag words in a tagged sentence.
+   *
+   * @param taggedSentence The tagged sentence.
+   * @return The retagged sentence.
+   *     <p>This method calls the retagger, if any. If no retagger is defined, the input tagged
+   *     sentence is returned unchanged. Override this method to add custom retagging without the
+   *     use of a retagger.
+   */
+  public <T extends AdornedWord> List<T> retagWords(List<T> taggedSentence) {
+    //  Call fixup tagger to fix the
+    //  tagging produced by the bigram
+    //  tagger.
 
-                                //  Set context rules in fixup retagger
-                                //  if it exists.
-
-        if ( retagger != null )
-        {
-            retagger.setContextRules( contextRules );
-        }
+    if (retagger != null) {
+      return retagger.retagSentence(taggedSentence);
+    } else {
+      return taggedSentence;
     }
-
-    /** Set lexical rules for tagging.
-     *
-     *  @param  lexicalRules    String array of lexical rules.
-     *
-     *  @throws InvalidRuleException if a rule is bad.
-     *
-     *  <p>
-     *  For taggers which do not use lexical rules, this is a no-op.
-     *  </p>
-     */
-
-    public void setLexicalRules( String[] lexicalRules )
-        throws InvalidRuleException
-    {
-        this.lexicalRules   = lexicalRules;
-
-                                //  Set lexicl rules in fixup tagger
-                                //  if it exists.
-
-        if ( retagger != null )
-        {
-            retagger.setLexicalRules( lexicalRules );
-        }
-    }
-
-    /** Get the static word lexicon.
-     *
-     *  @return     The static word lexicon.
-     */
-
-    public Lexicon getLexicon()
-    {
-        return lexicon;
-    }
-
-    /** Get the dynamic word lexicon.
-     *
-     *  @return     The dynamic lexicon.
-     */
-
-    public Lexicon getDynamicLexicon()
-    {
-        return dynamicLexicon;
-    }
-
-    /** Get the lexicon associated with a specific word.
-     *
-     *  @param      word    The word whose source lexicon is sought.
-     *
-     *  @return     The lexicon.
-     *
-     *  <p>
-     *  Most words do not have a source lexicon defined, in which
-     *  case they come from the main static word lexicon.
-     *  Usually only words derived by a suffix analysis have
-     *  a source lexicon defined, which will of course be the
-     *  suffix lexicon.
-     *  </p>
-     */
-
-    public Lexicon getLexicon( String word )
-    {
-        Lexicon result  = lexicon;
-
-        if ( partOfSpeechGuesser != null )
-        {
-            result  =
-                partOfSpeechGuesser.getCachedLexiconForWord( word );
-        }
-
-        return result;
-    }
-
-    /** Set the lexicon.
-     *
-     *  @param  lexicon     Lexicon used for tagging.
-     */
-
-    public void setLexicon( Lexicon lexicon )
-    {
-        this.lexicon    = lexicon;
-
-                                //  Set lexicon into fixup tagger
-                                //  if it exists.
-
-        if ( retagger != null )
-        {
-            retagger.setLexicon( this.lexicon );
-        }
-    }
-
-    /** Get tag transition probabilities matrix.
-     *
-     *  @return     Tag probabilities transition matrix.
-     *              May be null for taggers which do not use
-     *              a transition matrix.
-     */
-
-    public TransitionMatrix getTransitionMatrix()
-    {
-        return transitionMatrix;
-    }
-
-    /** Set tag transition probabilities matrix.
-     *
-     *  @param  transitionMatrix    Tag probabilities transition matrix.
-     *
-     *  <p>
-     *  For taggers which do not use transition matrices, this is a no-op.
-     *  </p>
-     */
-
-    public void setTransitionMatrix( TransitionMatrix transitionMatrix )
-    {
-        this.transitionMatrix   = transitionMatrix;
-    }
-
-    /** Get part of speech guesser.
-     *
-     *  @return     The part of speech guesser.
-     */
-
-    public PartOfSpeechGuesser getPartOfSpeechGuesser()
-    {
-        return this.partOfSpeechGuesser;
-    }
-
-    /** Set part of speech guesser.
-     *
-     *  @param  partOfSpeechGuesser     The part of speech guesser.
-     */
-
-    public void setPartOfSpeechGuesser
-    (
-        PartOfSpeechGuesser partOfSpeechGuesser
-    )
-    {
-        this.partOfSpeechGuesser    = partOfSpeechGuesser;
-    }
-
-    /** Get part of speech retagger.
-     *
-     *  @return     The part of speech retagger.  May be null.
-     */
-
-    public PartOfSpeechRetagger getRetagger()
-    {
-        return retagger;
-    }
-
-    /** Set part of speech retagger.
-     *
-     *  @param  retagger    The part of speech retagger.
-     */
-
-    public void setRetagger( PartOfSpeechRetagger retagger )
-    {
-        this.retagger   = retagger;
-    }
-
-    /** Get the postTokenizer.
-     *
-     *  @return         The postTokenizer.
-     */
-
-    public PostTokenizer getPostTokenizer()
-    {
-        return postTokenizer;
-    }
-
-    /** Set the postTokenizer.
-     *
-     *  @param  postTokenizer   The postTokenizer.
-     */
-
-    public void setPostTokenizer( PostTokenizer postTokenizer )
-    {
-        this.postTokenizer  = postTokenizer;
-    }
-
-    /** Get the contextual smoother.
-     *
-     *  @return         The contextual smoother.
-     */
-
-    public ContextualSmoother getContextualSmoother()
-    {
-        return contextualSmoother;
-    }
-
-    /** Set the contextual smoother.
-     *
-     *  @param  contextualSmoother  The contextual smoother.
-     */
-
-    public void setContextualSmoother( ContextualSmoother contextualSmoother )
-    {
-        this.contextualSmoother = contextualSmoother;
-    }
-
-    /** Get the lexical smoother.
-     *
-     *  @return         The lexical smoother.
-     */
-
-    public LexicalSmoother getLexicalSmoother()
-    {
-        return lexicalSmoother;
-    }
-
-    /** Set the lexical smoother.
-     *
-     *  @param  lexicalSmoother The lexical smoother.
-     */
-
-    public void setLexicalSmoother( LexicalSmoother lexicalSmoother )
-    {
-        this.lexicalSmoother    = lexicalSmoother;
-    }
-
-    /** Get potential part of speech tags for a word.
-     *
-     *  @param  word    The word whose part of speech tags we want.
-     *
-     *  @return         List of part of speech tags.
-     *                  May be null or empty.
-     *
-     *  <p>
-     *  When the word does not appear in the lexicon, the
-     *  part of speech guesser is used to determine the tags
-     *  based upon features of the word (suffix analysis, etc.).
-     *  </p>
-     */
-
-    public List<String> getTagsForWord( String word )
-    {
-                                //  Get part of speech tags for this word
-                                //  from main or dynamic lexicon.
-
-        Set<String> tagSet  = null;
-
-                                //  Word in main lexicon?
-
-        if ( lexicon.containsEntry( word ) )
-        {
-            tagSet  = lexicon.getCategoriesForEntry( word );
-        }
-                                //  Word in dynamic lexicon?
-
-        else if ( dynamicLexicon.containsEntry( word ) )
-        {
-            tagSet  = dynamicLexicon.getCategoriesForEntry( word );
-        }
-                                //  Word in neither lexicon.
-                                //  Get potential parts of speech
-                                //  and counts from guesser.
-                                //  Add the guesser results to the
-                                //  dynamic lexicon.
-        else
-        {
-                                //  If we don't have a part of speech
-                                //  guesser, create one now.
-
-            if ( partOfSpeechGuesser == null )
-            {
-                createPartOfSpeechGuesser();
-            }
-
-            Map<String, MutableInteger> tagMap  =
-                partOfSpeechGuesser.guessPartsOfSpeech( word );
-
-            tagSet  = tagMap.keySet();
-
-            Iterator<String> iterator   = tagSet.iterator();
-
-            while ( iterator.hasNext() )
-            {
-                String category         = iterator.next();
-                MutableInteger count    = tagMap.get( category );
-
-                dynamicLexicon.updateEntryCount
-                (
-                    word ,
-                    category ,
-                    "*" ,
-                    count.intValue()
-                );
-            }
-        }
-
-        List<String> result = ListFactory.createNewList( tagSet );
-
-        return result;
-    }
-
-    /** Get count of times a word appears with a given tag.
-     *
-     *  @param  word    The word.
-     *  @param  tag     The part of speech tag.
-     *
-     *  @return         The number of times the word appears
-     *                  with the given tag.
-     *
-     *  <p>
-     *  When the word does not appear in the lexicon, the
-     *  part of speech guesser is used to compute a count
-     *  based upon features of the word (suffix analysis, etc.).
-     *  </p>
-     */
-
-    public int getTagCount( String word , String  tag )
-    {
-                                //  Total number of times this word
-                                //  appeared with this tag in the
-                                //  training data.
-        int result  = 0;
-
-                                //  Word in main lexicon?
-
-        if ( lexicon.containsEntry( word ) )
-        {
-            result  = lexicon.getCategoryCount( word , tag );
-        }
-                                //  Word in dynamic lexicon?
-
-        else if ( dynamicLexicon.containsEntry( word ) )
-        {
-            result  = dynamicLexicon.getCategoryCount( word , tag );
-        }
-                                //  Word in neither lexicon.
-                                //  Add the guesser results to the
-                                //  dynamic lexicon.
-        else
-        {
-            getTagsForWord( word );
-
-            result  = dynamicLexicon.getCategoryCount( word , tag );
-        }
-
-        return Math.max( result , 1 );
-    }
-
-    /** Get the most common tag for a word.
-     *
-     *  @param  word    The word.
-     *
-     *  @return         The most common part of speech tag for the word.
-     */
-
-    public String getMostCommonTag( String word )
-    {
-        String result   = "";
-
-                                //  Word in main lexicon?
-
-        if ( lexicon.containsEntry( word ) )
-        {
-            result  = lexicon.getLargestCategory( word );
-        }
-                                //  Word in dynamic lexicon?
-
-        else if ( dynamicLexicon.containsEntry( word ) )
-        {
-            result  = dynamicLexicon.getLargestCategory( word );
-        }
-                                //  Word in neither lexicon.
-                                //  Add the guesser results to the
-                                //  dynamic lexicon.
-        else
-        {
-            getTagsForWord( word );
-
-            result  = dynamicLexicon.getLargestCategory( word );
-        }
-
-        return result;
-    }
-
-    /** Tag a list of sentences.
-     *
-     *  @param  sentences   The list of sentences.
-     *
-     *  @return             The sentences with words adorned with
-     *                      parts of speech.
-     *
-     *  <p>
-     *  The sentences are a {@link java.util.List} of
-     *  {@link java.util.List}s of words to be tagged.
-     *  Each sentence is represented as a list of
-     *  words.  The output is a list of
-     *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}s.
-     *  </p>
-     */
-
-    public List<List<AdornedWord>> tagSentences( List<List<String>> sentences )
-    {
-                                //  Holds list of tagged sentences.
-
-        List<List<AdornedWord>> output  = ListFactory.createNewList();
-
-                                //  Iterator over sentences.
-
-        Iterator<List<String>> sentencesIter    = sentences.iterator();
-
-                                //  Tag each sentence in list of sentences.
-
-        while ( sentencesIter.hasNext() )
-        {
-                                //  Get next sentence,
-
-            List<String> sentence   = sentencesIter.next();
-
-                                //  Tag sentence and add to output list.
-
-            output.add( retagWords( tagSentence( sentence ) ) );
+  }
+
+  /** Clear count of successful rule applications. */
+  public void clearRuleCorrections() {
+    ruleCorrections = 0;
+  }
+
+  /** Increment count of successful rule applications. */
+  public void incrementRuleCorrections() {
+    ruleCorrections++;
+  }
+
+  /** Get count of successful rule applications. */
+  public int getRuleCorrections() {
+    return ruleCorrections;
+  }
+
+  /** Create a part of speech guesser. */
+  protected void createPartOfSpeechGuesser() {
+    try {
+      if (partOfSpeechGuesser == null) {
+        AbstractPartOfSpeechGuesser guesser = new DefaultPartOfSpeechGuesser();
+
+        if (lexicon == null) {
+          setLexicon(new DefaultWordLexicon());
         }
 
-        return output;
+        guesser.setWordLexicon(lexicon);
+        guesser.setSuffixLexicon(new DefaultSuffixLexicon());
+
+        guesser.setLogger(logger);
+
+        setPartOfSpeechGuesser(guesser);
+      }
+    } catch (Exception e) {
     }
+  }
 
-    /** Tag a list of sentences.
-     *
-     *  @param  sentences   The list of sentences.
-     *  @param  regIDSet    Set of word IDs of words requiring special handling.
-     *
-     *  @return             The sentences with words adorned with
-     *                      parts of speech.
-     *
-     *  <p>
-     *  The sentences are a {@link java.util.List} of
-     *  {@link java.util.List}s of adorned words to be tagged.
-     *  Each sentence is represented as a list of
-     *  words.  The output is a list of
-     *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}s.
-     *  </p>
-     */
+  /**
+   * Tag a sentence.
+   *
+   * @param sentence The sentence as a list of string words.
+   * @return An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
+   *     of the words in the sentence tagged with parts of speech.
+   *     <p>The input sentence is a {@link java.util.List} of string words to be tagged. The output
+   *     is {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} of
+   *     the words with parts of speech added.
+   */
+  public List<AdornedWord> tagSentence(List<String> sentence) {
+    //  List of adorned word results.
 
-    public<T extends AdornedWord> List<List<T>> tagAdornedWordSentences
-    (
-        List<List<T>> sentences ,
-        Set<String> regIDSet
-    )
-    {
-                                //  Iterator over sentences.
+    List<AdornedWord> taggedSentence = ListFactory.createNewList();
 
-        Iterator<List<T>> sentencesIter = sentences.iterator();
+    //  Create initial adorned word list
+    //  from string tokens in sentence.
+    String token;
+    String spelling;
+    String standardSpelling;
 
-                                //  Tag each sentence in list of sentences.
+    for (int i = 0; i < sentence.size(); i++) {
+      //  Get next token in input sentence.
 
-        while ( sentencesIter.hasNext() )
-        {
-                                //  Get next sentence,
+      token = (String) sentence.get(i);
+      spelling = token;
+      standardSpelling = token;
 
-            List<T> sentence    = sentencesIter.next();
+      //  Apply post tokenization to
+      //  get spelling.
 
-                                //  Tag sentence and add to output list.
+      if (postTokenizer != null) {
+        String[] spellings = postTokenizer.postTokenize(token);
 
-            retagWords( tagAdornedWordSentence( sentence , regIDSet ) );
+        spelling = spellings[0];
+        standardSpelling = spellings[1];
+      }
+      //  Create adorned word from token
+      //  and spelling.
+
+      AdornedWord word = new BaseAdornedWord(token);
+
+      word.setSpelling(spelling);
+      word.setStandardSpelling(standardSpelling);
+
+      //  Add adorned word to output sentence.
+
+      taggedSentence.add(word);
+    }
+    //  Obtain part of speech tag for
+    //  each word in sentence.
+
+    tagAdornedWordList(taggedSentence);
+
+    return taggedSentence;
+  }
+
+  /**
+   * Tag a sentence of adorned words.
+   *
+   * @param sentence The sentence as a list of adorned words.
+   * @param regIDSet Set of word IDs of words requiring special handling.
+   * @return An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
+   *     of the words in the sentence tagged with parts of speech.
+   *     <p>The input sentence is a {@link java.util.List} of adorned words to be tagged. The output
+   *     is the same list with spellings, parts of speech, etc. added/modified.
+   */
+  public <T extends AdornedWord> List<T> tagAdornedWordSentence(
+      List<T> sentence, Set<String> regIDSet) {
+    String token;
+    String spelling;
+    String standardSpelling;
+    String id;
+
+    //  Set up to readorn each word
+    //  in the sentence.
+
+    for (int i = 0; i < sentence.size(); i++) {
+      //  Get next word in sentence.
+
+      AdornedWord word = sentence.get(i);
+
+      //  Modify the spelling and
+      //  standard spelling as needed.
+
+      token = word.getToken();
+      spelling = token;
+      standardSpelling = token;
+
+      //  See if we should use the provided
+      //  standard spelling for this word.
+
+      boolean useGivenStandard = false;
+
+      if ((word instanceof HasID) && (regIDSet != null)) {
+        id = ((HasID) word).getID();
+
+        if (regIDSet.contains(id)) {
+          standardSpelling = word.getStandardSpelling();
+          useGivenStandard = true;
         }
+      }
+      //  Apply post tokenization to
+      //  get corrected spelling.
 
-        return sentences;
-    }
+      if (postTokenizer != null) {
+        String[] spellings = postTokenizer.postTokenize(token);
 
-    /** Retag words in a tagged sentence.
-     *
-     *  @param  taggedSentence  The tagged sentence.
-     *
-     *  @return                 The retagged sentence.
-     *
-     *  <p>
-     *  This method calls the retagger, if any.  If no retagger
-     *  is defined, the input tagged sentence is returned unchanged.
-     *  Override this method to add custom retagging without
-     *  the use of a retagger.
-     *  </p>
-     */
+        spelling = spellings[0];
 
-    public<T extends AdornedWord> List<T> retagWords
-    (
-        List<T> taggedSentence
-    )
-    {
-                                //  Call fixup tagger to fix the
-                                //  tagging produced by the bigram
-                                //  tagger.
+        if (useGivenStandard) {
+          spellings = postTokenizer.postTokenize(standardSpelling);
 
-        if ( retagger != null )
-        {
-            return retagger.retagSentence( taggedSentence );
+          standardSpelling = spellings[0];
+        } else {
+          standardSpelling = spellings[1];
         }
-        else
-        {
-            return taggedSentence;
-        }
+      }
+      //  Set spellings into adorned word.
+
+      word.setSpelling(spelling);
+      word.setStandardSpelling(standardSpelling);
     }
+    //  Obtain part of speech tag for
+    //  each word in sentence.
 
-    /** Clear count of successful rule applications.
-     */
+    tagAdornedWordList(sentence);
 
-    public void clearRuleCorrections()
-    {
-        ruleCorrections = 0;
-    }
+    return sentence;
+  }
 
-    /** Increment count of successful rule applications.
-     */
-
-    public void incrementRuleCorrections()
-    {
-        ruleCorrections++;
-    }
-
-    /** Get count of successful rule applications.
-     */
-
-    public int getRuleCorrections()
-    {
-        return ruleCorrections;
-    }
-
-    /** Create a part of speech guesser.
-     */
-
-    protected void createPartOfSpeechGuesser()
-    {
-        try
-        {
-            if ( partOfSpeechGuesser == null )
-            {
-                AbstractPartOfSpeechGuesser guesser =
-                    new DefaultPartOfSpeechGuesser();
-
-                if ( lexicon == null )
-                {
-                    setLexicon( new DefaultWordLexicon() );
-                }
-
-                guesser.setWordLexicon( lexicon );
-                guesser.setSuffixLexicon( new DefaultSuffixLexicon() );
-
-                guesser.setLogger( logger );
-
-                setPartOfSpeechGuesser( guesser );
-            }
-        }
-        catch ( Exception e )
-        {
-        }
-    }
-
-    /** Tag a sentence.
-     *
-     *  @param  sentence    The sentence as a list of string words.
-     *
-     *  @return             An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *                      of the words in the sentence tagged with
-     *                      parts of speech.
-     *
-     *  <p>
-     *  The input sentence is a {@link java.util.List} of
-     *  string words to be tagged.  The output is
-     *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *  of the words with parts of speech added.
-     *  </p>
-     */
-
-    public List<AdornedWord> tagSentence( List<String> sentence )
-    {
-                                //  List of adorned word results.
-
-        List<AdornedWord> taggedSentence    = ListFactory.createNewList();
-
-                                //  Create initial adorned word list
-                                //  from string tokens in sentence.
-        String token;
-        String spelling;
-        String standardSpelling;
-
-        for ( int i = 0 ; i < sentence.size() ; i++ )
-        {
-                                //  Get next token in input sentence.
-
-            token               = (String)sentence.get( i );
-            spelling            = token;
-            standardSpelling    = token;
-
-                                //  Apply post tokenization to
-                                //  get spelling.
-
-            if ( postTokenizer != null )
-            {
-                String[] spellings  = postTokenizer.postTokenize( token );
-
-                spelling            = spellings[ 0 ];
-                standardSpelling    = spellings[ 1 ];
-            }
-                                //  Create adorned word from token
-                                //  and spelling.
-
-            AdornedWord word    = new BaseAdornedWord( token );
-
-            word.setSpelling( spelling );
-            word.setStandardSpelling( standardSpelling );
-
-                                //  Add adorned word to output sentence.
-
-            taggedSentence.add( word );
-        }
-                                //  Obtain part of speech tag for
-                                //  each word in sentence.
-
-        tagAdornedWordList( taggedSentence );
-
-        return taggedSentence;
-    }
-
-    /** Tag a sentence of adorned words.
-     *
-     *  @param  sentence    The sentence as a list of adorned words.
-     *  @param  regIDSet    Set of word IDs of words requiring special handling.
-     *
-     *  @return             An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *                      of the words in the sentence tagged with
-     *                      parts of speech.
-     *
-     *  <p>
-     *  The input sentence is a {@link java.util.List} of
-     *  adorned words to be tagged.  The output is
-     *  the same list with spellings, parts of speech, etc. added/modified.
-     *  </p>
-     */
-
-    public<T extends AdornedWord> List<T> tagAdornedWordSentence
-    (
-        List<T> sentence ,
-        Set<String> regIDSet
-    )
-    {
-        String token;
-        String spelling;
-        String standardSpelling;
-        String id;
-
-                                //  Set up to readorn each word
-                                //  in the sentence.
-
-        for ( int i = 0 ; i < sentence.size() ; i++ )
-        {
-                                //  Get next word in sentence.
-
-            AdornedWord word    = sentence.get( i );
-
-                                //  Modify the spelling and
-                                //  standard spelling as needed.
-
-            token               = word.getToken();
-            spelling            = token;
-            standardSpelling    = token;
-
-                                //  See if we should use the provided
-                                //  standard spelling for this word.
-
-            boolean useGivenStandard    = false;
-
-            if ( ( word instanceof HasID ) && ( regIDSet != null ) )
-            {
-                id  = ((HasID)word).getID();
-
-                if ( regIDSet.contains( id ) )
-                {
-                    standardSpelling    = word.getStandardSpelling();
-                    useGivenStandard    = true;
-                }
-            }
-                                //  Apply post tokenization to
-                                //  get corrected spelling.
-
-            if ( postTokenizer != null )
-            {
-                String[] spellings  = postTokenizer.postTokenize( token );
-
-                spelling    = spellings[ 0 ];
-
-                if ( useGivenStandard )
-                {
-                    spellings           =
-                        postTokenizer.postTokenize( standardSpelling );
-
-                    standardSpelling    = spellings[ 0 ];
-                }
-                else
-                {
-                    standardSpelling    = spellings[ 1 ];
-                }
-            }
-                                //  Set spellings into adorned word.
-
-            word.setSpelling( spelling );
-            word.setStandardSpelling( standardSpelling );
-        }
-                                //  Obtain part of speech tag for
-                                //  each word in sentence.
-
-        tagAdornedWordList( sentence );
-
-        return sentence;
-    }
-
-    /** Tag a list of adorned words.
-     *
-     *  @param  sentence    The sentence as an
-     *                      {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
-     *
-     *  @return             The tagged sentence (same as input with
-     *                      parts of speech added).
-     */
-
-    abstract public<T extends AdornedWord> List<T> tagAdornedWordList
-    (
-        List<T> sentence
-    );
+  /**
+   * Tag a list of adorned words.
+   *
+   * @param sentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}.
+   * @return The tagged sentence (same as input with parts of speech added).
+   */
+  public abstract <T extends AdornedWord> List<T> tagAdornedWordList(List<T> sentence);
 }
 
 /*
@@ -934,6 +745,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,86 +2,60 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.languagerecognizer;
 
 /*  Please see the license information at the end of this file. */
 
+import com.cybozu.labs.langdetect.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.logger.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import com.cybozu.labs.langdetect.*;
+/** Abstract Language Recognizer. */
+public abstract class AbstractLanguageRecognizer extends IsCloseableObject
+    implements LanguageRecognizer, UsesLogger {
+  /** Logger used for output. */
+  protected Logger logger;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.logger.*;
+  /** Create a language recognizer with the default language profiles. */
+  public AbstractLanguageRecognizer() throws LangDetectException {}
 
-/** Abstract Language Recognizer.
- */
+  /**
+   * Create a language recognizer with list of languages to recognize.
+   *
+   * @param languages List of names of languages to recognize.
+   *     <p>The list of languages references the profile names. These are usually two or three
+   *     character ISO 696 language codes, e.g., "en" for English and "sco" for Scots dialect.
+   */
+  public AbstractLanguageRecognizer(List<String> languages) throws LangDetectException {}
 
-abstract public class AbstractLanguageRecognizer
-    extends IsCloseableObject
-    implements LanguageRecognizer, UsesLogger
-{
-    /** Logger used for output. */
+  /**
+   * Returns a scored list of possible languages for a text string.
+   *
+   * @param text The text for which to determine the language.
+   * @return Array of ScoredList entries of language names and scores sorted in descending order by
+   *     score.
+   */
+  public abstract ScoredString[] recognizeLanguage(String text);
 
-    protected Logger logger;
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    /** Create a language recognizer with the default language profiles.
-     */
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-    public AbstractLanguageRecognizer()
-        throws LangDetectException
-    {
-    }
-
-    /** Create a language recognizer with list of languages to recognize.
-     *
-     *  @param  languages   List of names of languages to recognize.
-     *
-     *  <p>
-     *  The list of languages references the profile names.
-     *  These are usually two or three character ISO 696 language codes,
-     *  e.g., "en" for English and "sco" for Scots dialect.
-     *  </p>
-     */
-
-    public AbstractLanguageRecognizer( List<String> languages )
-        throws LangDetectException
-    {
-    }
-
-    /** Returns a scored list of possible languages for a text string.
-     *
-     *  @param  text    The text for which to determine the language.
-     *
-     *  @return         Array of ScoredList entries of language names and
-     *                  scores sorted in descending order by score.
-     */
-
-     abstract public ScoredString[] recognizeLanguage( String text );
-
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
-
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
-
-    /** Close the language recognizer.
-     */
-
-    public void close()
-    {
-    }
+  /** Close the language recognizer. */
+  public void close() {}
 }
 
 /*
@@ -124,6 +98,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

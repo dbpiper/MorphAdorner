@@ -2,20 +2,17 @@ package edu.northwestern.at.utils.csv;
 
 /*  Please see the license information at the end of this file. */
 
-/** CSVFile handles files containing delimiter separated entries.
+/**
+ * CSVFile handles files containing delimiter separated entries.
  *
- *  <p>
- *  This is the abstract base clase used by {@link CSVFileReader} and
- *  {@link CSVFileWriter}.
- *  </p>
+ * <p>This is the abstract base clase used by {@link CSVFileReader} and {@link CSVFileWriter}.
  *
- *  <p>
- *  The following simple example converts one CSV file into another
- *  that uses a different notation for field separator and text qualifier.
- *  </p>
+ * <p>The following simple example converts one CSV file into another that uses a different notation
+ * for field separator and text qualifier.
  *
- *  <p>
- *  <pre>
+ * <p>
+ *
+ * <pre>
  *  import java.util.*;
  *  import java.io.*;
  *
@@ -40,106 +37,83 @@ package edu.northwestern.at.utils.csv;
  *      }
  *  }
  *  </pre>
- *  </p>
  *
- *  @author  Fabrizio Fazzino
- *
- *  <p>
- *  Modified by Philip R. Burns at Northwestern University.
- *  </p>
+ * @author Fabrizio Fazzino
+ *     <p>Modified by Philip R. Burns at Northwestern University.
  */
+public abstract class CSVFile {
+  /** The default char used as field separator. */
+  protected static final char DEFAULT_SEPARATOR = ',';
 
-abstract public class CSVFile
-{
-    /** The default char used as field separator.
-     */
+  /** The default char used as text qualifier */
+  protected static final char DEFAULT_QUALIFIER = '"';
 
-    protected static final char DEFAULT_SEPARATOR = ',';
+  /** The current char used as field separator. */
+  protected char separator;
 
-    /** The default char used as text qualifier
-     */
+  /** The current char used as text qualifier. */
+  protected char qualifier;
 
-    protected static final char DEFAULT_QUALIFIER = '"';
+  /** CSVFile constructor with the default field separator and text qualifier. */
+  public CSVFile() {
+    this(DEFAULT_SEPARATOR, DEFAULT_QUALIFIER);
+  }
 
-    /** The current char used as field separator.
-     */
+  /**
+   * CSVFile constructor with given field separator.
+   *
+   * @param separator The field separator.
+   */
+  public CSVFile(char separator) {
+    this(separator, DEFAULT_QUALIFIER);
+  }
 
-    protected char separator;
+  /**
+   * CSVFile constructor with given field separator and text qualifier.
+   *
+   * @param separator The field separator to used.
+   * @param qualifier The text qualifier to be use.
+   */
+  public CSVFile(char separator, char qualifier) {
+    setSeparator(separator);
+    setQualifier(qualifier);
+  }
 
-    /** The current char used as text qualifier.
-     */
+  /**
+   * Set the field separator.
+   *
+   * @param separator The field separator to use.
+   */
+  public void setSeparator(char separator) {
+    this.separator = separator;
+  }
 
-    protected char qualifier;
+  /**
+   * Set the text qualifier.
+   *
+   * @param qualifier The new text qualifier to use.
+   */
+  public void setQualifier(char qualifier) {
+    this.qualifier = qualifier;
+  }
 
-    /** CSVFile constructor with the default field separator and text qualifier.
-     */
+  /**
+   * Get the current field separator.
+   *
+   * @return The char containing the current field separator
+   */
+  public char getSeparator() {
+    return separator;
+  }
 
-    public CSVFile()
-    {
-        this( DEFAULT_SEPARATOR , DEFAULT_QUALIFIER );
-    }
-
-    /** CSVFile constructor with given field separator.
-     *
-     *  @param  separator   The field separator.
-     */
-
-    public CSVFile( char separator )
-    {
-        this( separator , DEFAULT_QUALIFIER );
-    }
-
-    /** CSVFile constructor with given field separator and text qualifier.
-     *
-     *  @param  separator   The field separator to used.
-     *  @param  qualifier   The text qualifier to be use.
-     */
-
-    public CSVFile( char separator , char qualifier )
-    {
-        setSeparator( separator );
-        setQualifier( qualifier );
-    }
-
-    /** Set the field separator.
-     *
-     * @param   separator   The field separator to use.
-     */
-
-    public void setSeparator( char separator )
-    {
-        this.separator = separator;
-    }
-
-    /** Set the text qualifier.
-     *
-     * @param   qualifier   The new text qualifier to use.
-     */
-
-    public void setQualifier( char qualifier )
-    {
-        this.qualifier = qualifier;
-    }
-
-    /** Get the current field separator.
-     *
-     *  @return     The char containing the current field separator
-     */
-
-    public char getSeparator()
-    {
-        return separator;
-    }
-
-    /** Get the current text qualifier.
-     *
-     *  @return     The text qualifier character.
-     */
-
-    public char getQualifier()
-    {
-        return qualifier;
-    }
+  /**
+   * Get the current text qualifier.
+   *
+   * @return The text qualifier character.
+   */
+  public char getQualifier() {
+    return qualifier;
+  }
 }
 
 /*
@@ -182,6 +156,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

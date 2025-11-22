@@ -2,35 +2,27 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.thesaurus;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.wordcounts.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.wordcounts.*;
-
-/** DefaultThesaurus: The default MorphAdorner English thesaurus.
+/**
+ * DefaultThesaurus: The default MorphAdorner English thesaurus.
  *
- *  <p>
- *  The default thesaurus uses WordNet to find synonyms and antonyms.
- *  </p>
+ * <p>The default thesaurus uses WordNet to find synonyms and antonyms.
  */
-
-public class DefaultThesaurus
-    extends WordnetThesaurus
-    implements Thesaurus
-{
-    /** Create the default thesaurus.
-     *
-     *  @throws FileNotFoundException
-     *  @throws IOException
-     */
-
-    public DefaultThesaurus()
-        throws FileNotFoundException, IOException
-    {
-        super();
-    }
+public class DefaultThesaurus extends WordnetThesaurus implements Thesaurus {
+  /**
+   * Create the default thesaurus.
+   *
+   * @throws FileNotFoundException
+   * @throws IOException
+   */
+  public DefaultThesaurus() throws FileNotFoundException, IOException {
+    super();
+  }
 }
 
 /*
@@ -73,6 +65,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

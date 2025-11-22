@@ -2,64 +2,44 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.statistics;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import edu.northwestern.at.utils.math.*;
 import edu.northwestern.at.utils.math.distributions.*;
+import java.util.*;
 
-/** Computes Dunnett's log-likelihood for bigrams.
- */
+/** Computes Dunnett's log-likelihood for bigrams. */
+public class BigramLogLikelihood {
+  /** Compute one part of log likelihood value. */
+  protected static double logLike(double k, double n, double x) {
+    return (k * ArithUtils.safeLog(x)) + ((n - k) * ArithUtils.safeLog(1.0D - x));
+  }
 
-public class BigramLogLikelihood
-{
-    /** Compute one part of log likelihood value.
-     */
+  /**
+   * Compute log likelihood value for a bigram.
+   *
+   * @param c1 Count of first word in bigram.
+   * @param c2 Count of second word in bigram.
+   * @param c12 Count of bigram.
+   * @param n Corpus size.
+   * @return The log-likelihood value.
+   */
+  public static double calculateLogLikelihood(double c1, double c2, double c12, double n) {
+    double p = c2 / n;
+    double p1 = c12 / c1;
+    double p2 = (c2 - c12) / (n - c1);
 
-    protected static double logLike( double k , double n , double x )
-    {
-        return
-            ( k * ArithUtils.safeLog( x ) ) +
-            ( ( n - k ) * ArithUtils.safeLog( 1.0D - x ) );
-    }
+    double logLikelihood =
+        logLike(c12, c1, p)
+            + logLike(c2 - c12, n - c1, p)
+            - logLike(c12, c1, p1)
+            - logLike(c2 - c12, n - c1, p2);
 
-    /** Compute log likelihood value for a bigram.
-     *
-     *  @param  c1          Count of first word in bigram.
-     *  @param  c2          Count of second word in bigram.
-     *  @param  c12         Count of bigram.
-     *  @param  n           Corpus size.
-     *
-     *  @return             The log-likelihood value.
-     */
+    logLikelihood = -2.0D * logLikelihood;
 
-    public static double calculateLogLikelihood
-    (
-        double c1 ,
-        double c2 ,
-        double c12 ,
-        double n
-    )
-    {
-        double p    = c2 / n;
-        double p1   = c12 / c1;
-        double p2   = ( c2 - c12 ) / ( n - c1 );
+    return logLikelihood;
+  }
 
-        double logLikelihood    =
-            logLike( c12 , c1 , p ) +
-            logLike( c2 - c12 , n - c1 , p ) -
-            logLike( c12 , c1 , p1 ) -
-            logLike( c2 - c12 , n - c1 , p2 );
-
-        logLikelihood           = -2.0D * logLikelihood;
-
-        return logLikelihood;
-    }
-
-    /** Don't allow instantiation but do allow overrides.
-     */
-
-    protected BigramLogLikelihood()
-    {
-    }
+  /** Don't allow instantiation but do allow overrides. */
+  protected BigramLogLikelihood() {}
 }
 
 /*
@@ -102,5 +82,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

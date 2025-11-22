@@ -2,25 +2,20 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.adornedword;
 
 /*  Please see the license information at the end of this file. */
 
-/** An Adorned word filter.
+/**
+ * An Adorned word filter.
  *
- *  <p>
- *  Classes which implement AdornedWordFilter are used to filter
- *  {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
- *  entries.
- *  </p>
+ * <p>Classes which implement AdornedWordFilter are used to filter {@link
+ * edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} entries.
  */
-
-public interface AdornedWordFilter
-{
-    /** Tests if a specified adorned word should be included.
-     *
-     *  @param  adornedWord     The adorned word to check.
-     *
-     *  @return                 true to accept the adorned word.
-     */
-
-    public boolean accept( AdornedWord adornedWord );
+public interface AdornedWordFilter {
+  /**
+   * Tests if a specified adorned word should be included.
+   *
+   * @param adornedWord The adorned word to check.
+   * @return true to accept the adorned word.
+   */
+  public boolean accept(AdornedWord adornedWord);
 }
 
 /*
@@ -63,6 +58,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

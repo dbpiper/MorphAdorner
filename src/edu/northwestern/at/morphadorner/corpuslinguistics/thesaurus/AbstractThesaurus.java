@@ -2,69 +2,56 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.thesaurus;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.List;
-
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.logger.*;
+import java.util.List;
 
-/** Base class for a thesaurus.
- */
+/** Base class for a thesaurus. */
+public abstract class AbstractThesaurus extends IsCloseableObject
+    implements Thesaurus, IsCloseable, UsesLogger {
+  /** Logger used for output. */
+  protected Logger logger;
 
-abstract public class AbstractThesaurus
-    extends IsCloseableObject
-    implements Thesaurus, IsCloseable, UsesLogger
-{
-    /** Logger used for output. */
+  /** Create a word tokenizer. */
+  public AbstractThesaurus() {
+    //  Create dummy logger.
 
-    protected Logger logger;
+    logger = new DummyLogger();
+  }
 
-    /** Create a word tokenizer.
-     */
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    public AbstractThesaurus()
-    {
-                                //  Create dummy logger.
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-        logger  = new DummyLogger();
-    }
+  /**
+   * Get synonyms.
+   *
+   * @param word Word for which to find synonyms.
+   * @return String list containing synonyms.
+   */
+  public abstract List<String> getSynonyms(String word);
 
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
-
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
-
-    /** Get synonyms.
-     *
-     *  @param  word        Word for which to find synonyms.
-     *
-     *  @return             String list containing synonyms.
-     */
-
-    abstract public List<String> getSynonyms( String word );
-
-    /** Get antonyms.
-     *
-     *  @param  word        Word for which to find antonyms.
-     *
-     *  @return             String list containing antonyms.
-     */
-
-    abstract public List<String> getAntonyms( String word );
+  /**
+   * Get antonyms.
+   *
+   * @param word Word for which to find antonyms.
+   * @return String list containing antonyms.
+   */
+  public abstract List<String> getAntonyms(String word);
 }
 
 /*
@@ -107,6 +94,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

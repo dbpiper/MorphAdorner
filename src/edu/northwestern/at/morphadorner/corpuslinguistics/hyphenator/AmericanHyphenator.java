@@ -4,31 +4,18 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.hyphenator;
 
 import edu.northwestern.at.utils.*;
 
-/** AmericanHyphenator: Hyphenates English words using American rules.
- */
+/** AmericanHyphenator: Hyphenates English words using American rules. */
+public class AmericanHyphenator extends BaseHyphenator implements Hyphenator {
+  /** Create a hyphenator for English words using American rules. */
+  public AmericanHyphenator() {
+    super();
 
-public class AmericanHyphenator
-    extends BaseHyphenator
-    implements Hyphenator
-{
-    /** Create a hyphenator for English words using American rules. */
-
-    public AmericanHyphenator()
-    {
-        super();
-
-        try
-        {
-            loadHyphenationRules
-            (
-                AmericanHyphenator.class.getResourceAsStream( ushyphenPath )
-            );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+    try {
+      loadHyphenationRules(AmericanHyphenator.class.getResourceAsStream(ushyphenPath));
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
 }
 
 /*
@@ -71,6 +58,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

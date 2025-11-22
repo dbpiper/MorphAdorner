@@ -2,188 +2,145 @@ package edu.northwestern.at.utils.xml;
 
 /*  Please see the license information at the end of this file. */
 
+import com.megginson.sax.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
-
-import com.megginson.sax.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.utils.*;
-
-/** XMLWriter which indents the output before each tag.
+/**
+ * XMLWriter which indents the output before each tag.
  *
- *  <p>
- *  This code assumes the XML is not currently indented.
- *  </p>
+ * <p>This code assumes the XML is not currently indented.
  */
+public class IndentingXMLWriter extends XMLWriter {
+  /** Number of spaces to indent each level of XML. */
+  protected int indentStep = 0;
 
-public class IndentingXMLWriter extends XMLWriter
-{
-    /** Number of spaces to indent each level of XML. */
+  /** Blanks for indentation. */
+  protected char[] indents = new char[0];
 
-    protected int indentStep    = 0;
+  /** End of line character(s). */
+  protected char[] eol = Env.LINE_SEPARATOR.toCharArray();
 
-    /** Blanks for indentation. */
+  /**
+   * Stack which remembers if a tag has at least one child.
+   *
+   * <p>The start and end tags of an element with no children are kept on the same line.
+   */
+  protected QueueStack<Boolean> childStack = new QueueStack<Boolean>();
 
-    protected char[] indents    = new char[ 0 ];
+  /**
+   * Create indenting XML writer.
+   *
+   * @param xmlReader The XML Reader to which this writer is attached.
+   * @param writer The output writer to which to output the indented XML.
+   */
+  public IndentingXMLWriter(XMLReader xmlReader, Writer writer) {
+    super(xmlReader, writer);
+  }
 
-    /** End of line character(s). */
+  /**
+   * Return the current indent step.
+   *
+   * @return The number of indents in each indentation step. 0 or less for no indentation.
+   */
+  public int getIndentStep() {
+    return indentStep;
+  }
 
-    protected char[] eol        = Env.LINE_SEPARATOR.toCharArray();
+  /**
+   * Set the current indent step.
+   *
+   * @param indentStep The new indent step (0 or less for no indentation).
+   */
+  public void setIndentStep(int indentStep) {
+    this.indentStep = indentStep;
 
-    /** Stack which remembers if a tag has at least one child.
-     *
-     *  <p>
-     *  The start and end tags of an element with no children are
-     *  kept on the same line.
-     *  </p>
-     */
+    if (indentStep > 0) {
+      indents = new char[indentStep];
 
-    protected QueueStack<Boolean> childStack    = new QueueStack<Boolean>();
-
-    /** Create indenting XML writer.
-     *
-     *  @param  xmlReader   The XML Reader to which this writer is attached.
-     *  @param  writer      The output writer to which to output the
-     *                      indented XML.
-     */
-
-    public IndentingXMLWriter
-    (
-        XMLReader xmlReader ,
-        Writer writer
-    )
-    {
-        super( xmlReader , writer );
+      Arrays.fill(indents, ' ');
     }
+  }
 
-    /** Return the current indent step.
-     *
-     * @return  The number of indents in each indentation step.
-     *          0 or less for no indentation.
-     */
+  /**
+   * Handle start of an XML element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   * @param atts The XML element's attributes.
+   */
+  public void startElement(String uri, String localName, String qName, Attributes atts)
+      throws SAXException {
+    //  Emit EOL before new element. */
 
-    public int getIndentStep()
-    {
-        return indentStep;
+    super.ignorableWhitespace(eol, 0, eol.length);
+
+    //  Indent this line based upon
+    //  depth in XML tree.  The number
+    //  of elements on the child stack
+    //  provides the number of parents
+    //  of this element, and the number
+    //  of indentation blocks.
+    if (indentStep > 0) {
+      for (int i = 0; i < childStack.size(); i++) {
+        super.ignorableWhitespace(indents, 0, indents.length);
+      }
     }
+    //  If this element has a parent,
+    //  set the child stack value for the
+    //  parent to true.
 
-    /** Set the current indent step.
-     *
-     *  @param  indentStep  The new indent step (0 or less for no
-     *                      indentation).
-     */
+    if (!childStack.isEmpty()) {
+      childStack.pop();
+      childStack.push(true);
+    }
+    //  Assume this element has no children.
+    //  We update this if we find children
+    //  later.
 
-    public void setIndentStep( int indentStep )
-    {
-        this.indentStep = indentStep;
+    childStack.push(false);
 
-        if ( indentStep > 0 )
-        {
-            indents = new char[ indentStep ];
+    //  Perform standard processing
+    //  for this element.
 
-            Arrays.fill( indents , ' ' );
+    super.startElement(uri, localName, qName, atts);
+  }
+
+  /**
+   * Handle end of an element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   */
+  public void endElement(String uri, String localName, String qName) throws SAXException {
+    //  See if this element
+    //  had any children.
+
+    boolean hadChildElement = childStack.pop();
+
+    if (hadChildElement) {
+      //  If so, emit EOL, and
+      //  output indentation before
+      //  the close tag.
+
+      super.ignorableWhitespace(eol, 0, eol.length);
+
+      if (indentStep > 0) {
+        for (int i = 0; i < childStack.size(); i++) {
+          super.ignorableWhitespace(indents, 0, indents.length);
         }
+      }
     }
+    //  Perform standard processing
+    //  for this element.
 
-    /** Handle start of an XML element.
-      *
-      * @param  uri         The XML element's URI.
-      * @param  localName   The XML element's local name.
-      * @param  qName       The XML element's qname.
-      * @param  atts        The XML element's attributes.
-      */
-
-    public void startElement
-    (
-        String uri ,
-        String localName ,
-        String qName ,
-        Attributes atts
-    )
-        throws SAXException
-    {
-                                //  Emit EOL before new element. */
-
-        super.ignorableWhitespace( eol , 0 , eol.length );
-
-                                //  Indent this line based upon
-                                //  depth in XML tree.  The number
-                                //  of elements on the child stack
-                                //  provides the number of parents
-                                //  of this element, and the number
-                                //  of indentation blocks.
-        if ( indentStep > 0 )
-        {
-            for ( int i = 0 ; i < childStack.size() ; i++ )
-            {
-                super.ignorableWhitespace( indents , 0 , indents.length );
-            }
-        }
-                                //  If this element has a parent,
-                                //  set the child stack value for the
-                                //  parent to true.
-
-        if ( !childStack.isEmpty() )
-        {
-            childStack.pop();
-            childStack.push( true );
-        }
-                                //  Assume this element has no children.
-                                //  We update this if we find children
-                                //  later.
-
-        childStack.push( false );
-
-                                //  Perform standard processing
-                                //  for this element.
-
-        super.startElement( uri , localName , qName , atts );
-    }
-
-    /** Handle end of an element.
-     *
-     *  @param  uri         The XML element's URI.
-     *  @param  localName   The XML element's local name.
-     *  @param  qName       The XML element's qname.
-     */
-
-    public void endElement
-    (
-        String uri ,
-        String localName ,
-        String qName
-    )
-        throws SAXException
-    {
-                                    //  See if this element
-                                    //  had any children.
-
-        boolean hadChildElement = childStack.pop();
-
-        if ( hadChildElement )
-        {
-                                    //  If so, emit EOL, and
-                                    //  output indentation before
-                                    //  the close tag.
-
-            super.ignorableWhitespace( eol , 0 , eol.length );
-
-            if ( indentStep > 0 )
-            {
-                for ( int i = 0 ; i < childStack.size(); i++ )
-                {
-                    super.ignorableWhitespace( indents , 0 , indents.length );
-                }
-            }
-        }
-                                //  Perform standard processing
-                                //  for this element.
-
-        super.endElement( uri , localName , qName );
-    }
+    super.endElement(uri, localName, qName);
+  }
 }
 
 /*
@@ -226,6 +183,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

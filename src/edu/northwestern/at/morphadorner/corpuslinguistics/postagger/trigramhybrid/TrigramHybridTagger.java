@@ -2,9 +2,6 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.trigramhybr
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
@@ -13,69 +10,57 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.co
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.lexical.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.trigram.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.math.*;
+import java.util.*;
 
-/** Hybrid Trigram Part of Speech tagger.
+/**
+ * Hybrid Trigram Part of Speech tagger.
  *
- *  <p>
- *  This trigram part of speech tagger assigns tags to words in a sentence
- *  assigning the most probable set of tags given the previous tag
- *  assignments.   The Viterbi algorithm is used to reduce the
- *  amount of computation required to find the optimal tag assignments.
- *  The Hepple rule-based tagger is used to apply corrections to each
- *  sentence after the trigram tagger has assigned the initial set of
- *  tags.
- *  </p>
+ * <p>This trigram part of speech tagger assigns tags to words in a sentence assigning the most
+ * probable set of tags given the previous tag assignments. The Viterbi algorithm is used to reduce
+ * the amount of computation required to find the optimal tag assignments. The Hepple rule-based
+ * tagger is used to apply corrections to each sentence after the trigram tagger has assigned the
+ * initial set of tags.
  */
+public class TrigramHybridTagger extends TrigramTagger implements PartOfSpeechTagger {
+  /** Create a trigram hybrid tagger. */
+  public TrigramHybridTagger() {
+    super();
+    //  Get a lexical smoother.
+    lexicalSmoother = LexicalSmootherFactory.newLexicalSmoother();
 
-public class TrigramHybridTagger
-    extends TrigramTagger
-    implements PartOfSpeechTagger
-{
-    /** Create a trigram hybrid tagger.
-     */
+    lexicalSmoother.setPartOfSpeechTagger(this);
 
-    public TrigramHybridTagger()
-    {
-        super();
-                                //  Get a lexical smoother.
-        lexicalSmoother =
-            LexicalSmootherFactory.newLexicalSmoother();
+    //  Get a contextual smoother.
 
-        lexicalSmoother.setPartOfSpeechTagger( this );
+    contextualSmoother = ContextualSmootherFactory.newContextualSmoother();
 
-                                //  Get a contextual smoother.
+    contextualSmoother.setPartOfSpeechTagger(this);
 
-        contextualSmoother  =
-            ContextualSmootherFactory.newContextualSmoother();
+    //  Get a Hepple tagger as the
+    //  fixup tagger.
 
-        contextualSmoother.setPartOfSpeechTagger( this );
+    retagger = new HeppleTagger();
+  }
 
-                                //  Get a Hepple tagger as the
-                                //  fixup tagger.
+  /**
+   * See if tagger uses contextual rules.
+   *
+   * @return True since hybrid tagger uses contextual rules.
+   */
+  public boolean usesContextRules() {
+    return true;
+  }
 
-        retagger    = new HeppleTagger();
-    }
-
-    /** See if tagger uses contextual rules.
-     *
-     *  @return     True since hybrid tagger uses contextual rules.
-     */
-
-    public boolean usesContextRules()
-    {
-        return true;
-    }
-
-    /** Return tagger description.
-     *
-     *  @return     Tagger description.
-     */
-
-    public String toString()
-    {
-        return "Trigram hybrid tagger";
-    }
+  /**
+   * Return tagger description.
+   *
+   * @return Tagger description.
+   */
+  public String toString() {
+    return "Trigram hybrid tagger";
+  }
 }
 
 /*
@@ -118,6 +103,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

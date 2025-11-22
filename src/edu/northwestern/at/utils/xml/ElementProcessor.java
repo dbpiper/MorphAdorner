@@ -2,22 +2,18 @@ package edu.northwestern.at.utils.xml;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import org.jdom2.*;
 
-import edu.northwestern.at.utils.*;
-
-/** Interface for JDOM element processor.
- */
-
-public interface ElementProcessor
-{
-    /** Process a JDOM element.
-     *
-     *  @param  document    The document being processed.
-     *  @param  element     The JDOM element to process.
-     */
-
-    public void processElement( Document document , Element element );
+/** Interface for JDOM element processor. */
+public interface ElementProcessor {
+  /**
+   * Process a JDOM element.
+   *
+   * @param document The document being processed.
+   * @param element The JDOM element to process.
+   */
+  public void processElement(Document document, Element element);
 }
 
 /*
@@ -60,6 +56,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

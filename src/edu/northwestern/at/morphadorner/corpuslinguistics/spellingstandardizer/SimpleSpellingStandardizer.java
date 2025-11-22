@@ -2,43 +2,33 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.spellcheck.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.spellcheck.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+/** SimpleSpellingStandardizer maps alternate spellings to standard spellings. */
+public class SimpleSpellingStandardizer extends AbstractSpellingStandardizer
+    implements SpellingStandardizer {
+  /** Create simple spelling standardizer. */
+  public SimpleSpellingStandardizer() {
+    super();
 
-/** SimpleSpellingStandardizer maps alternate spellings
- *  to standard spellings.
- */
+    Map<String, String> map = MapFactory.createNewMap();
 
-public class SimpleSpellingStandardizer
-    extends AbstractSpellingStandardizer
-    implements SpellingStandardizer
-{
-    /** Create simple spelling standardizer.
-     */
+    mappedSpellings = new TaggedStringsMap(map);
+  }
 
-    public SimpleSpellingStandardizer()
-    {
-        super();
-
-        Map<String, String> map = MapFactory.createNewMap();
-
-        mappedSpellings     = new TaggedStringsMap( map );
-    }
-
-    /** Return standardizer description.
-     *
-     *  @return     Standardizer description.
-     */
-
-    public String toString()
-    {
-        return "Simple Spelling Standardizer";
-    }
+  /**
+   * Return standardizer description.
+   *
+   * @return Standardizer description.
+   */
+  public String toString() {
+    return "Simple Spelling Standardizer";
+  }
 }
 
 /*
@@ -81,6 +71,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

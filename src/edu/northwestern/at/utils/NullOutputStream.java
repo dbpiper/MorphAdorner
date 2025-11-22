@@ -5,65 +5,39 @@ package edu.northwestern.at.utils;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/** A null output stream which ignores all output written to it.
- */
+/** A null output stream which ignores all output written to it. */
+public class NullOutputStream extends OutputStream {
+  /** Construct NullOutputStream. */
+  public NullOutputStream() {}
 
-public class NullOutputStream extends OutputStream
-{
-    /** Construct NullOutputStream.
-     */
+  /**
+   * Writes (actually ignores) array of bytes to output stream.
+   *
+   * @param b The bytes to output.
+   * @throws IOException If there is an I/O error.
+   *     <p>Nothing is actually written.
+   */
+  public void write(byte[] b) throws IOException {}
 
-    public NullOutputStream()
-    {
-    }
+  /**
+   * Write (actually, ignore) bytes from byte array to output stream.
+   *
+   * @param b The bytes to output.
+   * @param off Starting offset in the byte array.
+   * @param len Number of bytes to write.
+   * @throws IOException If there is an I/O error.
+   *     <p>Nothing is actually written.
+   */
+  public void write(byte[] b, int off, int len) throws IOException {}
 
-    /** Writes (actually ignores) array of bytes to output stream.
-     *
-     *  @param  b   The bytes to output.
-     *
-     *  @throws IOException     If there is an I/O error.
-     *
-     *  <p>
-     *  Nothing is actually written.
-     *  </p>
-     */
-
-    public void write( byte[] b ) throws IOException
-    {
-    }
-
-    /** Write (actually, ignore) bytes from byte array to output stream.
-     *
-     *  @param b        The bytes to output.
-     *  @param off      Starting offset in the byte array.
-     *  @param len      Number of bytes to write.
-     *
-     *  @throws IOException     If there is an I/O error.
-     *
-     *  <p>
-     *  Nothing is actually written.
-     *  </p>
-     */
-
-    public void write( byte[] b , int off , int len )
-        throws IOException
-    {
-    }
-
-    /** Write (actually, ignore) integer value to output stream.
-     *
-     *  @param  i   Value to write.
-     *
-     *  @throws IOException     If there is an I/O error.
-     *
-     *  <p>
-     *  Nothing is actually written.
-     *  </p>
-     */
-
-    public void write( int i ) throws IOException
-    {
-    }
+  /**
+   * Write (actually, ignore) integer value to output stream.
+   *
+   * @param i Value to write.
+   * @throws IOException If there is an I/O error.
+   *     <p>Nothing is actually written.
+   */
+  public void write(int i) throws IOException {}
 }
 
 /*
@@ -106,6 +80,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

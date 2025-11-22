@@ -2,175 +2,143 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.regex.*;
-import java.util.StringTokenizer;
-
 import edu.northwestern.at.utils.CharUtils;
 import edu.northwestern.at.utils.IsCloseableObject;
-import edu.northwestern.at.utils.logger.*;
 import edu.northwestern.at.utils.PatternReplacer;
 import edu.northwestern.at.utils.StringUtils;
+import edu.northwestern.at.utils.logger.*;
+import java.util.regex.*;
 
-/** Default pretokenizes which prepares a string for tokenization.
- */
+/** Default pretokenizes which prepares a string for tokenization. */
+public abstract class AbstractPreTokenizer extends IsCloseableObject
+    implements PreTokenizer, UsesLogger {
+  /** Pattern to match three or more periods. */
+  protected static final String periods = "(\\.{3,})";
 
-abstract public class AbstractPreTokenizer
-    extends IsCloseableObject
-    implements PreTokenizer, UsesLogger
-{
-    /** Pattern to match three or more periods. */
+  /** Pattern to match one or more asterisk. */
+  protected static final String asterisks = "([\\*]+)";
 
-    protected final static String periods   = "(\\.{3,})";
+  /** Pattern to match two or more hyphens in a row. */
+  protected static final String hyphens = "(-{2,})";
 
-    /** Pattern to match one or more asterisk. */
+  /** Pattern to match comma as a separator. */
+  protected static final String commaSeparator = "(,)([^0-9])";
 
-    protected final static String asterisks = "([\\*]+)";
+  /** Logger used for output. */
+  protected Logger logger;
 
-    /** Pattern to match two or more hyphens in a row. */
+  /**
+   * Pattern to match characters which are always separators.
+   *
+   * <p>Unicode \u25CF (BLACKCIRCLE) is the dot character which marks character lacunae. This is not
+   * a token separator. Neither is Unicode \u2022 (SOLIDCIRCLE) which was used in the old EEBO
+   * format TCP files to mark character lacunae.
+   *
+   * <p>Unicode \u2011, the non-breaking hyphen, is not treated as a token separator.
+   *
+   * <p>Unicode \u2032 (DEGREES_MARK) is degrees quote symbol. Unicode \u2033 (MINUTES_MARK) is
+   * minutes quote symbol. Unicode \u2034 (SECONDS_MARK) is seconds quote symbol. These are not
+   * token separators.
+   *
+   * <p>Unicode \u2018 (LSQUOTE) is left single curly quote. Unicode \u2019 (RSQUOTE) is right
+   * single curly quote. These may or may not be token separators. It is up to the word tokenizer to
+   * decide.
+   *
+   * <p>Unicode \u201C (LDQUOTE) is left double curly quote. Unicode \u201D (RDQUOTE) is right
+   * double curly quote. These are token separators.
+   */
+  protected static final String alwaysSeparators =
+      "("
+          + hyphens
+          + "|"
+          + periods
+          + "|"
+          + "[\\(\\)\\[\\]\\{\\}\";:/=\u0060\u00b6<>\u00a1\u00bf\u00ab\u00bb_"
+          + CharUtils.LDQUOTE
+          + CharUtils.RDQUOTE
+          + CharUtils.LONG_DASH
+          + "\\"
+          + CharUtils.VERTICAL_BAR
+          + CharUtils.BROKEN_VERTICAL_BAR
+          + CharUtils.LIGHT_VERTICAL_BAR
+          + "[\\p{InGeneralPunctuation}&&[^"
+          + CharUtils.SOLIDCIRCLE
+          + CharUtils.DEGREES_MARK
+          + CharUtils.MINUTES_MARK
+          + CharUtils.SECONDS_MARK
+          + CharUtils.LSQUOTE
+          + CharUtils.RSQUOTE
+          + CharUtils.SHORT_DASH
+          + CharUtils.NONBREAKING_HYPHEN
+          + "]]"
+          + "\\p{InLetterlikeSymbols}"
+          + "\\p{InMathematicalOperators}"
+          + "\\p{InMiscellaneousTechnical}"
+          + "[\\p{InGeometricShapes}&&[^"
+          + CharUtils.BLACKCIRCLE
+          + "]]"
+          + "\\p{InMiscellaneousSymbols}"
+          + "\\p{InDingbats}"
+          + "\\p{InAlphabeticPresentationForms}"
+          + "]"
+          + ")";
 
-    protected final static String hyphens   = "(-{2,})";
+  /** Always Separators replacer pattern. */
+  protected static PatternReplacer alwaysSeparatorsReplacer =
+      new PatternReplacer(alwaysSeparators, " \u00241 ");
 
-    /** Pattern to match comma as a separator. */
+  /** Comma separator replacer pattern. */
+  protected static PatternReplacer commaSeparatorReplacer =
+      new PatternReplacer(commaSeparator, " \u00241 \u00242");
 
-    protected final static String commaSeparator    =
-        "(,)([^0-9])";
+  /** Create a preTokenizer. */
+  public AbstractPreTokenizer() {
+    logger = new DummyLogger();
+  }
 
-    /** Logger used for output. */
+  /**
+   * Get the logger.
+   *
+   * <p>\u0040return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    protected Logger logger;
+  /**
+   * Set the logger.
+   *
+   * <p>\u0040param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-    /** Pattern to match characters which are always separators.
-     *
-     *  <p>
-     *  Unicode \u25CF (BLACKCIRCLE) is the dot character which marks
-     *  character lacunae.  This is not a token separator.  Neither is
-     *  Unicode \u2022 (SOLIDCIRCLE) which was used in the old
-     *  EEBO format TCP files to mark character lacunae.
-     *  </p>
-     *
-     *  <p>
-     *  Unicode \u2011, the non-breaking hyphen, is not treated
-     *  as a token separator.
-     *  </p>
-     *
-     *  <p>
-     *  Unicode \u2032 (DEGREES_MARK) is degrees quote symbol.
-     *  Unicode \u2033 (MINUTES_MARK) is minutes quote symbol.
-     *  Unicode \u2034 (SECONDS_MARK) is seconds quote symbol.
-     *  These are not token separators.
-     *  </p>
-     *
-     *  <p>
-     *  Unicode \u2018 (LSQUOTE) is left single curly quote.
-     *  Unicode \u2019 (RSQUOTE) is right single curly quote.
-     *  These may or may not be token separators.  It is up
-     *  to the word tokenizer to decide.
-     *  </p>
-     *
-     *  <p>
-     *  Unicode \u201C (LDQUOTE) is left double curly quote.
-     *  Unicode \u201D (RDQUOTE) is right double curly quote.
-     *  These are token separators.
-     *  </p>
-     */
+  /**
+   * Prepare text for tokenization.
+   *
+   * <p>\u0040param line The text to prepare for tokenization,
+   *
+   * <p>\u0040return The pretokenized text.
+   */
+  public String pretokenize(String line) {
+    //  Replace tabs with single space.
 
-    protected final static String alwaysSeparators  =
-        "(" +
-            hyphens + "|" + periods + "|" +
-            "[\\(\\)\\[\\]\\{\\}\";:/=\u0060\u00b6<>\u00a1\u00bf\u00ab\u00bb_" +
-            CharUtils.LDQUOTE +
-            CharUtils.RDQUOTE +
-            CharUtils.LONG_DASH +
-            "\\" + CharUtils.VERTICAL_BAR +
-            CharUtils.BROKEN_VERTICAL_BAR +
-            CharUtils.LIGHT_VERTICAL_BAR +
-            "[\\p{InGeneralPunctuation}&&[^" +
-            CharUtils.SOLIDCIRCLE +
-            CharUtils.DEGREES_MARK +
-            CharUtils.MINUTES_MARK +
-            CharUtils.SECONDS_MARK +
-            CharUtils.LSQUOTE +
-            CharUtils.RSQUOTE +
-            CharUtils.SHORT_DASH +
-            CharUtils.NONBREAKING_HYPHEN +
-            "]]" +
-            "\\p{InLetterlikeSymbols}" +
-            "\\p{InMathematicalOperators}" +
-            "\\p{InMiscellaneousTechnical}" +
-            "[\\p{InGeometricShapes}&&[^" +
-            CharUtils.BLACKCIRCLE +
-            "]]" +
-            "\\p{InMiscellaneousSymbols}" +
-            "\\p{InDingbats}" +
-            "\\p{InAlphabeticPresentationForms}" +
-            "]" +
-        ")";
+    String result = StringUtils.replaceAll(line, "\t", " ");
 
-    /** Always Separators replacer pattern. */
+    //  Put spaces around characters
+    //  that are always separators.
 
-    protected static PatternReplacer alwaysSeparatorsReplacer   =
-        new PatternReplacer( alwaysSeparators , " \u00241 ");
+    result = alwaysSeparatorsReplacer.replace(result);
 
-    /** Comma separator replacer pattern. */
+    //  Put spaces around all commas except
+    //  those appearing before a digit, which
+    //  presumably are part of a number.
 
-    protected static PatternReplacer commaSeparatorReplacer =
-        new PatternReplacer( commaSeparator , " \u00241 \u00242" );
+    result = commaSeparatorReplacer.replace(result);
 
-    /** Create a preTokenizer.
-     */
-
-    public AbstractPreTokenizer()
-    {
-        logger  = new DummyLogger();
-    }
-
-    /** Get the logger.
-     *
-     *  \u0040return        The logger.
-     */
-
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  \u0040param logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
-
-    /** Prepare text for tokenization.
-     *
-     *  \u0040param line    The text to prepare for tokenization,
-     *
-     *  \u0040return            The pretokenized text.
-     */
-
-    public String pretokenize( String line )
-    {
-                                //  Replace tabs with single space.
-
-        String result   =
-            StringUtils.replaceAll( line , "\t" , " " );
-
-                                //  Put spaces around characters
-                                //  that are always separators.
-
-        result          = alwaysSeparatorsReplacer.replace( result );
-
-                                //  Put spaces around all commas except
-                                //  those appearing before a digit, which
-                                //  presumably are part of a number.
-
-        result          = commaSeparatorReplacer.replace( result );
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -213,6 +181,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,337 +2,259 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namestandardizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.logger.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
-import edu.northwestern.at.utils.logger.*;
+/** Abstract Name Standardizer. */
+public abstract class AbstractNameStandardizer extends IsCloseableObject
+    implements NameStandardizer, UsesLogger {
+  /** Proper name trie. */
+  protected static TernaryTrie nameTrie;
 
-/** Abstract Name Standardizer.
- */
+  /** Consonant trie. */
+  protected static TernaryTrie consonantTrie;
 
-abstract public class AbstractNameStandardizer
-    extends IsCloseableObject
-    implements NameStandardizer, UsesLogger
-{
-    /** Proper name trie. */
+  /** Logger used for output. */
+  protected Logger logger = new DummyLogger();
 
-    protected static TernaryTrie nameTrie;
+  /** Create abstract name matcher. */
+  public AbstractNameStandardizer() {
+    //  Create name trie.
 
-    /** Consonant trie. */
+    nameTrie = new TernaryTrie();
 
-    protected static TernaryTrie consonantTrie;
+    //  Create consonant trie.
 
-    /** Logger used for output. */
+    consonantTrie = new TernaryTrie();
+  }
 
-    protected Logger logger = new DummyLogger();
+  /**
+   * Load name data from lexicon file.
+   *
+   * @param lexiconFileName Lexicon containing name data.
+   */
+  public void loadNames(String lexiconFileName) throws IOException {
+    Lexicon lexicon = new DefaultLexicon();
 
-    /** Create abstract name matcher. */
+    lexicon.loadLexicon(new File(lexiconFileName).toURI().toURL(), "utf-8");
 
-    public AbstractNameStandardizer()
-    {
-                                //  Create name trie.
+    loadNamesFromLexicon(lexicon);
+  }
 
-        nameTrie        =  new TernaryTrie();
+  /**
+   * Load names from a lexicon.
+   *
+   * @param lexicon The lexicon from which to load names.
+   */
+  public void loadNamesFromLexicon(Lexicon lexicon) throws IOException {
+    if (lexicon != null) {
+      //  Get parts of speech.
 
-                                //  Create consonant trie.
+      PartOfSpeechTags posTags = lexicon.getPartOfSpeechTags();
 
-        consonantTrie   =  new TernaryTrie();
-    }
+      //  Get singular and plural proper noun
+      //  tags.
 
-    /** Load name data from lexicon file.
-     *
-     *  @param  lexiconFileName     Lexicon containing name data.
-     */
+      String singularTag = posTags.getSingularProperNounTag();
+      String pluralTag = posTags.getPluralProperNounTag();
 
-    public void loadNames( String lexiconFileName )
-        throws IOException
-    {
-        Lexicon lexicon = new DefaultLexicon();
+      //  Get Lexicon entries.
 
-        lexicon.loadLexicon
-        (
-            new File( lexiconFileName ).toURI().toURL() , "utf-8"
-        );
+      String[] entries = lexicon.getEntries();
 
-        loadNamesFromLexicon( lexicon );
-    }
+      //  Loop over lexicon entries.
 
-    /** Load names from a lexicon.
-     *
-     *  @param  lexicon     The lexicon from which to load names.
-     */
+      for (int i = 0; i < entries.length; i++) {
+        //  Get next lexicon entry.
 
-    public void loadNamesFromLexicon( Lexicon lexicon )
-        throws IOException
-    {
-        if ( lexicon != null )
-        {
-                                //  Get parts of speech.
+        String entry = entries[i];
 
-            PartOfSpeechTags posTags    = lexicon.getPartOfSpeechTags();
+        //  Get parts of speech for this entry.
 
-                                //  Get singular and plural proper noun
-                                //  tags.
+        Set categories = lexicon.getCategoriesForEntry(entry);
 
-            String singularTag  = posTags.getSingularProperNounTag();
-            String pluralTag    = posTags.getPluralProperNounTag();
+        //  If this word can be a singular
+        //  or plural proper noun, add it to
+        //  the name trie.
 
-                                //  Get Lexicon entries.
+        if (categories.contains(singularTag) || categories.contains(pluralTag)) {
+          String lcEntry = entry.toLowerCase();
 
-            String[] entries    = lexicon.getEntries();
+          nameTrie.put(lcEntry, lcEntry);
 
-                                //  Loop over lexicon entries.
+          //  Strip vowels from name and add
+          //  it to the consonant trie.
 
-            for ( int i = 0 ; i < entries.length ; i++ )
-            {
-                                //  Get next lexicon entry.
+          String noVowels = StringUtils.stripChars(lcEntry, "aeiouy");
 
-                String entry    = entries[ i ];
+          @SuppressWarnings("unchecked")
+          Set<String> names = (Set<String>) consonantTrie.get(noVowels);
 
-                                //  Get parts of speech for this entry.
-
-                Set categories  = lexicon.getCategoriesForEntry( entry );
-
-                                //  If this word can be a singular
-                                //  or plural proper noun, add it to
-                                //  the name trie.
-
-                if  (   categories.contains( singularTag ) ||
-                        categories.contains( pluralTag )
-                    )
-                {
-                    String lcEntry  = entry.toLowerCase();
-
-                    nameTrie.put( lcEntry , lcEntry );
-
-                                //  Strip vowels from name and add
-                                //  it to the consonant trie.
-
-                    String noVowels =
-                        StringUtils.stripChars( lcEntry , "aeiouy" );
-
-                    @SuppressWarnings("unchecked")
-                    Set<String> names   =
-                        (Set<String>)consonantTrie.get( noVowels );
-
-                    if ( names == null )
-                    {
-                        names   = new TreeSet<String>();
-                        names.add( lcEntry );
-                        consonantTrie.put( noVowels , names );
-                    }
-                    else
-                    {
-                        names.add( lcEntry );
-                    }
-                }
-            }
+          if (names == null) {
+            names = new TreeSet<String>();
+            names.add(lcEntry);
+            consonantTrie.put(noVowels, names);
+          } else {
+            names.add(lcEntry);
+          }
         }
+      }
     }
+  }
 
-    /** Load names from a collection of names.
-     *
-     *  @param  properNamesCollection   Collection containing proper names.
-     */
+  /**
+   * Load names from a collection of names.
+   *
+   * @param properNamesCollection Collection containing proper names.
+   */
+  public void loadNames(Collection<String> properNamesCollection) {
+    if (properNamesCollection != null) {
+      //  Loop over lexicon entries.
 
-    public void loadNames( Collection<String> properNamesCollection )
-    {
-        if ( properNamesCollection != null )
-        {
-                                //  Loop over lexicon entries.
+      for (String properName : properNamesCollection) {
+        String lcProperName = properName.toLowerCase();
 
-            for ( String properName : properNamesCollection )
-            {
-                String lcProperName = properName.toLowerCase();
+        nameTrie.put(lcProperName, lcProperName);
 
-                nameTrie.put( lcProperName , lcProperName );
+        //  Strip vowels from name and add
+        //  it to the consonant trie.
 
-                                //  Strip vowels from name and add
-                                //  it to the consonant trie.
+        String noVowels = StringUtils.stripChars(lcProperName, "aeiouy");
 
-                String noVowels =
-                    StringUtils.stripChars( lcProperName , "aeiouy" );
+        @SuppressWarnings("unchecked")
+        Set<String> names = (Set<String>) consonantTrie.get(noVowels);
 
-                @SuppressWarnings("unchecked")
-                Set<String> names   =
-                    (Set<String>)consonantTrie.get( noVowels );
-
-                if ( names == null )
-                {
-                    names   = new TreeSet<String>();
-                    names.add( lcProperName );
-                    consonantTrie.put( noVowels , names );
-                }
-                else
-                {
-                    names.add( lcProperName );
-                }
-            }
+        if (names == null) {
+          names = new TreeSet<String>();
+          names.add(lcProperName);
+          consonantTrie.put(noVowels, names);
+        } else {
+          names.add(lcProperName);
         }
+      }
     }
+  }
 
-    /** Return number of names.
-     *
-     *  @return     Number of names in names trie.
-     */
+  /**
+   * Return number of names.
+   *
+   * @return Number of names in names trie.
+   */
+  public int getNumberOfNames() {
+    return nameTrie.size();
+  }
 
-    public int getNumberOfNames()
-    {
-        return nameTrie.size();
+  /**
+   * Check if we should not standardize a name.
+   *
+   * @param properName Name to check.
+   * @return True to avoid standardizing name.
+   *     <p>Names that contain periods are not standardized by default.
+   */
+  public boolean dontStandardize(String properName) {
+    return (properName.indexOf(".") >= 0);
+  }
+
+  /**
+   * Returns standardized proper name given a proper name.
+   *
+   * @param properName The proper name.
+   * @return The standard proper name.
+   */
+  public String standardizeProperName(String properName) {
+    //  See if we should avoid
+    //  standardizing this name.
+
+    if (dontStandardize(properName)) return properName;
+
+    String result = preprocessProperName(properName);
+    String lcName = result.toLowerCase();
+
+    //  Find names "near" (in edit distance
+    //  terms) to given name.
+
+    List<String> nearNames = nameTrie.nearSearch(lcName, 2);
+
+    //  Get string similarity scores for
+    //  near names and add to sorted
+    //  list of candidate names.
+
+    SortedArrayList<ScoredString> scoredNames = new SortedArrayList<ScoredString>();
+
+    if (nearNames.size() > 0) {
+      for (int j = 0; j < nearNames.size(); j++) {
+        double similarity = LetterPairSimilarity.letterPairSimilarity(lcName, nearNames.get(j));
+
+        scoredNames.add(new ScoredString(nearNames.get(j), similarity));
+      }
     }
+    //  If we didn't get any candidate names,
+    //  look for near consonant matches, and
+    //  get similarity scores for those names.
+    else {
+      String noVowels = StringUtils.stripChars(lcName, "aeiouy");
 
-    /** Check if we should not standardize a name.
-     *
-     *  @param  properName  Name to check.
-     *
-     *  @return             True to avoid standardizing name.
-     *
-     *  <p>
-     *  Names that contain periods are not standardized by default.
-     *  </p>
-     */
+      nearNames = consonantTrie.nearSearch(noVowels, 3);
 
-    public boolean dontStandardize( String properName )
-    {
-        return ( properName.indexOf( "." ) >= 0 );
-    }
+      for (int j = 0; j < nearNames.size(); j++) {
+        @SuppressWarnings("unchecked")
+        Set<String> nearNamesSet = (Set<String>) consonantTrie.get(nearNames.get(j));
 
-    /** Returns standardized proper name given a proper name.
-     *
-     *  @param  properName  The proper name.
-     *
-     *  @return             The standard proper name.
-     */
+        for (String name : nearNamesSet) {
+          double similarity = LetterPairSimilarity.letterPairSimilarity(lcName, name);
 
-    public String standardizeProperName( String properName )
-    {
-                                //  See if we should avoid
-                                //  standardizing this name.
-
-        if ( dontStandardize( properName ) ) return properName;
-
-        String result   = preprocessProperName( properName );
-        String lcName   = result.toLowerCase();
-
-                                //  Find names "near" (in edit distance
-                                //  terms) to given name.
-
-        List<String> nearNames  = nameTrie.nearSearch( lcName , 2 );
-
-                                //  Get string similarity scores for
-                                //  near names and add to sorted
-                                //  list of candidate names.
-
-        SortedArrayList<ScoredString> scoredNames   =
-            new SortedArrayList<ScoredString>();
-
-        if ( nearNames.size() > 0 )
-        {
-            for ( int j = 0 ; j < nearNames.size() ; j++ )
-            {
-                double similarity   =
-                    LetterPairSimilarity.letterPairSimilarity
-                    (
-                        lcName ,
-                        nearNames.get( j )
-                    );
-
-                scoredNames.add
-                (
-                    new ScoredString( nearNames.get( j ) , similarity )
-                );
-            }
+          if (similarity >= 0.75D) {
+            scoredNames.add(new ScoredString(name, similarity));
+          }
         }
-                                //  If we didn't get any candidate names,
-                                //  look for near consonant matches, and
-                                //  get similarity scores for those names.
-        else
-        {
-            String noVowels =
-                StringUtils.stripChars( lcName , "aeiouy" );
+      }
+    }
+    //  Get the highest scoring candidate name,
+    //  if any, or just return the original
+    //  name if none found.
 
-            nearNames   =
-                consonantTrie.nearSearch( noVowels , 3 );
-
-            for ( int j = 0 ; j < nearNames.size() ; j++ )
-            {
-                @SuppressWarnings("unchecked")
-                Set<String> nearNamesSet    =
-                    (Set<String>)consonantTrie.get( nearNames.get( j ) );
-
-                for ( String name : nearNamesSet )
-                {
-                    double similarity   =
-                        LetterPairSimilarity.letterPairSimilarity
-                        (
-                            lcName ,
-                            name
-                        );
-
-                    if ( similarity >= 0.75D )
-                    {
-                        scoredNames.add
-                        (
-                            new ScoredString( name , similarity )
-                        );
-                    }
-                }
-            }
-        }
-                                //  Get the highest scoring candidate name,
-                                //  if any, or just return the original
-                                //  name if none found.
-
-        if ( scoredNames.size() > 0 )
-        {
-            result  = scoredNames.get( 0 ).getString();
-            result  = CharUtils.makeCaseMatch( result , properName );
-        }
-
-        return result;
+    if (scoredNames.size() > 0) {
+      result = scoredNames.get(0).getString();
+      result = CharUtils.makeCaseMatch(result, properName);
     }
 
-    /** Preprocess proper name.
-     *
-     *  @param  properName  Proper name to preprocess.
-     *
-     *  @return             Preprocessed proper name.
-     *
-     *  <p>
-     *  By default, no preprocessing is applied; the original proper name
-     *  is returned unchanged.
-     *  </p>
-     */
+    return result;
+  }
 
-    public String preprocessProperName( String properName )
-    {
-        return properName;
-    }
+  /**
+   * Preprocess proper name.
+   *
+   * @param properName Proper name to preprocess.
+   * @return Preprocessed proper name.
+   *     <p>By default, no preprocessing is applied; the original proper name is returned unchanged.
+   */
+  public String preprocessProperName(String properName) {
+    return properName;
+  }
 
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 }
 
 /*
@@ -375,6 +297,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

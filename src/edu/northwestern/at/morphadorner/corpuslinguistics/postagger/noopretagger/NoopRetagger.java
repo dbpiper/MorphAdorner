@@ -2,79 +2,57 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.noopretagge
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
+import java.util.*;
 
-/** A retagger which leaves the original tagging undisturbed.
+/**
+ * A retagger which leaves the original tagging undisturbed.
  *
- *  <p>
- *  This retagger does nothing to the original part of speech tagging.
- *  </p>
+ * <p>This retagger does nothing to the original part of speech tagging.
  */
+public class NoopRetagger extends UnigramTagger implements PartOfSpeechRetagger {
+  /** Create noop retagger. */
+  public NoopRetagger() {}
 
-public class NoopRetagger
-    extends UnigramTagger
-    implements PartOfSpeechRetagger
-{
-    /** Create noop retagger. */
+  /**
+   * Retag a sentence.
+   *
+   * @param sentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
+   * @return The sentence with words unchanged.
+   */
+  public <T extends AdornedWord> List<T> retagSentence(List<T> sentence) {
+    //  Return sentence unchanged.
+    return sentence;
+  }
 
-    public NoopRetagger()
-    {
-    }
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @return true if retagger can add or delete words.
+   */
+  public boolean getCanAddOrDeleteWords() {
+    return false;
+  }
 
-    /** Retag a sentence.
-     *
-     *  @param  sentence    The sentence as an
-     *                      {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord} .
-     *
-     *  @return             The sentence with words unchanged.
-     */
+  /**
+   * Can retagger add or delete words in the original sentence?
+   *
+   * @param canAddOrDeleteWords true if retagger can add or delete words.
+   *     <p>Ignored here.
+   */
+  public void setCanAddOrDeleteWords(boolean canAddOrDeleteWords) {}
 
-    public<T extends AdornedWord> List<T> retagSentence
-    (
-        List<T> sentence
-    )
-    {
-                                //  Return sentence unchanged.
-        return sentence;
-    }
-
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @return     true if retagger can add or delete words.
-     */
-
-    public boolean getCanAddOrDeleteWords()
-    {
-        return false;
-    }
-
-    /** Can retagger add or delete words in the original sentence?
-     *
-     *  @param  canAddOrDeleteWords     true if retagger can add or
-     *                                  delete words.
-     *
-     *  <p>
-     *  Ignored here.
-     *  </p>
-     */
-
-    public void setCanAddOrDeleteWords( boolean canAddOrDeleteWords )
-    {
-    }
-
-    /** Return retagger description.
-     *
-     *  @return     Retagger description.
-     */
-
-    public String toString()
-    {
-        return "Noop retagger";
-    }
+  /**
+   * Return retagger description.
+   *
+   * @return Retagger description.
+   */
+  public String toString() {
+    return "Noop retagger";
+  }
 }
 
 /*
@@ -117,6 +95,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

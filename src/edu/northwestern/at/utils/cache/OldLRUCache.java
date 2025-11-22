@@ -5,299 +5,255 @@ package edu.northwestern.at.utils.cache;
 import java.util.*;
 
 /** Fixed maximum size cache employing least-recently used method to age entries. */
+public class OldLRUCache<K, V> implements Cache<K, V> {
+  /*  Maximum number of entries (keys) allowed in cache. */
 
-public class OldLRUCache<K, V> implements Cache<K, V>
-{
-    /*  Maximum number of entries (keys) allowed in cache. */
+  protected int maxEntries;
 
-    protected int maxEntries;
+  /*  Nodes in least recently used queue. */
 
-    /*  Nodes in least recently used queue. */
+  protected class Node {
+    /** Node key. */
+    K key;
 
-    protected class Node
-    {
-        /** Node key. */
+    /** Node value. */
+    V value;
 
-        K key;
+    /** Previous node in queue. */
+    Node previous;
 
-        /** Node value. */
+    /** Next node in queue. */
+    Node next;
 
-        V value;
+    /**
+     * Create wrapped value.
+     *
+     * @param key The key to wrap.
+     * @param value The value to wrap.
+     */
+    protected Node(K key, V value) {
+      this.key = key;
+      this.value = value;
+      this.previous = null;
+      this.next = null;
+    }
+  }
 
-        /** Previous node in queue. */
+  /** SoftReferenceCache which holds actual cached entries. */
+  protected SoftReferenceCache<K, Node> cache;
 
-        Node previous;
+  /*  Linked list to implement the queue for tracking the age of entries.
+   */
 
-        /** Next node in queue. */
+  protected Node head;
+  protected Node tail;
 
-        Node next;
+  /**
+   * Create a new cache.
+   *
+   * @param maxEntries Maximum number of entries allowed.
+   */
+  public OldLRUCache(int maxEntries) {
+    cache = new SoftReferenceCache<K, Node>();
 
-        /** Create wrapped value.
-         *
-         *  @param  key     The key to wrap.
-         *  @param  value   The value to wrap.
-         */
+    //  Make sure we have at least
+    //  two entries.
 
-        protected Node( K key , V value )
-        {
-            this.key        = key;
-            this.value      = value;
-            this.previous   = null;
-            this.next       = null;
-        }
+    this.maxEntries = maxEntries;
+
+    if (this.maxEntries < 2) {
+      this.maxEntries = 2;
+    }
+  }
+
+  /** Clear all entries in the cache. */
+  public void clear() {
+    cache.clear();
+
+    synchronized (this) {
+      head = null;
+      tail = null;
+    }
+  }
+
+  /**
+   * True if cache contains a specified key.
+   *
+   * @param key The key to look up.
+   * @return true if the cache contains the key.
+   */
+  public boolean containsKey(K key) {
+    return cache.containsKey(key);
+  }
+
+  /**
+   * Returns the maximum number of items allowed in the cache.
+   *
+   * @return Maximum number of entries allowed in cache.
+   */
+  public int getMaxSize() {
+    return maxEntries;
+  }
+
+  /**
+   * Retrieve a cached value.
+   *
+   * @param key The key of the entry to retrieve.
+   * @return The value of the cached entry specified by key; null if the cache does not contain the
+   *     key.
+   */
+  public V get(K key) {
+    V result = null;
+
+    Node node = cache.get(key);
+
+    if (node != null) {
+      //  Make this node the most recently used
+      //  moving it to the front of the queue.
+
+      removeNode(node);
+      insertNode(node);
+
+      result = node.value;
     }
 
-    /** SoftReferenceCache which holds actual cached entries. */
+    return result;
+  }
 
-    protected SoftReferenceCache<K, Node> cache;
+  /**
+   * Add or replace a cached value.
+   *
+   * @param key The key of the entry to add.
+   * @param value The value of the entry to add.
+   * @return The value of any existing cached entry specified by the key; null if the cache does not
+   *     contain the key.
+   */
+  public V put(K key, V value) {
+    V result = null;
+    //  If replacing an entry, return
+    //  the existing value.
 
-    /*  Linked list to implement the queue for tracking the age of entries.
-     */
+    if (cache.containsKey(key)) {
+      Node keyNode = cache.remove(key);
 
-    protected Node head;
-    protected Node tail;
+      if (keyNode != null) {
+        result = keyNode.value;
+      }
+    }
+    //  Throw away existing entries from
+    //  tail of queue until we have enough
+    //  room for the next entry.
 
-     /**    Create a new cache.
-     *
-     *  @param  maxEntries  Maximum number of entries allowed.
-     */
+    while (size() >= maxEntries) {
+      if (!deleteLeastRecentlyUsed()) {
+        break;
+      }
+    }
+    //  Wrap entry value in a queue node.
 
-    public OldLRUCache( int maxEntries )
-    {
-        cache   = new SoftReferenceCache<K, Node>();
+    Node node = new Node(key, value);
 
-                                //  Make sure we have at least
-                                //  two entries.
+    //  Add wrapped node to cache.
 
-        this.maxEntries = maxEntries;
+    cache.put(key, node);
 
-        if ( this.maxEntries < 2 )
-        {
-            this.maxEntries = 2;
-        }
+    //  Add node to queue.
+    insertNode(node);
+    //  Return old node value if any.
+    return result;
+  }
+
+  /**
+   * Remove a specific entry from the cache.
+   *
+   * @param key The key of the entry to remove.
+   * @return The entry removed, or null if none.
+   */
+  public V remove(K key) {
+    V result = null;
+
+    Node node = cache.get(key);
+
+    //  Remove node from queue.
+    if (node != null) {
+      removeNode(node);
+    }
+    //  Remove node from cache.
+    cache.remove(key);
+
+    return result;
+  }
+
+  /**
+   * Return current size of cache.
+   *
+   * @return Number of entries (keys) currently stored in cache.
+   */
+  public int size() {
+    return cache.size();
+  }
+
+  /*  Delete least recently used entry.
+   *
+   *  @return     true if a node was removed,
+   *              false if cache is empty.
+   *
+   *  <p>
+   *  The least recently used entry appears at the tail end of the
+   *  node queue.
+   *  </p>
+   */
+
+  protected synchronized boolean deleteLeastRecentlyUsed() {
+    boolean result = false;
+
+    if (tail != null) {
+      cache.remove(tail.key);
+
+      removeNode(tail);
+
+      result = true;
     }
 
-    /** Clear all entries in the cache.
-     */
+    return result;
+  }
 
-    public void clear()
-    {
-        cache.clear();
+  /*  Insert a node at the head of the queue.
+   */
 
-        synchronized( this )
-        {
-            head    = null;
-            tail    = null;
-        }
+  protected synchronized void insertNode(Node node) {
+    node.next = head;
+    node.previous = null;
+
+    if (head != null) {
+      head.previous = node;
     }
 
-    /** True if cache contains a specified key.
-     *
-     *  @param  key     The key to look up.
-     *
-     *  @return         true if the cache contains the key.
-     */
+    head = node;
 
-    public boolean containsKey( K key )
-    {
-        return cache.containsKey( key );
+    if (tail == null) {
+      tail = node;
+    }
+  }
+
+  /*  Remove a node from the queue.
+   *
+   *  @param  node    The node to remove.
+   */
+
+  protected synchronized void removeNode(Node node) {
+    if (node.previous != null) {
+      node.previous.next = node.next;
+    } else {
+      head = node.next;
     }
 
-    /** Returns the maximum number of items allowed in the cache.
-     *
-     *  @return     Maximum number of entries allowed in cache.
-     */
-
-    public int getMaxSize()
-    {
-        return maxEntries;
+    if (node.next != null) {
+      node.next.previous = node.previous;
+    } else {
+      tail = node.previous;
     }
-
-    /** Retrieve a cached value.
-     *
-     *  @param  key     The key of the entry to retrieve.
-     *
-     *  @return         The value of the cached entry specified by key;
-     *                  null if the cache does not contain the key.
-     */
-
-    public V get( K key )
-    {
-        V result    = null;
-
-        Node node   = cache.get( key );
-
-        if ( node != null )
-        {
-                                //  Make this node the most recently used
-                                //  moving it to the front of the queue.
-
-            removeNode( node );
-            insertNode( node );
-
-            result  = node.value;
-        }
-
-        return result;
-    }
-
-    /** Add or replace a cached value.
-     *
-     *  @param  key     The key of the entry to add.
-     *  @param  value   The value of the entry to add.
-     *
-     *  @return         The value of any existing cached entry specified
-     *                  by the key; null if the cache does not contain
-     *                  the key.
-     */
-
-    public V put( K key , V value )
-    {
-        V result    = null;
-                                //  If replacing an entry, return
-                                //  the existing value.
-
-        if ( cache.containsKey( key ) )
-        {
-            Node keyNode    = cache.remove( key );
-
-            if ( keyNode != null )
-            {
-                result  = keyNode.value;
-            }
-        }
-                                //  Throw away existing entries from
-                                //  tail of queue until we have enough
-                                //  room for the next entry.
-
-        while ( size() >= maxEntries )
-        {
-            if ( !deleteLeastRecentlyUsed() )
-            {
-                break;
-            }
-        }
-                                //  Wrap entry value in a queue node.
-
-        Node node   = new Node( key , value );
-
-                                //  Add wrapped node to cache.
-
-        cache.put( key , node );
-
-                                //  Add node to queue.
-        insertNode( node );
-                                //  Return old node value if any.
-        return result;
-    }
-
-    /** Remove a specific entry from the cache.
-     *
-     *  @param  key     The key of the entry to remove.
-     *
-     *  @return         The entry removed, or null if none.
-     */
-
-    public V remove( K key )
-    {
-        V result    = null;
-
-        Node node   = cache.get( key );
-
-                                //  Remove node from queue.
-        if ( node != null )
-        {
-            removeNode( node );
-        }
-                                //  Remove node from cache.
-        cache.remove( key );
-
-        return result;
-    }
-
-    /** Return current size of cache.
-     *
-     *  @return     Number of entries (keys) currently stored in cache.
-     */
-
-    public int size()
-    {
-        return cache.size();
-    }
-
-    /*  Delete least recently used entry.
-     *
-     *  @return     true if a node was removed,
-     *              false if cache is empty.
-     *
-     *  <p>
-     *  The least recently used entry appears at the tail end of the
-     *  node queue.
-     *  </p>
-     */
-
-    protected synchronized boolean deleteLeastRecentlyUsed()
-    {
-        boolean result  = false;
-
-        if ( tail != null )
-        {
-            cache.remove( tail.key );
-
-            removeNode( tail );
-
-            result  = true;
-        }
-
-        return result;
-    }
-
-    /*  Insert a node at the head of the queue.
-     */
-
-    protected synchronized void insertNode( Node node )
-    {
-        node.next       = head;
-        node.previous   = null;
-
-        if ( head != null )
-        {
-            head.previous   = node;
-        }
-
-        head    = node;
-
-        if ( tail == null )
-        {
-            tail = node;
-        }
-    }
-
-    /*  Remove a node from the queue.
-     *
-     *  @param  node    The node to remove.
-     */
-
-    protected synchronized void removeNode( Node node )
-    {
-        if ( node.previous != null )
-        {
-            node.previous.next  = node.next;
-        }
-        else
-        {
-            head    = node.next;
-        }
-
-        if ( node.next != null )
-        {
-            node.next.previous  = node.previous;
-        }
-        else
-        {
-            tail    = node.previous;
-        }
-    }
+  }
 }
 
 /*
@@ -340,6 +296,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

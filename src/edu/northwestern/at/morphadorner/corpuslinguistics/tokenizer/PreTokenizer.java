@@ -2,26 +2,18 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.StringTokenizer;
+/** Interface for preparing a string for tokenization. */
+public interface PreTokenizer {
+  /**
+   * Prepares a string for tokenization.
+   *
+   * @param s The string to prepare for tokenization.
+   * @return The modified string ready for tokenization.
+   */
+  public String pretokenize(String s);
 
-/** Interface for preparing a string for tokenization.
- */
-
-public interface PreTokenizer
-{
-    /** Prepares a string for tokenization.
-     *
-     *  @param  s   The string to prepare for tokenization.
-     *
-     *  @return     The modified string ready for tokenization.
-     */
-
-    public String pretokenize( String s );
-
-    /** Close down the preTokenizer.
-     */
-
-    public void close();
+  /** Close down the preTokenizer. */
+  public void close();
 }
 
 /*
@@ -64,6 +56,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

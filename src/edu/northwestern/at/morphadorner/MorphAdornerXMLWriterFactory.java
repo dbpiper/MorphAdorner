@@ -2,109 +2,74 @@ package edu.northwestern.at.morphadorner;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
+import java.io.*;
 
-/** MorphAdornerXMLWriter factory.
- */
+/** MorphAdornerXMLWriter factory. */
+public class MorphAdornerXMLWriterFactory {
+  /**
+   * Get an xmlWriter.
+   *
+   * @return The xmlWriter.
+   */
+  public static MorphAdornerXMLWriter newMorphAdornerXMLWriter() {
+    String className = System.getProperty("morphadornerxmlwriter.class");
 
-public class MorphAdornerXMLWriterFactory
-{
-    /** Get an xmlWriter.
-     *
-     *  @return     The xmlWriter.
-     */
-
-    public static MorphAdornerXMLWriter newMorphAdornerXMLWriter()
-    {
-        String className    =
-            System.getProperty( "morphadornerxmlwriter.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultMorphAdornerXMLWriter";
-        }
-
-        return newMorphAdornerXMLWriter( className );
+    if (className == null) {
+      className = "DefaultMorphAdornerXMLWriter";
     }
 
-    /** Get an xmlWriter.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The xmlWriter.
-     */
+    return newMorphAdornerXMLWriter(className);
+  }
 
-    public static MorphAdornerXMLWriter newMorphAdornerXMLWriter
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get an xmlWriter.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The xmlWriter.
+   */
+  public static MorphAdornerXMLWriter newMorphAdornerXMLWriter(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "morphadornerxmlwriter.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultMorphAdornerXMLWriter";
-        }
-
-        return newMorphAdornerXMLWriter( className );
+    if (properties != null) {
+      className = properties.getProperty("morphadornerxmlwriter.class");
     }
 
-    /** Get an xmlWriter of a specified class name.
-     *
-     *  @param  className   Class name for the xmlWriter.
-     *
-     *  @return             The xmlWriter.
-     */
-
-    public static MorphAdornerXMLWriter newMorphAdornerXMLWriter
-    (
-        String className
-    )
-    {
-        MorphAdornerXMLWriter xmlWriter = null;
-
-        try
-        {
-            xmlWriter   =
-                (MorphAdornerXMLWriter)Class.forName(
-                    className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    MorphAdornerXMLWriterFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                xmlWriter   =
-                    (MorphAdornerXMLWriter)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create XML writer of class " +
-                    fixedClassName + ", using default." );
-
-                xmlWriter   = new DefaultMorphAdornerXMLWriter();
-            }
-        }
-
-        return xmlWriter;
+    if (className == null) {
+      className = "DefaultMorphAdornerXMLWriter";
     }
+
+    return newMorphAdornerXMLWriter(className);
+  }
+
+  /**
+   * Get an xmlWriter of a specified class name.
+   *
+   * @param className Class name for the xmlWriter.
+   * @return The xmlWriter.
+   */
+  public static MorphAdornerXMLWriter newMorphAdornerXMLWriter(String className) {
+    MorphAdornerXMLWriter xmlWriter = null;
+
+    try {
+      xmlWriter = (MorphAdornerXMLWriter) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(MorphAdornerXMLWriterFactory.class.getName()) + "." + className;
+
+      try {
+        xmlWriter = (MorphAdornerXMLWriter) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create XML writer of class " + fixedClassName + ", using default.");
+
+        xmlWriter = new DefaultMorphAdornerXMLWriter();
+      }
+    }
+
+    return xmlWriter;
+  }
 }
 
 /*
@@ -147,6 +112,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

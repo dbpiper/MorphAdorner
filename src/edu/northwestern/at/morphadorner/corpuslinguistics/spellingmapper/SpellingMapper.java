@@ -2,30 +2,25 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingmapper;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-
-/** Interface for a Spelling Mapper.
+/**
+ * Interface for a Spelling Mapper.
  *
- *  <p>
- *  A spelling mapper changes a spelling from one form to
- *  another.  For example, it may map a British to a US spelling.
- *  </p>
+ * <p>A spelling mapper changes a spelling from one form to another. For example, it may map a
+ * British to a US spelling.
  */
-
-public interface SpellingMapper
-{
-    /** Returns mapped spelling for a given spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The mapped spelling.
-     */
-
-    public String mapSpelling( String spelling );
+public interface SpellingMapper {
+  /**
+   * Returns mapped spelling for a given spelling.
+   *
+   * @param spelling The spelling.
+   * @return The mapped spelling.
+   */
+  public String mapSpelling(String spelling);
 }
 
 /*
@@ -68,6 +63,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

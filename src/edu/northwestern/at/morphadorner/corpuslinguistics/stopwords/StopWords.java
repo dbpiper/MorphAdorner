@@ -4,26 +4,22 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.stopwords;
 
 import java.util.*;
 
-/** Defines an interface for a stopwords list.
- */
+/** Defines an interface for a stopwords list. */
+public interface StopWords {
+  /**
+   * Tests if a specified word is a stop word.
+   *
+   * @param stopWord The word to check.
+   * @return true if word is a stop word.
+   */
+  public boolean isStopWord(String stopWord);
 
-public interface StopWords
-{
-    /** Tests if a specified word is a stop word.
-     *
-     *  @param  stopWord    The word to check.
-     *
-     *  @return             true if word is a stop word.
-     */
-
-    public boolean isStopWord( String stopWord );
-
-    /** Return stop words as a List.
-     *
-     *  @return     String list of stop words.
-     */
-
-    public List<String> getStopWords();
+  /**
+   * Return stop words as a List.
+   *
+   * @return String list of stop words.
+   */
+  public List<String> getStopWords();
 }
 
 /*
@@ -66,6 +62,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

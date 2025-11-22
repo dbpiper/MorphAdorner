@@ -2,49 +2,37 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.adornedword;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
 import java.util.*;
 
-import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
-
-/** An Adorned word filter for Martin Porter's stop word list.
+/**
+ * An Adorned word filter for Martin Porter's stop word list.
  *
- *  <p>
- *  These English stop words were suggested by Martin Porter.
- *  </p>
+ * <p>These English stop words were suggested by Martin Porter.
  */
+public class PorterStopWordFilter implements AdornedWordFilter {
+  /** Stop words. */
+  protected static StopWords stopWords = new PorterStopWords();
 
-public class PorterStopWordFilter implements AdornedWordFilter
-{
-    /** Stop words. */
+  /** Create the stop word filter. */
+  public PorterStopWordFilter() {}
 
-    protected static StopWords stopWords    =
-        new PorterStopWords();
+  /**
+   * Tests if a specified adorned word should be included.
+   *
+   * @param adornedWord The adorned word to check.
+   * @return true to accept the adorned word.
+   */
+  public boolean accept(AdornedWord adornedWord) {
+    //  Get spelling in lowercase.
 
-    /** Create the stop word filter.
-     */
+    String spelling = adornedWord.getSpelling().toLowerCase();
 
-    public PorterStopWordFilter()
-    {
-    }
+    //  Accept the spelling only if it does
+    //  not appear in the list of stop words.
 
-    /** Tests if a specified adorned word should be included.
-     *
-     *  @param  adornedWord     The adorned word to check.
-     *
-     *  @return                 true to accept the adorned word.
-     */
-
-    public boolean accept( AdornedWord adornedWord )
-    {
-                                //  Get spelling in lowercase.
-
-        String spelling = adornedWord.getSpelling().toLowerCase();
-
-                                //  Accept the spelling only if it does
-                                //  not appear in the list of stop words.
-
-        return !stopWords.isStopWord( spelling );
-    }
+    return !stopWords.isStopWord(spelling);
+  }
 }
 
 /*
@@ -87,6 +75,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

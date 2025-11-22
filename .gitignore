@@ -3,3 +3,11 @@ dist/*
 documentation/*
 bin/*
 javadoc/*
+lib/checker-qual-*.jar
+lib/error_prone_annotations-*.jar
+lib/failureaccess-*.jar
+lib/google-java-format-*.jar
+lib/guava-*.jar
+lib/j2objc-annotations-*.jar
+lib/jsr305-*.jar
+lib/listenablefuture-*.jar

@@ -2,29 +2,26 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lexicon;
 
 /*  Please see the license information at the end of this file. */
 
-/** Interface for using a lexicon.
+/**
+ * Interface for using a lexicon.
  *
- *  <p>
- *  A class which uses a lexicon can implement this interface to
- *  standardize on the methods for getting and setting a lexicon.
- *  </p>
+ * <p>A class which uses a lexicon can implement this interface to standardize on the methods for
+ * getting and setting a lexicon.
  */
+public interface UsesLexicon {
+  /**
+   * Get the lexicon.
+   *
+   * @return The lexicon.
+   */
+  public Lexicon getLexicon();
 
-public interface UsesLexicon
-{
-    /** Get the lexicon.
-     *
-     *  @return     The lexicon.
-     */
-
-    public Lexicon getLexicon();
-
-    /** Set the lexicon.
-     *
-     *  @param  lexicon     The lexicon.
-     */
-
-    public void setLexicon( Lexicon lexicon );
+  /**
+   * Set the lexicon.
+   *
+   * @param lexicon The lexicon.
+   */
+  public void setLexicon(Lexicon lexicon);
 }
 
 /*
@@ -67,5 +64,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

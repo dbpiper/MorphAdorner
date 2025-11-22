@@ -4,29 +4,19 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector.conjugator;
 
 import edu.northwestern.at.morphadorner.corpuslinguistics.inflector.*;
 
-/** Noop conjugator which returns an infinitive uninflected.
- */
-
-public class NoopConjugator implements Conjugator
-{
-    /** Conjugate a verb from its infinitive, tense, and person.
-     *
-     *  @param  infinitive  The infinitive of the verb to inflect.
-     *  @param  tense       The verb tense to generate.
-     *  @param  person      The person (1st, 2nd, 3rd) to generate.
-     *
-     *  @return             The verb unchanged.
-     */
-
-    public String conjugate
-    (
-        String infinitive ,
-        VerbTense tense ,
-        Person person
-    )
-    {
-        return infinitive;
-    }
+/** Noop conjugator which returns an infinitive uninflected. */
+public class NoopConjugator implements Conjugator {
+  /**
+   * Conjugate a verb from its infinitive, tense, and person.
+   *
+   * @param infinitive The infinitive of the verb to inflect.
+   * @param tense The verb tense to generate.
+   * @param person The person (1st, 2nd, 3rd) to generate.
+   * @return The verb unchanged.
+   */
+  public String conjugate(String infinitive, VerbTense tense, Person person) {
+    return infinitive;
+  }
 }
 
 /*
@@ -69,6 +59,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

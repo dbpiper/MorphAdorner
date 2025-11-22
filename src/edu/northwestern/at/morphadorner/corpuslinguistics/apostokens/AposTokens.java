@@ -2,164 +2,128 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.apostokens;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.regex.*;
 
-import edu.northwestern.at.utils.*;
+/** Tokens which start or end with an apostrophe. */
+public class AposTokens {
+  //  Set of tokens which begin or end
+  //  with an apostrophe.
 
-/** Tokens which start or end with an apostrophe.
- */
+  protected Set<String> aposTokens = null;
 
-public class AposTokens
-{
-                                //  Set of tokens which begin or end
-                                //  with an apostrophe.
+  //  Path to apos tokens list resource.
 
-    protected Set<String> aposTokens    = null;
+  protected static final String defaultAposTokensFileName = "resources/en-apostokens.txt";
 
-                                //  Path to apos tokens list resource.
+  /** Create AposTokens. Assumes English. */
+  public AposTokens() {
+    aposTokens = loadAposTokensFromResource("en");
+  }
 
-    protected final static String defaultAposTokensFileName =
-        "resources/en-apostokens.txt";
+  /**
+   * Create AposTokens for specified ISO language code.
+   *
+   * @param langCode ISO language code.
+   */
+  public AposTokens(String langCode) {
+    aposTokens = loadAposTokensFromResource(langCode);
+  }
 
-    /** Create AposTokens.  Assumes English.
-     */
+  /**
+   * Load apostrophe tokens set from resource properties file.
+   *
+   * <p>Each line in the UTF8 apostrophe tokens contains a single tokens which begins or ends with
+   * an apostrophe.
+   *
+   * <p>if there is not a resource file for the given language code, the aposTokens set will be
+   * empty.
+   */
+  public static Set<String> loadAposTokensFromResource(String langCode) {
+    //  Create properties object to
+    //  hold apostophe tokens.
 
-    public AposTokens()
-    {
-        aposTokens  = loadAposTokensFromResource( "en" );
+    Set<String> result = SetFactory.createNewSet();
+
+    //  Load apostrophe tokens from
+    //  resource file.
+
+    try {
+      SetUtils.loadIntoSet(
+          result,
+          AposTokens.class.getResource("resources/" + langCode + "-apostokens.txt"),
+          "utf-8");
+    } catch (IOException ioe) {
+      //          ioe.printStackTrace();
     }
 
-    /** Create AposTokens for specified ISO language code.
-     *
-     *  @param  langCode    ISO language code.
-     */
+    return result;
+  }
 
-    public AposTokens( String langCode )
-    {
-        aposTokens  = loadAposTokensFromResource( langCode );
+  /**
+   * Load aposTokens list from a file.
+   *
+   * @param aposTokensURL AposTokens URL.
+   * @return true if aposTokens loaded OK, false if error occurred.
+   */
+  public boolean loadAposTokens(String aposTokensURL) {
+    boolean result = false;
+
+    //  Create properties object to
+    //  hold aposTokens if not
+    //  already created.
+
+    if (aposTokens == null) {
+      aposTokens = SetFactory.createNewSet();
+    }
+    //  Load aposTokens from file.
+    try {
+      aposTokens = SetUtils.loadSet(aposTokensURL, "utf-8");
+
+      result = true;
+    } catch (IOException ioe) {
+      //          ioe.printStackTrace();
     }
 
-    /** Load apostrophe tokens set from resource properties file.
-     *
-     *  <p>
-     *  Each line in the UTF8 apostrophe tokens contains a single
-     *  tokens which begins or ends with an apostrophe.
-     *
-     *  <p>
-     *  if there is not a resource file for the given language code,
-     *  the aposTokens set will be empty.
-     *  </p>
-     */
+    return result;
+  }
 
-    public static Set<String> loadAposTokensFromResource
-    (
-        String langCode
-    )
-    {
-                                //  Create properties object to
-                                //  hold apostophe tokens.
+  /**
+   * Checks if string is a known token with apostrophe.
+   *
+   * @param str The string to check.
+   * @return true if "str" is on the known apostrophe tokens list.
+   */
+  public boolean isKnownAposToken(String str) {
+    return aposTokens.contains(str.toLowerCase());
+  }
 
-        Set<String> result  = SetFactory.createNewSet();
+  /**
+   * Get count of known aposrophe Tokens.
+   *
+   * @return Count of known apostrophe tokens.
+   */
+  public int getAposTokensCount() {
+    int result = 0;
 
-                                //  Load apostrophe tokens from
-                                //  resource file.
-
-        try
-        {
-            SetUtils.loadIntoSet
-            (
-                result ,
-                AposTokens.class.getResource
-                (
-                    "resources/" + langCode + "-apostokens.txt"
-                ) ,
-                "utf-8"
-            );
-        }
-        catch ( IOException ioe )
-        {
-//          ioe.printStackTrace();
-        }
-
-        return result;
+    if (aposTokens != null) {
+      result = aposTokens.size();
     }
 
-    /** Load aposTokens list from a file.
-     *
-     *  @param  aposTokensURL       AposTokens URL.
-     *
-     *  @return                     true if aposTokens loaded OK,
-     *                              false if error occurred.
-     */
+    return result;
+  }
 
-    public boolean loadAposTokens( String aposTokensURL )
-    {
-        boolean result  = false;
-
-                                //  Create properties object to
-                                //  hold aposTokens if not
-                                //  already created.
-
-        if ( aposTokens == null )
-        {
-            aposTokens  = SetFactory.createNewSet();
-        }
-                                //  Load aposTokens from file.
-        try
-        {
-            aposTokens  = SetUtils.loadSet( aposTokensURL , "utf-8" );
-
-            result  = true;
-        }
-        catch ( IOException ioe )
-        {
-//          ioe.printStackTrace();
-        }
-
-        return result;
-    }
-
-    /** Checks if string is a known token with apostrophe.
-     *
-     *  @param  str     The string to check.
-     *
-     *  @return         true if "str" is on the known apostrophe tokens list.
-     */
-
-    public boolean isKnownAposToken( String str )
-    {
-        return aposTokens.contains( str.toLowerCase() );
-    }
-
-    /** Get count of known aposrophe Tokens.
-     *
-     *  @return     Count of known apostrophe tokens.
-     */
-
-    public int getAposTokensCount()
-    {
-        int result  = 0;
-
-        if ( aposTokens != null )
-        {
-            result  = aposTokens.size();
-        }
-
-        return result;
-    }
-
-    /** Return current aposTokens.
-     *
-     *  @return     AposTokens.
-     */
-
-    public Set<String> getAposTokens()
-    {
-        return aposTokens;
-    }
+  /**
+   * Return current aposTokens.
+   *
+   * @return AposTokens.
+   */
+  public Set<String> getAposTokens() {
+    return aposTokens;
+  }
 }
 
 /*
@@ -202,6 +166,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

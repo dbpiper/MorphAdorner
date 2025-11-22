@@ -2,53 +2,41 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import java.text.*;
+import java.util.*;
 
-/** Class utilities.
+/**
+ * Class utilities.
  *
- *  <p>
- *  This static class provides various utility methods for manipulating
- *  class names.
- *  </p>
+ * <p>This static class provides various utility methods for manipulating class names.
  */
+public class ClassUtils {
+  /**
+   * Extracts the unqualified class name from a fully qualified class name.
+   *
+   * @param name The fully qualified class name.
+   * @return The unqualified class name.
+   */
+  public static String unqualifiedName(String name) {
+    int index = name.lastIndexOf('.');
 
-public class ClassUtils
-{
-    /** Extracts the unqualified class name from a fully qualified
-     *  class name.
-     *
-     *  @param  name    The fully qualified class name.
-     *
-     *  @return         The unqualified class name.
-     */
+    return name.substring(index + 1);
+  }
 
-    public static String unqualifiedName( String name )
-    {
-        int index   = name.lastIndexOf( '.' );
+  /**
+   * Extracts the package name from a fully qualified class name.
+   *
+   * @param name The fully qualified class name.
+   * @return The package name.
+   */
+  public static String packageName(String name) {
+    int index = name.lastIndexOf('.');
 
-        return  name.substring( index + 1 );
-    }
+    return name.substring(0, index);
+  }
 
-    /** Extracts the package name from a fully qualified class name.
-     *
-     *  @param  name    The fully qualified class name.
-     *
-     *  @return         The package name.
-     */
-
-    public static String packageName( String name )
-    {
-        int index   = name.lastIndexOf( '.' );
-
-        return name.substring( 0 , index );
-    }
-
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected ClassUtils()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected ClassUtils() {}
 }
 
 /*
@@ -91,6 +79,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -16,20 +16,16 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.hepple.rule
 
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.hepple.*;
 
-
 /**
- * Title:        HepTag
- * Description:  Mark Hepple's POS tagger
- * Copyright:    Copyright (c) 2001
- * Company:      University of Sheffield
+ * Title: HepTag Description: Mark Hepple's POS tagger Copyright: Copyright (c) 2001 Company:
+ * University of Sheffield
+ *
  * @author Mark Hepple
  * @version 1.0
  */
-
 public class Rule_UNKNOWN extends Rule {
 
-  public Rule_UNKNOWN() {
-  }
+  public Rule_UNKNOWN() {}
 
   public boolean checkContext(HeppleTagger tagger) {
     return false;

@@ -2,39 +2,23 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.transitionm
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
+/** Probability transition matrix for Penn Treebank tag set. */
+public class PennTreebankTransitionMatrix extends TransitionMatrix {
+  /** Resource path for transition matrix. */
+  protected static final String transitionMatrixPath = "resources/penntreebanktransitionmatrix.mat";
 
-/** Probability transition matrix for Penn Treebank tag set.
- */
+  /** Create transition matrix. */
+  public PennTreebankTransitionMatrix() throws Exception {
+    super();
 
-public class PennTreebankTransitionMatrix
-    extends TransitionMatrix
-{
-    /** Resource path for transition matrix. */
-
-    protected final static String transitionMatrixPath  =
-        "resources/penntreebanktransitionmatrix.mat";
-
-    /** Create transition matrix.
-     */
-
-    public PennTreebankTransitionMatrix()
-        throws Exception
-    {
-        super();
-
-        loadTransitionMatrix
-        (
-            PennTreebankTransitionMatrix.class.getResource(
-                transitionMatrixPath ) ,
-            "utf-8",
-            '\t'
-        );
-    }
+    loadTransitionMatrix(
+        PennTreebankTransitionMatrix.class.getResource(transitionMatrixPath), "utf-8", '\t');
+  }
 }
 
 /*
@@ -77,6 +61,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -5,112 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lexicon;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** Lexicon factory.
- */
+/** Lexicon factory. */
+public class LexiconFactory {
+  /**
+   * Get a lexicon.
+   *
+   * @return The lexicon.
+   */
+  public static Lexicon newLexicon() {
+    String className = System.getProperty("lexicon.class");
 
-public class LexiconFactory
-{
-    /** Get a lexicon.
-     *
-     *  @return     The lexicon.
-     */
-
-    public static Lexicon newLexicon()
-    {
-        String className    = System.getProperty( "lexicon.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultLexicon";
-        }
-
-        return newLexicon( className );
+    if (className == null) {
+      className = "DefaultLexicon";
     }
 
-    /** Get a lexicon.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The lexicon.
-     */
+    return newLexicon(className);
+  }
 
-    public static Lexicon newLexicon
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a lexicon.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The lexicon.
+   */
+  public static Lexicon newLexicon(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "lexicon.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultLexicon";
-        }
-
-        return newLexicon( className );
+    if (properties != null) {
+      className = properties.getProperty("lexicon.class");
     }
 
-    /** Get a lexicon of a specified class name.
-     *
-     *  @param  className   Class name for the lexicon.
-     *
-     *  @return             The lexicon.
-     */
-
-    public static Lexicon newLexicon( String className )
-    {
-        Lexicon lexicon = null;
-
-        try
-        {
-            lexicon =
-                (Lexicon)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    LexiconFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                lexicon =
-                    (Lexicon)Class.forName( fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create lexicon of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    lexicon = new DefaultLexicon();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null lexicon.
-/*
-                    System.err.println(
-                        "Unable to create lexicon, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return lexicon;
+    if (className == null) {
+      className = "DefaultLexicon";
     }
+
+    return newLexicon(className);
+  }
+
+  /**
+   * Get a lexicon of a specified class name.
+   *
+   * @param className Class name for the lexicon.
+   * @return The lexicon.
+   */
+  public static Lexicon newLexicon(String className) {
+    Lexicon lexicon = null;
+
+    try {
+      lexicon = (Lexicon) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(LexiconFactory.class.getName()) + "." + className;
+
+      try {
+        lexicon = (Lexicon) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create lexicon of class " + fixedClassName + ", using default.");
+
+        try {
+          lexicon = new DefaultLexicon();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null lexicon.
+          /*
+                              System.err.println(
+                                  "Unable to create lexicon, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return lexicon;
+  }
 }
 
 /*
@@ -153,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

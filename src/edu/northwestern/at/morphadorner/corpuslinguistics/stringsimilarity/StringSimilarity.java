@@ -5,28 +5,21 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity;
 import java.io.*;
 import java.util.*;
 
-/** Interface defining a method for computing string similarity.
+/**
+ * Interface defining a method for computing string similarity.
  *
- *  <p>
- *  The similarity values computed by concrete implementations
- *  of this interface must take on values from 0.0 (no similarity)
- *  to 1.0 (perfect similarity).
- *  </p>
+ * <p>The similarity values computed by concrete implementations of this interface must take on
+ * values from 0.0 (no similarity) to 1.0 (perfect similarity).
  */
-
-public interface StringSimilarity
-{
-    /** Compute similarity between two strings.
-     *
-     *  @param  s1  First string.
-     *  @param  s2  Second string.
-     *
-     *  @return     Similarity as a value from
-     *              0.0 (no similarity) to 1.0
-     *              (perfect similarity).
-     */
-
-    public double similarity( String s1 , String s2 );
+public interface StringSimilarity {
+  /**
+   * Compute similarity between two strings.
+   *
+   * @param s1 First string.
+   * @param s2 Second string.
+   * @return Similarity as a value from 0.0 (no similarity) to 1.0 (perfect similarity).
+   */
+  public double similarity(String s1, String s2);
 }
 
 /*
@@ -69,5 +62,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

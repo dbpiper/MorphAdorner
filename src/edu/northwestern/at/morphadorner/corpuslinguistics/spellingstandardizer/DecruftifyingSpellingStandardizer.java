@@ -2,100 +2,71 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.util.*;
-
+import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.cache.*;
 import edu.northwestern.at.utils.spellcheck.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+import java.io.*;
+import java.util.*;
 
-/** DecruftifyingSpellingStandardizer cleans up spellings.
- */
+/** DecruftifyingSpellingStandardizer cleans up spellings. */
+public class DecruftifyingSpellingStandardizer extends AbstractSpellingStandardizer
+    implements SpellingStandardizer {
+  /** Cache for decruftified entries. */
+  protected Map<String, String> cache = MapFactory.createNewMap(20000);
 
-public class DecruftifyingSpellingStandardizer
-    extends AbstractSpellingStandardizer
-    implements SpellingStandardizer
-{
-    /** Cache for decruftified entries. */
+  /** Create decruftifying spelling standardizer. */
+  public DecruftifyingSpellingStandardizer() {
+    super();
+  }
 
-    protected Map<String, String> cache =
-        MapFactory.createNewMap( 20000 );
+  /**
+   * Loads alternative spellings from a reader.
+   *
+   * @param reader The reader.
+   * @param delimChars Delimiter characters separating spelling pairs.
+   *     <p>Unused in this standardizer.
+   */
+  public void loadAlternativeSpellings(Reader reader, String delimChars) throws IOException {}
 
-    /** Create decruftifying spelling standardizer.
-     */
+  /**
+   * Returns standard spellings given a spelling.
+   *
+   * @param spelling The spelling.
+   * @return The standard spellings as an array of String.
+   */
+  public String[] standardizeSpelling(String spelling) {
+    String result = cache.get(spelling);
 
-    public DecruftifyingSpellingStandardizer()
-    {
-        super();
+    if (result == null) {
+      result = EnglishDecruftifier.decruftify(spelling);
+
+      cache.put(spelling, result);
     }
 
-    /** Loads alternative spellings from a reader.
-     *
-     *  @param  reader      The reader.
-     *  @param  delimChars  Delimiter characters separating spelling pairs.
-     *
-     *  <p>
-     *  Unused in this standardizer.
-     *  </p>
-     */
+    return new String[] {fixCapitalization(spelling, result)};
+  }
 
-    public void loadAlternativeSpellings
-    (
-        Reader reader ,
-        String delimChars
-    )
-        throws IOException
-    {
-    }
+  /**
+   * Returns a standard spelling given a standard or alternate spelling.
+   *
+   * @param spelling The spelling.
+   * @param wordClass The word class.
+   * @return The standard spelling.
+   */
+  public String standardizeSpelling(String spelling, String wordClass) {
+    return standardizeSpelling(spelling)[0];
+  }
 
-    /** Returns standard spellings given a spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The standard spellings as an array of String.
-     */
-
-     public String[] standardizeSpelling( String spelling )
-     {
-        String result   = cache.get( spelling );
-
-        if ( result == null )
-        {
-            result  =  EnglishDecruftifier.decruftify( spelling );
-
-            cache.put( spelling , result );
-        }
-
-        return new String[]
-        {
-            fixCapitalization( spelling , result )
-        };
-     }
-
-    /** Returns a standard spelling given a standard or alternate spelling.
-     *
-     *  @param  spelling    The spelling.
-     *  @param  wordClass   The word class.
-     *
-     *  @return             The standard spelling.
-     */
-
-    public String standardizeSpelling( String spelling , String wordClass )
-    {
-        return standardizeSpelling( spelling )[ 0 ];
-    }
-
-    /** Return standardizer description.
-     *
-     *  @return     Standardizer description.
-     */
-
-    public String toString()
-    {
-        return "Decruftifying Spelling Standardizer";
-    }
+  /**
+   * Return standardizer description.
+   *
+   * @return Standardizer description.
+   */
+  public String toString() {
+    return "Decruftifying Spelling Standardizer";
+  }
 }
 
 /*
@@ -138,6 +109,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

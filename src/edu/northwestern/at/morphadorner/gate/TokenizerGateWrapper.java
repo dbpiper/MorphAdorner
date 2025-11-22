@@ -2,18 +2,6 @@ package edu.northwestern.at.morphadorner.gate;
 
 /*  Please see the license information at the end of this file. */
 
-import gate.*;
-import gate.creole.*;
-import gate.util.*;
-import gate.event.*;
-
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.text.NumberFormat;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
@@ -24,273 +12,194 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import gate.*;
+import gate.creole.*;
+import gate.event.*;
+import gate.util.*;
+import java.io.*;
+import java.util.*;
 
-/** Gate wrapper for MorphAdorner's default sentence splitter and tokenizer.
- */
-
+/** Gate wrapper for MorphAdorner's default sentence splitter and tokenizer. */
 @SuppressWarnings("unchecked")
-public class TokenizerGateWrapper
-    extends MorphAdornerGateWrapperBase
-{
-    /** Sentence splitter. */
+public class TokenizerGateWrapper extends MorphAdornerGateWrapperBase {
+  /** Sentence splitter. */
+  protected SentenceSplitter sentenceSplitter;
 
-    protected SentenceSplitter sentenceSplitter;
+  /** Word tokenizer. */
+  protected WordTokenizer tokenizer;
 
-    /** Word tokenizer. */
+  /** Initialize resources. */
+  public Resource init() throws ResourceInstantiationException {
+    //  Common initialization.
+    commonInit();
+    //  Get default word tokenizer.
 
-    protected WordTokenizer tokenizer;
+    tokenizer = new DefaultWordTokenizer();
 
-    /** Initialize resources. */
+    //  Get default sentence splitter.
 
-    public Resource init()
-        throws ResourceInstantiationException
-    {
-                                //  Common initialization.
-        commonInit();
-                                //  Get default word tokenizer.
+    sentenceSplitter = new DefaultSentenceSplitter();
 
-        tokenizer           = new DefaultWordTokenizer();
+    //  Set guesser into sentence
+    //  splitter.
 
-                                //  Get default sentence splitter.
+    sentenceSplitter.setPartOfSpeechGuesser(guesser);
 
-        sentenceSplitter    = new DefaultSentenceSplitter();
+    //  Do standard initialization.
+    return super.init();
+  }
 
-                                //  Set guesser into sentence
-                                //  splitter.
+  public void execute() throws ExecutionException {
+    try {
+      //  Make sure we have a document
+      //  to process.  Error if not.
 
-        sentenceSplitter.setPartOfSpeechGuesser( guesser );
+      if (document == null) {
+        throw new GateRuntimeException("No document to process!");
+      }
+      //  Get document text.
 
-                                //  Do standard initialization.
-        return super.init();
-    }
+      String content = document.getContent().toString();
 
-    public void execute()
-        throws ExecutionException
-    {
-        try
-        {
-                                //  Make sure we have a document
-                                //  to process.  Error if not.
+      DocumentContent docContent = document.getContent();
+      long contLen = document.getContent().size();
 
-            if ( document == null )
-            {
-                throw new GateRuntimeException(
-                    "No document to process!" );
-            }
-                                //  Get document text.
+      fireStatusChanged("Tokenizing " + document.getName());
 
-            String content = document.getContent().toString();
+      fireProgressChanged(0);
 
-            DocumentContent docContent = document.getContent();
-            long contLen = document.getContent().size();
+      //  Split document text into
+      //  sentences and tokens.
 
-            fireStatusChanged
-            (
-                "Tokenizing " + document.getName()
-            );
+      List<List<String>> sentences = sentenceSplitter.extractSentences(content, tokenizer);
 
-            fireProgressChanged( 0 );
+      //  Get starting offsets in text
+      //  for each sentence.
 
-                                //  Split document text into
-                                //  sentences and tokens.
+      int[] sentenceOffsets = sentenceSplitter.findSentenceOffsets(content, sentences);
 
-            List<List<String>> sentences    =
-                sentenceSplitter.extractSentences( content , tokenizer );
+      fireStatusChanged(
+          "Extracted " + Formatters.formatIntegerWithCommas(sentences.size()) + " sentences");
 
-                                //  Get starting offsets in text
-                                //  for each sentence.
+      fireProgressChanged(0);
 
-            int[] sentenceOffsets   =
-                sentenceSplitter.findSentenceOffsets(
-                    content , sentences );
+      //  Get annotation set for
+      //  document so we can add
+      //  sentence annotations.
 
-            fireStatusChanged
-            (
-                "Extracted " +
-                Formatters.formatIntegerWithCommas
-                (
-                    sentences.size()
-                ) +
-                " sentences"
-            );
+      AnnotationSet inputAS =
+          (inputASName == null) ? document.getAnnotations() : document.getAnnotations(inputASName);
 
-            fireProgressChanged( 0 );
+      //  Get output annotation set.
 
-                                //  Get annotation set for
-                                //  document so we can add
-                                //  sentence annotations.
+      if ((outputASName != null) && (outputASName.length() == 0)) {
+        outputASName = null;
+      }
 
-            AnnotationSet inputAS   =
-                ( inputASName == null ) ?
-                    document.getAnnotations() :
-                    document.getAnnotations( inputASName );
+      AnnotationSet outputAS =
+          (outputASName == null)
+              ? document.getAnnotations()
+              : document.getAnnotations(outputASName);
 
-                                //  Get output annotation set.
+      //  Loop over sentences and
+      //  generation sentence and
+      //  token annotations for each.
 
-            if  (   ( outputASName != null ) &&
-                    ( outputASName.length() == 0 ) )
-            {
-                outputASName = null;
-            }
+      for (int sentenceNumber = 0; sentenceNumber < sentences.size(); sentenceNumber++) {
+        //  Get starting and ending
+        //  offsets for this sentence.
 
-            AnnotationSet outputAS =
-                ( outputASName == null ) ?
-                    document.getAnnotations() :
-                    document.getAnnotations( outputASName );
+        long sentenceStart = sentenceOffsets[sentenceNumber];
 
-                                //  Loop over sentences and
-                                //  generation sentence and
-                                //  token annotations for each.
+        long sentenceEnd = sentenceOffsets[sentenceNumber + 1];
 
-            for (   int sentenceNumber = 0 ;
-                    sentenceNumber < sentences.size() ;
-                    sentenceNumber++
-                )
-            {
-                                //  Get starting and ending
-                                //  offsets for this sentence.
+        //  Get sentence text.
 
-                long sentenceStart  =
-                    sentenceOffsets[ sentenceNumber ];
+        DocumentContent sentenceContent = docContent.getContent(sentenceStart, sentenceEnd);
 
-                long sentenceEnd    =
-                    sentenceOffsets[ sentenceNumber + 1 ];
+        String sentenceText = sentenceContent.toString();
 
-                                //  Get sentence text.
+        //  Get tokens already extracted
+        //  for this sentence text.
 
-                DocumentContent sentenceContent =
-                    docContent.getContent(
-                        sentenceStart , sentenceEnd );
+        List<String> sentenceTokens = sentences.get(sentenceNumber);
 
-                String sentenceText = sentenceContent.toString();
+        //  Find starting and ending offsets
+        //  of each token in sentence.
 
-                                //  Get tokens already extracted
-                                //  for this sentence text.
+        int[] tokenOffsets = tokenizer.findWordOffsets(sentenceText, sentenceTokens);
 
-                List<String> sentenceTokens =
-                    sentences.get( sentenceNumber );
+        //  Collects token annotation spans.
 
-                                //  Find starting and ending offsets
-                                //  of each token in sentence.
+        List<TokenAnnotation> annotationSpans = new ArrayList<TokenAnnotation>();
 
-                int[] tokenOffsets      =
-                    tokenizer.findWordOffsets(
-                        sentenceText  , sentenceTokens );
+        //  Loop over tokens in sentence.
 
-                                //  Collects token annotation spans.
+        for (int tokenNumber = 0; tokenNumber < sentenceTokens.size(); tokenNumber++) {
+          //  Get starting and ending
+          //  positions for each token.
 
-                List<TokenAnnotation> annotationSpans   =
-                    new ArrayList<TokenAnnotation>();
+          long tokenStart = tokenOffsets[tokenNumber];
 
-                                //  Loop over tokens in sentence.
+          long tokenEnd = tokenStart + sentenceTokens.get(tokenNumber).length();
 
-                for (    int tokenNumber = 0 ;
-                        tokenNumber < sentenceTokens.size() ;
-                        tokenNumber++
-                    )
-                {
-                                //  Get starting and ending
-                                //  positions for each token.
+          //  Create token annotation entty.
 
-                    long tokenStart =
-                        tokenOffsets[ tokenNumber ];
+          TokenAnnotation tokenAnnotation = new TokenAnnotation();
 
-                    long tokenEnd       =
-                        tokenStart +
-                        sentenceTokens.get( tokenNumber ).length();
+          tokenAnnotation.start = tokenStart + sentenceStart;
+          tokenAnnotation.end = tokenEnd + sentenceStart;
 
-                                //  Create token annotation entty.
+          tokenAnnotation.string = sentenceTokens.get(tokenNumber);
 
-                    TokenAnnotation tokenAnnotation =
-                        new TokenAnnotation();
+          //  Add to list of annotations.
 
-                    tokenAnnotation.start   = tokenStart + sentenceStart;
-                    tokenAnnotation.end = tokenEnd + sentenceStart;
-
-                    tokenAnnotation.string  =
-                        sentenceTokens.get( tokenNumber );
-
-                                //  Add to list of annotations.
-
-                    annotationSpans.add( tokenAnnotation );
-                }
-                                //  We now have a list of the the
-                                //  token annotations for this sentence.
-                                //  Emit each annotation to the
-                                //  output annotation set.
-
-                for ( TokenAnnotation span : annotationSpans )
-                {
-                    FeatureMap tokenFeats   =
-                        new SimpleFeatureMapImpl();
-
-                    tokenFeats.put
-                    (
-                        ANNIEConstants.TOKEN_STRING_FEATURE_NAME,
-                        span.string
-                    );
-
-                    tokenFeats.put
-                    (
-                        ANNIEConstants.TOKEN_CATEGORY_FEATURE_NAME ,
-                        ""
-                    );
-
-                    outputAS.add
-                    (
-                        span.start ,
-                        span.end ,
-                        baseTokenAnnotationType ,
-                        tokenFeats
-                    );
-                }
-                                //  Emit sentence annotation.
-
-                if ( sentenceEnd > sentenceStart )
-                {
-                    FeatureMap sentFeats    =
-                        new SimpleFeatureMapImpl();
-
-                    outputAS.add
-                    (
-                        sentenceStart ,
-                        sentenceEnd,
-                        baseSentenceAnnotationType ,
-                        sentFeats
-                    );
-                }
-
-                fireStatusChanged
-                (
-                    "Added sentence " + sentenceNumber
-                );
-
-                fireProgressChanged( 0 );
-            }
-
+          annotationSpans.add(tokenAnnotation);
         }
-        catch ( Exception e )
-        {
-            throw new ExecutionException( e );
+        //  We now have a list of the the
+        //  token annotations for this sentence.
+        //  Emit each annotation to the
+        //  output annotation set.
+
+        for (TokenAnnotation span : annotationSpans) {
+          FeatureMap tokenFeats = new SimpleFeatureMapImpl();
+
+          tokenFeats.put(ANNIEConstants.TOKEN_STRING_FEATURE_NAME, span.string);
+
+          tokenFeats.put(ANNIEConstants.TOKEN_CATEGORY_FEATURE_NAME, "");
+
+          outputAS.add(span.start, span.end, baseTokenAnnotationType, tokenFeats);
         }
+        //  Emit sentence annotation.
+
+        if (sentenceEnd > sentenceStart) {
+          FeatureMap sentFeats = new SimpleFeatureMapImpl();
+
+          outputAS.add(sentenceStart, sentenceEnd, baseSentenceAnnotationType, sentFeats);
+        }
+
+        fireStatusChanged("Added sentence " + sentenceNumber);
+
+        fireProgressChanged(0);
+      }
+
+    } catch (Exception e) {
+      throw new ExecutionException(e);
     }
+  }
 
-    /** Hold a single token annotation. */
+  /** Hold a single token annotation. */
+  class TokenAnnotation {
+    /** Starting offset of annotation. */
+    long start;
 
-    class TokenAnnotation
-    {
-        /** Starting offset of annotation. */
+    /** Ending offset of annotation. */
+    long end;
 
-        long start;
-
-        /** Ending offset of annotation. */
-
-        long end;
-
-        /** Annotation value. */
-
-        String string;
-    }
+    /** Annotation value. */
+    String string;
+  }
 }
 
 /*
@@ -333,6 +242,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

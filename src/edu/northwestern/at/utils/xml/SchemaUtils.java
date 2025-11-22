@@ -2,69 +2,46 @@ package edu.northwestern.at.utils.xml;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
-
+import java.util.*;
 import org.jdom2.*;
 import org.jdom2.contrib.schema.*;
 
-import edu.northwestern.at.utils.*;
+/** XML Schema utilities. */
+public class SchemaUtils {
+  /**
+   * Get a parsed schema given a schema URI.
+   *
+   * @param schemaURI SchemaURI as a string.
+   * @return Parsed schema. Null if schema cannot be parsed.
+   * @throws IOException if schema URI cannot be read.
+   * @throws JDOMException if anything else goes wrong.
+   *     <p>Schema URIs ending in ".rng" (any case) are assumed to point to a Relax NG schema.
+   *     <p>Schema URIs ending in ".xsd" (any case) are assumed to point to a W3C schema.
+   *     <p>Schema URIs ending in anything else are unrecognized.
+   */
+  public static Schema parseSchema(String schemaURI) throws JDOMException, IOException {
+    Schema result = null;
 
-/** XML Schema utilities.
- */
+    String lcSchemaURI = schemaURI.toLowerCase();
 
-public class SchemaUtils
-{
-    /** Get a parsed schema given a schema URI.
-     *
-     *  @param  schemaURI   SchemaURI as a string.
-     *
-     *  @return             Parsed schema. Null if schema cannot be parsed.
-     *
-     *  @throws             IOException if schema URI cannot be read.
-     *  @throws             JDOMException if anything else goes wrong.
-     *
-     *  <p>
-     *  Schema URIs ending in ".rng" (any case) are assumed to point to
-     *  a Relax NG schema.
-     *  </p>
-     *
-     *  <p>
-     *  Schema URIs ending in ".xsd" (any case) are assumed to point to
-     *  a W3C schema.
-     *  </p>
-     *
-     *  <p>
-     *  Schema URIs ending in anything else are unrecognized.
-     *  </p>
-     */
+    Schema.Type schemaType = null;
 
-    public static Schema parseSchema( String schemaURI )
-        throws JDOMException , IOException
-    {
-        Schema result   = null;
+    if (schemaURI.endsWith(".rng")) {
+      schemaType = Schema.RELAX_NG;
+    } else if (schemaURI.endsWith(".xsd")) {
+      schemaType = Schema.W3C_XML_SCHEMA;
+    }
+    ;
 
-        String lcSchemaURI  = schemaURI.toLowerCase();
+    if (schemaType != null) {
+      result = Schema.parse(schemaURI, schemaType);
+    }
 
-        Schema.Type schemaType  = null;
-
-        if ( schemaURI.endsWith( ".rng" ) )
-        {
-            schemaType  = Schema.RELAX_NG;
-        }
-        else if ( schemaURI.endsWith( ".xsd" ) )
-        {
-            schemaType  = Schema.W3C_XML_SCHEMA;
-        };
-
-        if ( schemaType != null )
-        {
-            result  = Schema.parse( schemaURI , schemaType );
-        }
-
-        return result;
-     }
+    return result;
+  }
 }
 
 /*
@@ -107,6 +84,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

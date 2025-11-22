@@ -1,9 +1,8 @@
 package com.rmtheis.langdetect.profile;
 
-import java.util.HashMap;
-
 import com.cybozu.labs.langdetect.util.LangProfile;
 import com.cybozu.labs.langdetect.util.NGram;
+import java.util.HashMap;
 
 public class KO extends CLangProfile {
   private static final String name = "ko";
@@ -22,7 +21,7 @@ public class KO extends CLangProfile {
   public final LangProfile getLangProfile() {
     return new LangProfile(name, freq, n_words);
   }
-  
+
   private void init() {
     n_words[0] = 4985886;
     n_words[1] = 5984351;
@@ -4028,8 +4027,9 @@ public class KO extends CLangProfile {
     freq.put("\ub808\uc774\ube14", 111);
     freq.put("\ubb34\uc5c7", 78);
   }
+
   private static void init2() {
-    
+
     freq.put(" \uc8fc\uc18c", 166);
     freq.put("\uc720\ud559", 156);
     freq.put(" \ubc95\uc778", 125);
@@ -8031,8 +8031,9 @@ public class KO extends CLangProfile {
     freq.put(" \ubd80\uc18d", 114);
     freq.put("\uc84c\uace0 ", 82);
   }
+
   private static void init3() {
-    
+
     freq.put("\uacbd\uc8fc\uc2dc", 80);
     freq.put("\uc815\uce58\uac00", 329);
     freq.put("\uc778 ", 17705);
@@ -12034,8 +12035,9 @@ public class KO extends CLangProfile {
     freq.put("\uc0ac\ud68c\uc8fc", 304);
     freq.put("\ud310\uc758", 82);
   }
+
   private static void init4() {
-    
+
     freq.put("\ud310\uc740", 76);
     freq.put("\uac74\uc124\ub418", 84);
     freq.put("\ud310\uc744", 143);
@@ -16037,8 +16039,9 @@ public class KO extends CLangProfile {
     freq.put("\uc81c\ub97c", 766);
     freq.put("\uc5f0\ub9f9", 487);
   }
+
   private static void init5() {
-    
+
     freq.put("\uae30\uc2a4", 70);
     freq.put("\ub0ac\uc73c", 129);
     freq.put("\ud30c\uc218", 93);
@@ -20040,8 +20043,9 @@ public class KO extends CLangProfile {
     freq.put("\uba85\ud655", 97);
     freq.put("\uad00\ub9ac\uc790", 123);
   }
+
   private static void init6() {
-    
+
     freq.put("\ub8e8 ", 753);
     freq.put("\ud558\uae30\ub3c4", 550);
     freq.put(" \uc5b5 ", 226);
@@ -23075,6 +23079,4 @@ public class KO extends CLangProfile {
     freq.put("\uba87 ", 303);
     freq.put("\uc0dd\uaca8", 142);
   }
-  
 }
-

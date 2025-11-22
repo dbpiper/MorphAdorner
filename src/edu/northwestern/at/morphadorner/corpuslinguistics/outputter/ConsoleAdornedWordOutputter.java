@@ -5,54 +5,32 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.outputter;
 import java.io.*;
 import java.util.*;
 
-/** Outputs adorned words to the console.
- */
+/** Outputs adorned words to the console. */
+public class ConsoleAdornedWordOutputter extends PrintStreamAdornedWordOutputter
+    implements AdornedWordOutputter {
+  /** Create console outputter. */
+  public ConsoleAdornedWordOutputter() {
+    super();
+  }
 
-public class ConsoleAdornedWordOutputter
-    extends PrintStreamAdornedWordOutputter
-    implements AdornedWordOutputter
-{
-    /** Create console outputter. */
+  /**
+   * Create output file.
+   *
+   * @param fileName Output file name.
+   * @param encoding Encoding for the output file.
+   * @param separatorCharacter Separator character for output.
+   */
+  public void createOutputFile(String fileName, String encoding, char separatorCharacter)
+      throws IOException {
+    this.fileName = null;
+    this.fileEncoding = encoding;
+    this.separatorCharacter = separatorCharacter;
 
-    public ConsoleAdornedWordOutputter()
-    {
-        super();
-    }
+    printStream = new PrintStream(new BufferedOutputStream(System.out), true, encoding);
+  }
 
-    /** Create output file.
-     *
-     *  @param  fileName            Output file name.
-     *  @param  encoding            Encoding for the output file.
-     *  @param  separatorCharacter  Separator character for output.
-     */
-
-    public void createOutputFile
-    (
-        String fileName ,
-        String encoding ,
-        char separatorCharacter
-    )
-        throws IOException
-    {
-        this.fileName               = null;
-        this.fileEncoding           = encoding;
-        this.separatorCharacter     = separatorCharacter;
-
-        printStream =
-            new PrintStream
-            (
-                new BufferedOutputStream( System.out ) ,
-                true ,
-                encoding
-            );
-    }
-
-    /** Close outputter.
-     */
-
-    public void close()
-    {
-    }
+  /** Close outputter. */
+  public void close() {}
 }
 
 /*
@@ -95,6 +73,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

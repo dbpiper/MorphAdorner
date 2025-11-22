@@ -3,27 +3,23 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector;
 /*  Please see the license information at the end of this file. */
 
 /** Grammatical persons. */
+public enum Person {
+  FIRST_PERSON_SINGULAR("first_person_singular"),
+  SECOND_PERSON_SINGULAR("second_person_singular"),
+  THIRD_PERSON_SINGULAR("third_person_singular"),
+  FIRST_PERSON_PLURAL("first_person_plural"),
+  SECOND_PERSON_PLURAL("second_person_plural"),
+  THIRD_PERSON_PLURAL("third_person_plural");
 
-public enum Person
-{
-    FIRST_PERSON_SINGULAR ( "first_person_singular" ),
-    SECOND_PERSON_SINGULAR ( "second_person_singular" ),
-    THIRD_PERSON_SINGULAR ( "third_person_singular" ),
-    FIRST_PERSON_PLURAL ( "first_person_plural" ),
-    SECOND_PERSON_PLURAL ( "second_person_plural" ),
-    THIRD_PERSON_PLURAL ( "third_person_plural" );
+  protected final String toStringValue;
 
-    protected final String toStringValue;
+  Person(String toStringValue) {
+    this.toStringValue = toStringValue;
+  }
 
-    Person( String toStringValue )
-    {
-        this.toStringValue  = toStringValue;
-    }
-
-    public String toString()
-    {
-        return toStringValue;
-    }
+  public String toString() {
+    return toStringValue;
+  }
 }
 
 /*
@@ -66,6 +62,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

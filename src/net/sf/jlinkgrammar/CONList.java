@@ -1,11 +1,7 @@
 package net.sf.jlinkgrammar;
 
-/**
- * TODO add javadoc
- *
- */
+/** TODO add javadoc */
 public class CONList {
-    CONList next;
-    CONNode cn;
-
+  CONList next;
+  CONNode cn;
 }

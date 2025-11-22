@@ -2,344 +2,272 @@ package edu.northwestern.at.morphadorner.tools.annolex;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.csv.*;
+import edu.northwestern.at.utils.math.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
 import java.util.regex.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.csv.*;
-import edu.northwestern.at.utils.math.*;
+/** Reads word correction information file. */
+public class CorrectedWordsFileReader {
+  /** Number of fields in tabular file. */
+  public static final int TABFIELDSCOUNT = 9;
 
-/** Reads word correction information file.
- */
+  /** Fields. */
+  protected static final int WORKID = 0;
 
-public class CorrectedWordsFileReader
-{
-    /** Number of fields in tabular file.
-     */
+  protected static final int WORDID = 1;
+  protected static final int SPELL = 2;
+  protected static final int CORSPELL = 3;
+  protected static final int STANSPELL = 4;
+  protected static final int CORLEM = 5;
+  protected static final int CORPOS = 6;
+  protected static final int CHECKBOX = 7;
+  protected static final int UPDATEDID = 8;
 
-    public static final int TABFIELDSCOUNT  = 9;
+  /** Gap word matcher. */
+  protected static Pattern gapWordPattern = Pattern.compile("(.*)-([0-9.]+)-gap([0-9])+$");
 
-    /** Fields. */
+  protected static final Matcher gapWordMatcher = gapWordPattern.matcher("");
 
-    protected static final int WORKID       = 0;
-    protected static final int WORDID       = 1;
-    protected static final int SPELL        = 2;
-    protected static final int CORSPELL     = 3;
-    protected static final int STANSPELL    = 4;
-    protected static final int CORLEM       = 5;
-    protected static final int CORPOS       = 6;
-    protected static final int CHECKBOX     = 7;
-    protected static final int UPDATEDID    = 8;
+  /** Number of lines read. */
+  protected int linesRead = 0;
 
-    /** Gap word matcher. */
+  /** Tabular file holding corrected words definitions. */
+  protected CSVFileReader tabFile = null;
 
-    protected static Pattern gapWordPattern         =
-        Pattern.compile( "(.*)-([0-9.]+)-gap([0-9])+$" );
+  /** Allowed work IDs. */
+  protected Set<String> allowedWorkIDs;
 
-    protected static final Matcher gapWordMatcher   =
-        gapWordPattern.matcher( "" );
+  /** Held corrected word. */
+  protected CorrectedWord heldCorrectedWord = null;
 
-    /** Number of lines read. */
+  /**
+   * Create tab file reader.
+   *
+   * @param tabInputFileName Input tab file name.
+   * @param allowedWorkIDs Allowed work IDs.
+   *     <p>If allowedWorkIDs is not null, only corrections for words whose workIDs match an entry
+   *     in allowedWordIDs will be stored.
+   */
+  public CorrectedWordsFileReader(String tabInputFileName, Set<String> allowedWorkIDs)
+      throws java.io.IOException {
+    //  Create tabbed file reader.
+    tabFile = new CSVFileReader(tabInputFileName, "utf-8", '\t', '\0');
 
-    protected int linesRead     = 0;
+    //  Save list of acceptable work IDs.
 
-    /** Tabular file holding corrected words definitions. */
+    this.allowedWorkIDs = allowedWorkIDs;
+  }
 
-    protected CSVFileReader tabFile = null;
+  /**
+   * Read next corrected word.
+   *
+   * @return Corrected word. Null if no more words to read.
+   */
+  public CorrectedWord readNextCorrectedWord() {
+    //  Resultant corrected word.
 
-    /** Allowed work IDs. */
+    CorrectedWord correctedWord = null;
 
-    protected Set<String> allowedWorkIDs;
+    //  If we have a held corrected word,
+    //  return that now.
 
-    /** Held corrected word. */
+    if (heldCorrectedWord != null) {
+      correctedWord = heldCorrectedWord;
+      heldCorrectedWord = null;
 
-    protected CorrectedWord heldCorrectedWord   = null;
+      return correctedWord;
+    }
+    //  Read next line in tabular file.
 
-    /** Create tab file reader.
-     *
-     *  @param  tabInputFileName    Input tab file name.
-     *  @param  allowedWorkIDs      Allowed work IDs.
-     *
-     *  <p>
-     *  If allowedWorkIDs is not null, only corrections for words
-     *  whose workIDs match an entry in allowedWordIDs will be stored.
-     *  </p>
-     */
+    List<String> fields = null;
 
-    public CorrectedWordsFileReader
-    (
-        String tabInputFileName ,
-        Set<String> allowedWorkIDs
-    )
-        throws java.io.IOException
-    {
-                                //  Create tabbed file reader.
-        tabFile =
-            new CSVFileReader( tabInputFileName , "utf-8" , '\t' , '\0' );
+    if (tabFile != null) {
+      try {
+        fields = tabFile.readFields();
+      } catch (Exception e) {
+      }
+    }
+    //  Pick up fields if line read.
 
-                                //  Save list of acceptable work IDs.
+    if (fields != null) {
+      //  Increment count of lines read.
+      linesRead++;
+      //  Extend short line with
+      //  empty fields.
 
-        this.allowedWorkIDs = allowedWorkIDs;
+      if (fields.size() < TABFIELDSCOUNT) {
+        for (int i = fields.size(); i < TABFIELDSCOUNT; i++) {
+          fields.add("");
+        }
+      }
+      //  Get values of tabular fields.
+
+      String workID = fields.get(WORKID).trim();
+      String id = fields.get(WORDID).trim();
+      String oldSpelling = fields.get(SPELL).trim();
+      String spelling = fields.get(CORSPELL).trim();
+      String lemmata = fields.get(CORLEM).trim();
+      String partsOfSpeech = fields.get(CORPOS).trim();
+      String correctionType = fields.get(CHECKBOX).trim();
+      String standardSpelling = fields.get(STANSPELL).trim();
+      String updatedID = fields.get(UPDATEDID).trim();
+
+      //  Create CorrectedWord object to hold
+      //  tabular line values.
+
+      boolean addWord = true;
+
+      if (allowedWorkIDs != null) {
+        addWord = allowedWorkIDs.contains(workID);
+      }
+      //  Fix gap marker words.
+
+      if (addWord && (!correctionType.equals("5"))) {
+        gapWordMatcher.reset(id);
+
+        if (gapWordMatcher.find()) {
+          if (!partsOfSpeech.equals("zz")) {
+
+            //  Change ID for pseudo-word for gap
+            //  to real word for insertion.
+
+            int gapValue = Integer.parseInt(gapWordMatcher.group(3));
+
+            String sIdValue = gapWordMatcher.group(2);
+
+            int iPos = sIdValue.indexOf(".");
+
+            if (iPos >= 0) {
+              sIdValue = sIdValue.substring(0, iPos);
+            }
+
+            long idValue = Integer.parseInt(sIdValue);
+
+            String newIdValue = (idValue + gapValue + 1) + "";
+
+            updatedID =
+                gapWordMatcher.group(1)
+                    + "-"
+                    + StringUtils.dupl("0", sIdValue.length() - newIdValue.length())
+                    + newIdValue;
+
+            correctionType = "5";
+          }
+          //  Ignore gap words that are not
+          //  corrected since the original gap
+          //  element remains in the document
+          //  XML.
+          else {
+            addWord = false;
+          }
+        }
+      }
+      //  Create corrected word from this
+      //  entry.
+      if (addWord) {
+        correctedWord =
+            new CorrectedWord(
+                workID,
+                id,
+                updatedID,
+                oldSpelling,
+                spelling,
+                standardSpelling,
+                lemmata,
+                partsOfSpeech,
+                correctionType);
+      }
+    } else {
+      //  Close tabular file if no more lines
+      //  to read.
+      closeFile();
+    }
+    //  Return corrected word.
+    return correctedWord;
+  }
+
+  /**
+   * Read specified number of corrected words to map.
+   *
+   * @return Map of word ID to corrected word.
+   */
+  public Map<String, CorrectedWord> readCorrectedWords(int wordsToRead) {
+    Map<String, CorrectedWord> correctedWordMap = new LinkedHashMap<String, CorrectedWord>();
+
+    for (int i = 0; i < wordsToRead; i++) {
+      CorrectedWord correctedWord = readNextCorrectedWord();
+
+      if (correctedWord != null) {
+        correctedWordMap.put(correctedWord.getId(), correctedWord);
+      } else {
+        if (tabFile == null) {
+          break;
+        }
+      }
     }
 
-    /** Read next corrected word.
-     *
-     *  @return     Corrected word.  Null if no more words to read.
-     */
+    return correctedWordMap;
+  }
 
-    public CorrectedWord readNextCorrectedWord()
-    {
-                                //  Resultant corrected word.
+  /**
+   * Read all corrected words to map.
+   *
+   * @return Map of word ID to corrected word.
+   */
+  public Map<String, CorrectedWord> readAllCorrectedWords() {
+    return readCorrectedWords(Integer.MAX_VALUE);
+  }
 
-        CorrectedWord correctedWord = null;
+  /**
+   * Return list of all corrected words.
+   *
+   * @return List of all corrected words.
+   */
+  public List<CorrectedWord> getCorrectedWords() {
+    List<CorrectedWord> result = ListFactory.createNewList();
 
-                                //  If we have a held corrected word,
-                                //  return that now.
+    Map<String, CorrectedWord> correctedWordMap = readAllCorrectedWords();
 
-        if ( heldCorrectedWord != null )
-        {
-            correctedWord       = heldCorrectedWord;
-            heldCorrectedWord   = null;
+    Iterator<String> iterator = correctedWordMap.keySet().iterator();
 
-            return correctedWord;
-        }
-                                //  Read next line in tabular file.
+    while (iterator.hasNext()) {
+      String id = iterator.next();
 
-        List<String> fields = null;
-
-        if ( tabFile != null )
-        {
-            try
-            {
-                fields = tabFile.readFields();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
-                                //  Pick up fields if line read.
-
-        if ( fields != null )
-        {
-                                //  Increment count of lines read.
-            linesRead++;
-                                //  Extend short line with
-                                //  empty fields.
-
-            if ( fields.size() < TABFIELDSCOUNT )
-            {
-                for ( int i = fields.size() ; i < TABFIELDSCOUNT ; i++ )
-                {
-                    fields.add( "" );
-                }
-            }
-                                //  Get values of tabular fields.
-
-            String workID           = fields.get( WORKID ).trim();
-            String id               = fields.get( WORDID ).trim();
-            String oldSpelling      = fields.get( SPELL ).trim();
-            String spelling         = fields.get( CORSPELL ).trim();
-            String lemmata          = fields.get( CORLEM ).trim();
-            String partsOfSpeech    = fields.get( CORPOS ).trim();
-            String correctionType   = fields.get( CHECKBOX ).trim();
-            String standardSpelling = fields.get( STANSPELL ).trim();
-            String updatedID        = fields.get( UPDATEDID ).trim();
-
-                                //  Create CorrectedWord object to hold
-                                //  tabular line values.
-
-            boolean addWord     = true;
-
-            if ( allowedWorkIDs != null )
-            {
-                addWord = allowedWorkIDs.contains( workID );
-            }
-                                //  Fix gap marker words.
-
-            if ( addWord && ( !correctionType.equals( "5" ) ) )
-            {
-                gapWordMatcher.reset( id );
-
-                if ( gapWordMatcher.find() )
-                {
-                    if ( !partsOfSpeech.equals( "zz" ) )
-                    {
-
-                                //  Change ID for pseudo-word for gap
-                                //  to real word for insertion.
-
-                        int gapValue    =
-                            Integer.parseInt( gapWordMatcher.group( 3 ) );
-
-                        String sIdValue = gapWordMatcher.group( 2 );
-
-                        int iPos    = sIdValue.indexOf( "." );
-
-                        if ( iPos >= 0 )
-                        {
-                            sIdValue    = sIdValue.substring( 0 , iPos );
-                        }
-
-                        long idValue    = Integer.parseInt( sIdValue );
-
-                        String newIdValue   =
-                            ( idValue + gapValue + 1 ) + "";
-
-                        updatedID           =
-                            gapWordMatcher.group( 1 ) + "-" +
-                            StringUtils.dupl
-                            (
-                                "0" ,
-                                sIdValue.length() - newIdValue.length()
-                            )
-                            + newIdValue;
-
-                        correctionType  = "5";
-                    }
-                                //  Ignore gap words that are not
-                                //  corrected since the original gap
-                                //  element remains in the document
-                                //  XML.
-                    else
-                    {
-                        addWord = false;
-                    }
-                }
-            }
-                                //  Create corrected word from this
-                                //  entry.
-            if ( addWord )
-            {
-                correctedWord   =
-                    new CorrectedWord
-                    (
-                        workID ,
-                        id ,
-                        updatedID ,
-                        oldSpelling ,
-                        spelling ,
-                        standardSpelling ,
-                        lemmata ,
-                        partsOfSpeech ,
-                        correctionType
-                    );
-            }
-        }
-        else
-        {
-                                //  Close tabular file if no more lines
-                                //  to read.
-            closeFile();
-        }
-                                //  Return corrected word.
-        return correctedWord;
+      result.add(correctedWordMap.get(id));
     }
 
-    /** Read specified number of corrected words to map.
-     *
-     *  @return     Map of word ID to corrected word.
-     */
+    return result;
+  }
 
-    public Map<String, CorrectedWord> readCorrectedWords( int wordsToRead )
-    {
-        Map<String, CorrectedWord> correctedWordMap =
-            new LinkedHashMap<String, CorrectedWord>();
+  /**
+   * Return list of all corrected word IDs.
+   *
+   * @return List of all corrected word IDs (strings).
+   */
+  public List<String> getCorrectedWordIDs() {
+    List<String> result = ListFactory.createNewList();
 
-        for ( int i = 0 ; i < wordsToRead ; i++ )
-        {
-            CorrectedWord correctedWord = readNextCorrectedWord();
+    Map<String, CorrectedWord> correctedWordMap = readAllCorrectedWords();
 
-            if ( correctedWord != null )
-            {
-                correctedWordMap.put
-                (
-                    correctedWord.getId() ,
-                    correctedWord
-                );
-            }
-            else
-            {
-                if ( tabFile == null )
-                {
-                    break;
-                }
-            }
-        }
+    result.addAll(correctedWordMap.keySet());
 
-        return correctedWordMap;
+    return result;
+  }
+
+  /** Close input file. */
+  public void closeFile() {
+    try {
+      if (tabFile != null) {
+        tabFile.close();
+        tabFile = null;
+      }
+    } catch (Exception e) {
     }
-
-    /** Read all corrected words to map.
-     *
-     *  @return     Map of word ID to corrected word.
-     */
-
-    public Map<String, CorrectedWord> readAllCorrectedWords()
-    {
-        return readCorrectedWords( Integer.MAX_VALUE );
-    }
-
-    /** Return list of all corrected words.
-     *
-     *  @return     List of all corrected words.
-     */
-
-    public List<CorrectedWord> getCorrectedWords()
-    {
-        List<CorrectedWord> result      = ListFactory.createNewList();
-
-        Map<String, CorrectedWord> correctedWordMap =
-            readAllCorrectedWords();
-
-        Iterator<String> iterator       =
-            correctedWordMap.keySet().iterator();
-
-        while ( iterator.hasNext() )
-        {
-            String id   = iterator.next();
-
-            result.add( correctedWordMap.get( id ) );
-        }
-
-        return result;
-    }
-
-    /** Return list of all corrected word IDs.
-     *
-     *  @return     List of all corrected word IDs (strings).
-     */
-
-    public List<String> getCorrectedWordIDs()
-    {
-        List<String> result = ListFactory.createNewList();
-
-        Map<String, CorrectedWord> correctedWordMap =
-            readAllCorrectedWords();
-
-        result.addAll( correctedWordMap.keySet() );
-
-        return result;
-    }
-
-    /** Close input file.
-     */
-
-    public void closeFile()
-    {
-        try
-        {
-            if ( tabFile != null )
-            {
-                tabFile.close();
-                tabFile = null;
-            }
-        }
-        catch ( Exception e )
-        {
-        }
-    }
+  }
 }
 
 /*
@@ -382,6 +310,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,29 +2,20 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lexicon;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
+import java.io.*;
+import java.util.*;
 
-/** DefaultLexicon: Lexicon which uses default part of speech tags.
- */
+/** DefaultLexicon: Lexicon which uses default part of speech tags. */
+public class DefaultLexicon extends BaseLexicon implements Lexicon {
+  /** Create default lexicon. */
+  public DefaultLexicon() throws IOException {
+    //  Create empty lexicon.
+    super();
+    //  Set part of speech tag lists.
 
-public class DefaultLexicon extends BaseLexicon implements Lexicon
-{
-    /** Create default lexicon.
-     */
-
-    public DefaultLexicon()
-        throws IOException
-    {
-                                //  Create empty lexicon.
-        super();
-                                //  Set part of speech tag lists.
-
-        setPartOfSpeechTags( new DefaultPartOfSpeechTags() );
-    }
+    setPartOfSpeechTags(new DefaultPartOfSpeechTags());
+  }
 }
 
 /*
@@ -67,6 +58,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

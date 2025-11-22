@@ -2,69 +2,60 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.List;
 import java.util.Set;
 
-/** Interface for a bunch of strings with associated values.
+/**
+ * Interface for a bunch of strings with associated values.
  *
- *  <p>
- *  This is an interface for wrapping various types
- *  of string lists.  Some string lists have one or more different
- *  values for each string, while others have the same value for
- *  each string.  The underlying implementation can be a map,
- *  an array, a trie, a properties list, etc.
- *  </p>
+ * <p>This is an interface for wrapping various types of string lists. Some string lists have one or
+ * more different values for each string, while others have the same value for each string. The
+ * underlying implementation can be a map, an array, a trie, a properties list, etc.
  */
+public interface TaggedStrings {
+  /**
+   * See if specified string exists.
+   *
+   * @param string The string.
+   * @return True if specified string exists.
+   */
+  public boolean containsString(String string);
 
-public interface TaggedStrings
-{
-    /** See if specified string exists.
-     *
-     *  @param  string  The string.
-     *
-     *  @return         True if specified string exists.
-     */
+  /**
+   * Get the tag value associated with a string.
+   *
+   * @param string The string.
+   * @return The tag value associated with the string. May be null.
+   */
+  public String getTag(String string);
 
-    public boolean containsString( String string );
+  /**
+   * Set the tag value associated with a string.
+   *
+   * @param string The string.
+   * @param tag The tag.
+   */
+  public void putTag(String string, String tag);
 
-    /** Get the tag value associated with a string.
-     *
-     *  @param  string  The string.
-     *
-     *  @return         The tag value associated with the string.
-     *                      May be null.
-     */
+  /**
+   * Get number of strings.
+   *
+   * @return Number of strings.
+   */
+  public int getStringCount();
 
-    public String getTag( String string );
+  /**
+   * Get set of all unique tag values.
+   *
+   * @return List of all tag values.
+   */
+  public Set<String> getAllTags();
 
-    /** Set the tag value associated with a string.
-     *
-     *  @param  string  The string.
-     *  @param  tag     The tag.
-     */
-
-    public void putTag( String string , String tag );
-
-    /** Get number of strings.
-     *
-     *  @return     Number of strings.
-     */
-
-    public int getStringCount();
-
-    /** Get set of all unique tag values.
-     *
-     *  @return     List of all tag values.
-     */
-
-    public Set<String> getAllTags();
-
-    /** Get set of all unique string values.
-     *
-     *  @return     List of all strings.
-     */
-
-    public Set<String> getAllStrings();
+  /**
+   * Get set of all unique string values.
+   *
+   * @return List of all strings.
+   */
+  public Set<String> getAllStrings();
 }
 
 /*
@@ -107,6 +98,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -1,11 +1,7 @@
 package net.sf.jlinkgrammar;
 
-/**
- * TODO add javadoc
- *
- */
+/** TODO add javadoc */
 public class MatchNode {
-    MatchNode next;
-    Disjunct d;
-
+  MatchNode next;
+  Disjunct d;
 }

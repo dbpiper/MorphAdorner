@@ -5,91 +5,62 @@ package edu.northwestern.at.utils;
 import java.io.*;
 import java.util.*;
 
-/** Cloner -- Clones an object using serialization/deserialization.
+/**
+ * Cloner -- Clones an object using serialization/deserialization.
  *
- *  <p>
- *  Usage:
- *  </p>
-
- *  <p>
- *      T clonedObject  = (T)Cloner.deepClone( sourceObject );
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  "sourceObject" must implement serializable or externalizable.
- *  </p>
+ * <p>T clonedObject = (T)Cloner.deepClone( sourceObject );
+ *
+ * <p>"sourceObject" must implement serializable or externalizable.
  */
+public class Cloner {
+  /**
+   * Deep clones an object using serialization/deserialization.
+   *
+   * @param sourceObject The object to be cloned. Must implement serializable or externalizable.
+   * @return Clone of the source object.
+   * @throws Exception if the clone process fails.
+   */
+  public static Object deepClone(Object sourceObject) throws Exception {
+    Object result = null;
 
-public class Cloner
-{
-    /** Deep clones an object using serialization/deserialization.
-     *
-     *  @param  sourceObject    The object to be cloned.
-     *                          Must implement serializable or
-     *                          externalizable.
-     *
-     *  @return                 Clone of the source object.
-     *
-     *  @throws                 Exception if the clone process fails.
-     */
+    ObjectOutputStream oos = null;
+    ObjectInputStream ois = null;
 
-    public static Object deepClone( Object sourceObject )
-        throws Exception
-    {
-        Object result           = null;
+    try {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-        ObjectOutputStream oos  = null;
-        ObjectInputStream ois   = null;
+      oos = new ObjectOutputStream(bos);
 
-        try
-        {
-            ByteArrayOutputStream bos   = new ByteArrayOutputStream();
+      oos.writeObject(sourceObject);
 
-            oos = new ObjectOutputStream( bos );
+      oos.flush();
 
-            oos.writeObject( sourceObject );
+      ByteArrayInputStream bin = new ByteArrayInputStream(bos.toByteArray());
 
-            oos.flush();
+      ois = new ObjectInputStream(bin);
 
-            ByteArrayInputStream bin    =
-                new ByteArrayInputStream( bos.toByteArray() );
+      result = ois.readObject();
+    } catch (Exception e) {
+      throw (e);
+    } finally {
+      try {
+        oos.close();
+      } catch (Exception e) {
+      }
 
-            ois = new ObjectInputStream( bin );
-
-            result  = ois.readObject();
-        }
-        catch ( Exception e )
-        {
-            throw ( e );
-        }
-        finally
-        {
-            try
-            {
-                oos.close();
-            }
-            catch ( Exception e )
-            {
-            }
-
-            try
-            {
-                ois.close();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
-
-        return result;
+      try {
+        ois.close();
+      } catch (Exception e) {
+      }
     }
 
-    /** Allow overrides but not instantiation.
-     */
+    return result;
+  }
 
-    protected Cloner()
-    {
-    }
+  /** Allow overrides but not instantiation. */
+  protected Cloner() {}
 }
 
 /*
@@ -132,6 +103,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

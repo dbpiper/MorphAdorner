@@ -2,416 +2,322 @@ package edu.northwestern.at.morphadorner;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
-
 import java.text.*;
 import java.util.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
+/** Filter to add word attributes to adorned file. */
+public class AddWordAttributesFilter extends ExtendedXMLFilterImpl {
+  /** ExtendedAdornedWordFilter providing word attribute information. */
+  protected ExtendedAdornedWordFilter wordInfoFilter;
 
-import edu.northwestern.at.morphadorner.tools.*;
+  /** True to output non-redundant attributes only. */
+  protected boolean outputNonredundantAttributesOnly = false;
 
-/** Filter to add word attributes to adorned file.
-  */
+  /** True to output non-redundant token attributes only. */
+  protected boolean outputNonredundantTokenAttribute = false;
 
-public class AddWordAttributesFilter extends ExtendedXMLFilterImpl
-{
-    /** ExtendedAdornedWordFilter providing word attribute information. */
+  /** True to output non-redundant part attributes only. */
+  protected boolean outputNonredundantPartAttribute = false;
 
-    protected ExtendedAdornedWordFilter wordInfoFilter;
+  /** True to output non-redundant eos attributes only. */
+  protected boolean outputNonredundantEosAttribute = false;
 
-    /** True to output non-redundant attributes only. */
+  /** True to output eos attribute. */
+  protected boolean outputEosAttribute = false;
 
-    protected boolean outputNonredundantAttributesOnly  = false;
+  /** True to output whitespace elements. */
+  protected boolean outputWhitespace = true;
 
-    /** True to output non-redundant token attributes only. */
+  /** True to output word number attributes. */
+  protected boolean outputWordNumber = false;
 
-    protected boolean outputNonredundantTokenAttribute  = false;
+  /** True to output sentence number attributes. */
+  protected boolean outputSentenceNumber = false;
 
-    /** True to output non-redundant part attributes only. */
+  /** True to output word ordinal attributes. */
+  protected boolean outputWordOrdinal = false;
 
-    protected boolean outputNonredundantPartAttribute   = false;
+  /** ID attribute name. */
+  protected String idAttrName = WordAttributeNames.id;
 
-    /** True to output non-redundant eos attributes only. */
+  /** MorphAdorner settings. */
+  protected MorphAdornerSettings morphAdornerSettings = null;
 
-    protected boolean outputNonredundantEosAttribute    = false;
+  /**
+   * Create filter.
+   *
+   * @param reader XML input reader to which this filter applies.
+   * @param wordInfoFilter ExtendedAdornedWordFilter with word information.
+   * @param morphAdornerSettings MorphAdorner settings.
+   */
+  public AddWordAttributesFilter(
+      XMLReader reader,
+      ExtendedAdornedWordFilter wordInfoFilter,
+      MorphAdornerSettings morphAdornerSettings) {
+    super(reader);
 
-    /** True to output eos attribute. */
+    this.wordInfoFilter = wordInfoFilter;
+    this.morphAdornerSettings = morphAdornerSettings;
 
-    protected boolean outputEosAttribute    = false;
+    //  Save ID attribute name.
+    this.idAttrName = morphAdornerSettings.xgOptions.getIdArgumentName();
 
-    /** True to output whitespace elements. */
+    //  Output non-redundant attributes
+    //  only.
 
-    protected boolean outputWhitespace  = true;
+    this.outputNonredundantAttributesOnly = morphAdornerSettings.outputNonredundantAttributesOnly;
 
-    /** True to output word number attributes. */
+    //  Output non-redundant token attribute
+    //  only.
 
-    protected boolean outputWordNumber  = false;
+    this.outputNonredundantTokenAttribute = morphAdornerSettings.outputNonredundantTokenAttribute;
 
-    /** True to output sentence number attributes. */
+    //  Output non-redundant part attribute
+    //  only.
 
-    protected boolean outputSentenceNumber  = false;
+    this.outputNonredundantPartAttribute = morphAdornerSettings.outputNonredundantPartAttribute;
 
-    /** True to output word ordinal attributes. */
+    //  Output eos attribute.
 
-    protected boolean outputWordOrdinal = false;
+    this.outputEosAttribute = morphAdornerSettings.outputEOSFlag;
 
-    /** ID attribute name. */
+    //  Output non-redundant eos attribute
+    //  only.
 
-    protected String idAttrName = WordAttributeNames.id;
+    this.outputNonredundantEosAttribute = morphAdornerSettings.outputNonredundantEosAttribute;
 
-    /** MorphAdorner settings. */
+    //  Save output whitespace option.
 
-    protected MorphAdornerSettings morphAdornerSettings = null;
+    this.outputWhitespace = morphAdornerSettings.outputWhitespaceElements;
 
-    /** Create filter.
-      *
-      * @param  reader                  XML input reader to which this
-      *                                 filter applies.
-      * @param  wordInfoFilter          ExtendedAdornedWordFilter with
-      *                                 word information.
-      * @param  morphAdornerSettings    MorphAdorner settings.
-      */
+    this.outputSentenceNumber = morphAdornerSettings.outputSentenceNumber;
 
-    public AddWordAttributesFilter
-    (
-        XMLReader reader ,
-        ExtendedAdornedWordFilter wordInfoFilter ,
-        MorphAdornerSettings morphAdornerSettings
-    )
-    {
-        super( reader );
+    this.outputWordNumber = morphAdornerSettings.outputWordNumber;
 
-        this.wordInfoFilter         = wordInfoFilter;
-        this.morphAdornerSettings   = morphAdornerSettings;
+    this.outputWordOrdinal = morphAdornerSettings.outputWordOrdinal;
+  }
 
-                                //  Save ID attribute name.
-        this.idAttrName =
-            morphAdornerSettings.xgOptions.getIdArgumentName();
+  /**
+   * Handle start of an XML element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   * @param atts The XML element's attributes.
+   */
+  public void startElement(String uri, String localName, String qName, Attributes atts)
+      throws SAXException {
+    //  Update word or punctuation element.
 
-                                //  Output non-redundant attributes
-                                //  only.
+    if (qName.equalsIgnoreCase("w") || qName.equalsIgnoreCase("pc")) {
+      //  Holds updated attributes.
 
-        this.outputNonredundantAttributesOnly   =
-            morphAdornerSettings.outputNonredundantAttributesOnly;
+      Map<String, String> newAtts = MapFactory.createNewSortedMap();
 
-                                //  Output non-redundant token attribute
-                                //  only.
+      //  Get word ID.
 
-        this.outputNonredundantTokenAttribute   =
-            morphAdornerSettings.outputNonredundantTokenAttribute;
+      String id = atts.getValue(idAttrName);
 
-                                //  Output non-redundant part attribute
-                                //  only.
+      //  Always add word ID to output
+      //  attributes.
 
-        this.outputNonredundantPartAttribute    =
-            morphAdornerSettings.outputNonredundantPartAttribute;
+      newAtts.put(idAttrName, id);
 
-                                //  Output eos attribute.
+      //  Get adorned word info for this ID.
 
-        this.outputEosAttribute = morphAdornerSettings.outputEOSFlag;
+      ExtendedAdornedWord wordInfo = wordInfoFilter.getExtendedAdornedWord(id);
 
-                                //  Output non-redundant eos attribute
-                                //  only.
+      //  Get word attribute values.
 
-        this.outputNonredundantEosAttribute =
-            morphAdornerSettings.outputNonredundantEosAttribute;
+      String tok = wordInfo.getToken();
+      String spe = wordInfo.getSpelling();
+      String pos = wordInfo.getPartsOfSpeech();
+      boolean eos = wordInfo.getEOS();
+      String lem = wordInfo.getLemmata();
+      String reg = wordInfo.getStandardSpelling();
+      int ord = wordInfo.getOrd();
+      String part = wordInfo.getPart();
+      String wordText = wordInfo.getWordText();
 
-                                //  Save output whitespace option.
+      //  Copy any existing unit attribute.
 
-        this.outputWhitespace   =
-            morphAdornerSettings.outputWhitespaceElements;
+      String unit = atts.getValue("unit");
 
-        this.outputSentenceNumber   =
-            morphAdornerSettings.outputSentenceNumber;
+      if (unit != null) {
+        newAtts.put("unit", unit);
+      }
+      //  Copy any existing rend attribute.
 
-        this.outputWordNumber       =
-            morphAdornerSettings.outputWordNumber;
+      String rend = atts.getValue("rend");
 
-        this.outputWordOrdinal      =
-            morphAdornerSettings.outputWordOrdinal;
+      if ((rend != null) && (rend.length() > 0)) {
+        newAtts.put("rend", rend);
+      }
+      //  Copy any existing type attribute.
+
+      String type = atts.getValue("type");
+
+      if ((type != null) && (type.length() > 0)) {
+        newAtts.put("type", type);
+      }
+      //  Copy any existing label attribute.
+
+      String label = atts.getValue(WordAttributeNames.label);
+
+      if ((label != null) && (label.length() > 0)) {
+        newAtts.put(WordAttributeNames.label, label);
+      }
+      //  Set updated attribute values.
+
+      if (outputSentenceNumber) {
+        newAtts.put(WordAttributeNames.sn, wordInfo.getSentenceNumber() + "");
+      }
+
+      if (outputWordNumber) {
+        newAtts.put(WordAttributeNames.wn, wordInfo.getWordNumber() + "");
+      }
+
+      if (morphAdornerSettings.outputEOSFlag) {
+        newAtts.put(WordAttributeNames.eos, eos ? "1" : "0");
+      }
+
+      if (morphAdornerSettings.outputLemma) {
+        newAtts.put(WordAttributeNames.lem, lem);
+      }
+
+      if (morphAdornerSettings.outputPartOfSpeech) {
+        newAtts.put(WordAttributeNames.pos, pos);
+      }
+
+      if (morphAdornerSettings.outputStandardSpelling) {
+        newAtts.put(WordAttributeNames.reg, reg);
+      }
+
+      if (morphAdornerSettings.outputSpelling) {
+        newAtts.put(WordAttributeNames.spe, spe);
+      }
+
+      if (morphAdornerSettings.outputOriginalToken) {
+        newAtts.put(WordAttributeNames.tok, tok);
+      }
+
+      newAtts.put(WordAttributeNames.part, part);
+
+      //  Remove redundant attributes
+      //  if requested.  Also remove
+      //  word-related attributes if
+      //  the word text is empty (should
+      //  only occur for end-of-sentence
+      //  <pc> markers).
+
+      if (outputNonredundantAttributesOnly || (tok.length() == 0)) {
+        if (!eos || unit.equals("sentence")) {
+          newAtts.remove(WordAttributeNames.eos);
+        }
+
+        if (spe.equals(tok)) {
+          newAtts.remove(WordAttributeNames.spe);
+        }
+
+        if (lem.equals(spe)) {
+          newAtts.remove(WordAttributeNames.lem);
+        }
+
+        if (pos.equals(spe) || (tok.length() == 0)) {
+          newAtts.remove(WordAttributeNames.pos);
+        }
+
+        if (reg.equals(spe)) {
+          newAtts.remove(WordAttributeNames.reg);
+        }
+
+        if ((part != null) && part.equals("N")) {
+          newAtts.remove(WordAttributeNames.part);
+        }
+
+        if (tok.equals(wordText)) {
+          newAtts.remove(WordAttributeNames.tok);
+        }
+      } else {
+        //  If the word token is the same as
+        //  the word text, and we are
+        //  outputting abbreviated attributes,
+        //  remove the redundant token
+        //  attribute.
+
+        if (outputNonredundantTokenAttribute) {
+          if (tok.equals(wordText)) {
+            newAtts.remove(WordAttributeNames.tok);
+          }
+        }
+        //  Remove part attribute if we're only
+        //  outputting non-redundant part
+        //  attributes and part = "N".
+
+        if (outputNonredundantPartAttribute) {
+          if (part.equals("N")) {
+            newAtts.remove(WordAttributeNames.part);
+          }
+        }
+        //  Remove eos attribute if we're only
+        //  outputting non-redundant eos
+        //  attributes and eos = "0".
+
+        if (outputNonredundantEosAttribute) {
+          if (!eos || (unit != null)) {
+            newAtts.remove(WordAttributeNames.eos);
+          }
+        }
+      }
+
+      AttributesImpl newAttributes = new AttributesImpl();
+
+      for (String attName : newAtts.keySet()) {
+        setAttributeValue(newAttributes, attName, newAtts.get(attName));
+      }
+
+      super.startElement(uri, localName, qName, newAttributes);
     }
+    //  Remove part attribute from blank
+    //  wrapper element.
 
-    /** Handle start of an XML element.
-      *
-      * @param  uri         The XML element's URI.
-      * @param  localName   The XML element's local name.
-      * @param  qName       The XML element's qname.
-      * @param  atts        The XML element's attributes.
-      */
+    else if (qName.equalsIgnoreCase("c")) {
+      AttributesImpl newAtts = new AttributesImpl(atts);
 
-    public void startElement
-    (
-        String uri ,
-        String localName ,
-        String qName ,
-        Attributes atts
-    )
-        throws SAXException
-    {
-                                //  Update word or punctuation element.
+      removeAttribute(newAtts, WordAttributeNames.part);
 
-        if ( qName.equalsIgnoreCase( "w" ) || qName.equalsIgnoreCase( "pc" ) )
-        {
-                                //  Holds updated attributes.
-
-            Map<String, String> newAtts = MapFactory.createNewSortedMap();
-
-                                //  Get word ID.
-
-            String id   = atts.getValue( idAttrName );
-
-                                //  Always add word ID to output
-                                //  attributes.
-
-            newAtts.put( idAttrName , id );
-
-                                //  Get adorned word info for this ID.
-
-            ExtendedAdornedWord wordInfo    =
-                wordInfoFilter.getExtendedAdornedWord( id );
-
-                                //  Get word attribute values.
-
-            String tok      = wordInfo.getToken();
-            String spe      = wordInfo.getSpelling();
-            String pos      = wordInfo.getPartsOfSpeech();
-            boolean eos     = wordInfo.getEOS();
-            String lem      = wordInfo.getLemmata();
-            String reg      = wordInfo.getStandardSpelling();
-            int ord         = wordInfo.getOrd();
-            String part     = wordInfo.getPart();
-            String wordText = wordInfo.getWordText();
-
-                                //  Copy any existing unit attribute.
-
-            String unit     = atts.getValue( "unit" );
-
-            if ( unit != null )
-            {
-                newAtts.put( "unit" , unit );
-            }
-                                //  Copy any existing rend attribute.
-
-            String rend     = atts.getValue( "rend" );
-
-            if ( ( rend != null ) && ( rend.length() > 0 ) )
-            {
-                newAtts.put( "rend" , rend );
-            }
-                                //  Copy any existing type attribute.
-
-            String type     = atts.getValue( "type" );
-
-            if ( ( type != null ) && ( type.length() > 0 ) )
-            {
-                newAtts.put( "type" , type );
-            }
-                                //  Copy any existing label attribute.
-
-            String label        = atts.getValue( WordAttributeNames.label );
-
-            if ( ( label != null ) && ( label.length() > 0 ) )
-            {
-                newAtts.put( WordAttributeNames.label , label );
-            }
-                                //  Set updated attribute values.
-
-            if ( outputSentenceNumber )
-            {
-                newAtts.put
-                (
-                    WordAttributeNames.sn ,
-                    wordInfo.getSentenceNumber() + ""
-                );
-            }
-
-            if ( outputWordNumber )
-            {
-                newAtts.put
-                (
-                    WordAttributeNames.wn ,
-                    wordInfo.getWordNumber() + ""
-                );
-            }
-
-            if ( morphAdornerSettings.outputEOSFlag )
-            {
-                newAtts.put( WordAttributeNames.eos , eos ? "1" : "0" );
-            }
-
-            if ( morphAdornerSettings.outputLemma )
-            {
-                newAtts.put( WordAttributeNames.lem , lem );
-            }
-
-            if ( morphAdornerSettings.outputPartOfSpeech )
-            {
-                newAtts.put( WordAttributeNames.pos , pos );
-            }
-
-            if ( morphAdornerSettings.outputStandardSpelling )
-            {
-                newAtts.put( WordAttributeNames.reg , reg );
-            }
-
-            if ( morphAdornerSettings.outputSpelling )
-            {
-                newAtts.put( WordAttributeNames.spe , spe );
-            }
-
-            if ( morphAdornerSettings.outputOriginalToken )
-            {
-                newAtts.put( WordAttributeNames.tok , tok );
-            }
-
-            newAtts.put( WordAttributeNames.part , part );
-
-                                //  Remove redundant attributes
-                                //  if requested.  Also remove
-                                //  word-related attributes if
-                                //  the word text is empty (should
-                                //  only occur for end-of-sentence
-                                //  <pc> markers).
-
-            if ( outputNonredundantAttributesOnly || ( tok.length() == 0 ) )
-            {
-                if ( !eos || unit.equals( "sentence" ) )
-                {
-                    newAtts.remove( WordAttributeNames.eos );
-                }
-
-                if ( spe.equals( tok ) )
-                {
-                    newAtts.remove( WordAttributeNames.spe );
-                }
-
-                if ( lem.equals( spe ) )
-                {
-                    newAtts.remove( WordAttributeNames.lem );
-                }
-
-                if ( pos.equals( spe ) || ( tok.length() == 0 ) )
-                {
-                    newAtts.remove( WordAttributeNames.pos );
-                }
-
-                if ( reg.equals( spe ) )
-                {
-                    newAtts.remove( WordAttributeNames.reg );
-                }
-
-                if ( ( part != null ) && part.equals( "N" ) )
-                {
-                    newAtts.remove( WordAttributeNames.part );
-                }
-
-                if ( tok.equals( wordText ) )
-                {
-                    newAtts.remove( WordAttributeNames.tok );
-                }
-            }
-            else
-            {
-                                //  If the word token is the same as
-                                //  the word text, and we are
-                                //  outputting abbreviated attributes,
-                                //  remove the redundant token
-                                //  attribute.
-
-                if ( outputNonredundantTokenAttribute )
-                {
-                    if ( tok.equals( wordText ) )
-                    {
-                        newAtts.remove( WordAttributeNames.tok );
-                    }
-                }
-                                //  Remove part attribute if we're only
-                                //  outputting non-redundant part
-                                //  attributes and part = "N".
-
-                if ( outputNonredundantPartAttribute )
-                {
-                    if ( part.equals( "N" ) )
-                    {
-                        newAtts.remove( WordAttributeNames.part );
-                    }
-                }
-                                //  Remove eos attribute if we're only
-                                //  outputting non-redundant eos
-                                //  attributes and eos = "0".
-
-                if ( outputNonredundantEosAttribute )
-                {
-                    if ( !eos || ( unit != null ) )
-                    {
-                        newAtts.remove( WordAttributeNames.eos );
-                    }
-                }
-            }
-
-            AttributesImpl newAttributes    = new AttributesImpl();
-
-            for ( String attName : newAtts.keySet() )
-            {
-                setAttributeValue(
-                    newAttributes , attName , newAtts.get( attName ) );
-            }
-
-            super.startElement( uri , localName , qName , newAttributes );
-        }
-                                //  Remove part attribute from blank
-                                //  wrapper element.
-
-        else if ( qName.equalsIgnoreCase( "c" ) )
-        {
-            AttributesImpl newAtts  = new AttributesImpl( atts );
-
-            removeAttribute( newAtts , WordAttributeNames.part );
-
-            if ( outputWhitespace )
-            {
-                super.startElement( uri , localName , qName , newAtts );
-            }
-        }
-                                //  Pass through remaining elements.
-        else
-        {
-            super.startElement( uri , localName , qName , atts );
-        }
+      if (outputWhitespace) {
+        super.startElement(uri, localName, qName, newAtts);
+      }
     }
-
-    /** Handle end of an element.
-     *
-     *  @param  uri         The XML element's URI.
-     *  @param  localName   The XML element's local name.
-     *  @param  qName       The XML element's qname.
-     */
-
-    public void endElement
-    (
-        String uri ,
-        String localName ,
-        String qName
-    )
-        throws SAXException
-    {
-        if ( qName.equalsIgnoreCase( "c" ) )
-        {
-            if ( outputWhitespace )
-            {
-                super.endElement( uri , localName , qName );
-            }
-        }
-        else
-        {
-            super.endElement( uri , localName , qName );
-        }
+    //  Pass through remaining elements.
+    else {
+      super.startElement(uri, localName, qName, atts);
     }
+  }
+
+  /**
+   * Handle end of an element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   */
+  public void endElement(String uri, String localName, String qName) throws SAXException {
+    if (qName.equalsIgnoreCase("c")) {
+      if (outputWhitespace) {
+        super.endElement(uri, localName, qName);
+      }
+    } else {
+      super.endElement(uri, localName, qName);
+    }
+  }
 }
 
 /*
@@ -454,6 +360,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

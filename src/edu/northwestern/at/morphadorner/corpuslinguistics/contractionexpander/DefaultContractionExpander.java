@@ -2,18 +2,12 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.contractionexpander;
 
 /*  Please see the license information at the end of this file. */
 
-/** Default Contraction Expander is the English Contraction Expander.
- */
-
-public class DefaultContractionExpander
-    extends EnglishContractionExpander
-{
-    /** Create default contractionExpander. */
-
-    public DefaultContractionExpander()
-    {
-        super();
-    }
+/** Default Contraction Expander is the English Contraction Expander. */
+public class DefaultContractionExpander extends EnglishContractionExpander {
+  /** Create default contractionExpander. */
+  public DefaultContractionExpander() {
+    super();
+  }
 }
 
 /*
@@ -56,6 +50,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -5,124 +5,115 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 import edu.northwestern.at.utils.CharUtils;
 import edu.northwestern.at.utils.PatternReplacer;
 
-/** A pretokenizer for original form EEBO texts (not converted to TEIAnalytics).
- */
+/** A pretokenizer for original form EEBO texts (not converted to TEIAnalytics). */
+public class EEBOPreTokenizer extends AbstractPreTokenizer implements PreTokenizer {
+  /** EEBO separators do not include the vertical bars. */
+  protected static final String EEBOAlwaysSeparators =
+      "("
+          + hyphens
+          + "|"
+          + periods
+          + "|"
+          +
+          //          "[\\(\\)\\[\\]\";:/=\u0060\u00b6<>" +
+          "[\\(\\)\\[\\]\";:/=\u00b6<>"
+          + CharUtils.LDQUOTE
+          + CharUtils.RDQUOTE
+          + CharUtils.LONG_DASH
+          +
+          //          "\\" + CharUtils.VERTICAL_BAR +
+          CharUtils.BROKEN_VERTICAL_BAR
+          + CharUtils.LIGHT_VERTICAL_BAR
+          + "[\\p{InGeneralPunctuation}&&[^"
+          + "\\{\\}"
+          + "\\"
+          + CharUtils.VERTICAL_BAR
+          + CharUtils.SOLIDCIRCLE
+          + CharUtils.DEGREES_MARK
+          + CharUtils.MINUTES_MARK
+          + CharUtils.SECONDS_MARK
+          + CharUtils.LSQUOTE
+          + CharUtils.RSQUOTE
+          + CharUtils.SHORT_DASH
+          + CharUtils.NONBREAKING_HYPHEN
+          + CharUtils.ELLIPSIS
+          +
+          //          CharUtils.INVISIBLE_SEPARATOR +
+          "]]"
+          + "\\p{InLetterlikeSymbols}"
+          + "\\p{InMathematicalOperators}"
+          + "\\p{InMiscellaneousTechnical}"
+          + "[\\p{InGeometricShapes}&&[^"
+          + CharUtils.BLACKCIRCLE
+          + CharUtils.LOZENGE
+          + "]]"
+          + "\\p{InMiscellaneousSymbols}"
+          + "\\p{InDingbats}"
+          + "\\p{InAlphabeticPresentationForms}"
+          + "]"
+          + ")";
 
-public class EEBOPreTokenizer
-    extends AbstractPreTokenizer
-    implements PreTokenizer
-{
-    /** EEBO separators do not include the vertical bars. */
+  /** Word or span gap. */
+  protected static final PatternReplacer wordOrSpanGapReplacer =
+      new PatternReplacer(
+          "("
+              + CharUtils.LEFT_ANGLE_BRACKET_STRING
+              + "["
+              + CharUtils.LOZENGE_STRING
+              + "|"
+              + CharUtils.ELLIPSIS_STRING
+              + "]+"
+              + CharUtils.RIGHT_ANGLE_BRACKET_STRING
+              + ")",
+          " \u00241 ");
 
-    protected final static String EEBOAlwaysSeparators  =
-        "(" +
-            hyphens + "|" + periods + "|" +
-//          "[\\(\\)\\[\\]\";:/=\u0060\u00b6<>" +
-            "[\\(\\)\\[\\]\";:/=\u00b6<>" +
-            CharUtils.LDQUOTE +
-            CharUtils.RDQUOTE +
-            CharUtils.LONG_DASH +
-//          "\\" + CharUtils.VERTICAL_BAR +
-            CharUtils.BROKEN_VERTICAL_BAR +
-            CharUtils.LIGHT_VERTICAL_BAR +
-            "[\\p{InGeneralPunctuation}&&[^" +
-            "\\{\\}" +
-            "\\" + CharUtils.VERTICAL_BAR +
-            CharUtils.SOLIDCIRCLE +
-            CharUtils.DEGREES_MARK +
-            CharUtils.MINUTES_MARK +
-            CharUtils.SECONDS_MARK +
-            CharUtils.LSQUOTE +
-            CharUtils.RSQUOTE +
-            CharUtils.SHORT_DASH +
-            CharUtils.NONBREAKING_HYPHEN +
-            CharUtils.ELLIPSIS +
-//          CharUtils.INVISIBLE_SEPARATOR +
-            "]]" +
-            "\\p{InLetterlikeSymbols}" +
-            "\\p{InMathematicalOperators}" +
-            "\\p{InMiscellaneousTechnical}" +
-            "[\\p{InGeometricShapes}&&[^" +
-            CharUtils.BLACKCIRCLE +
-            CharUtils.LOZENGE +
-            "]]" +
-            "\\p{InMiscellaneousSymbols}" +
-            "\\p{InDingbats}" +
-            "\\p{InAlphabeticPresentationForms}" +
-            "]" +
-        ")";
+  /** Double back-ticks. */
+  protected static final PatternReplacer doubleBackTicksReplacer =
+      new PatternReplacer("(\u0060\u0060)", " \u00241 ");
 
-    /** Word or span gap. */
+  /** Single back-tick followed by a capital letter. */
+  protected static final PatternReplacer singleBackTicksReplacer =
+      new PatternReplacer("\u0060([A-Z])", "\u0060 \u00241");
 
-    protected final static PatternReplacer wordOrSpanGapReplacer    =
-        new PatternReplacer
-        (
-            "(" +
-            CharUtils.LEFT_ANGLE_BRACKET_STRING +
-            "[" +
-                CharUtils.LOZENGE_STRING +
-                "|" +
-                CharUtils.ELLIPSIS_STRING +
-            "]+" +
-            CharUtils.RIGHT_ANGLE_BRACKET_STRING +
-            ")" ,
-            " \u00241 "
-        );
+  /** Create an EEBO pretokenizer. */
+  public EEBOPreTokenizer() {
+    super();
+    //  Add spaces around separator
+    //  characters.
 
-    /** Double back-ticks. */
+    alwaysSeparatorsReplacer = new PatternReplacer(EEBOAlwaysSeparators, " \u00241 ");
+  }
 
-    protected final static PatternReplacer doubleBackTicksReplacer  =
-        new PatternReplacer( "(\u0060\u0060)" , " \u00241 " );
+  /**
+   * Prepare text for tokenization.
+   *
+   * <p>\u0040param line The text to prepare for tokenization,
+   *
+   * <p>\u0040return The pretokenized text.
+   */
+  public String pretokenize(String line) {
+    //  Do standard pretokenization.
 
-    /** Single back-tick followed by a capital letter. */
+    String result = super.pretokenize(line);
 
-    protected final static PatternReplacer singleBackTicksReplacer  =
-        new PatternReplacer( "\u0060([A-Z])" , "\u0060 \u00241" );
+    //  Fix word and span gaps.
 
-    /** Create an EEBO pretokenizer.
-     */
+    result = wordOrSpanGapReplacer.replace(result);
 
-    public EEBOPreTokenizer()
-    {
-        super();
-                                //  Add spaces around separator
-                                //  characters.
+    //  Back-ticks:  treat two in a row
+    //  as a single separable punctuation
+    //  mark.
 
-        alwaysSeparatorsReplacer    =
-            new PatternReplacer( EEBOAlwaysSeparators , " \u00241 ");
-    }
+    result = doubleBackTicksReplacer.replace(result);
 
-    /** Prepare text for tokenization.
-     *
-     *  \u0040param line    The text to prepare for tokenization,
-     *
-     *  \u0040return            The pretokenized text.
-     */
+    //  Treat single back tick followed by
+    //  a capital letter as a separable
+    //  punctuation mark.
 
-    public String pretokenize( String line )
-    {
-                                //  Do standard pretokenization.
+    result = singleBackTicksReplacer.replace(result);
 
-        String result   = super.pretokenize( line );
-
-                                //  Fix word and span gaps.
-
-        result  = wordOrSpanGapReplacer.replace( result );
-
-                                //  Back-ticks:  treat two in a row
-                                //  as a single separable punctuation
-                                //  mark.
-
-        result  = doubleBackTicksReplacer.replace( result );
-
-                                //  Treat single back tick followed by
-                                //  a capital letter as a separable
-                                //  punctuation mark.
-
-        result  = singleBackTicksReplacer.replace( result );
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -165,6 +156,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

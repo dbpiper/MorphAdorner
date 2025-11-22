@@ -2,131 +2,95 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.regexp;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.regex.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.unigram.*;
+import java.util.regex.*;
 
-/** Regular Expression Part of Speech tagger.
+/**
+ * Regular Expression Part of Speech tagger.
  *
- *  <p>
- *  The regular expression part of speech tagger uses a
- *  regular expressions to assign a part of speech tag to a spelling.
- *  </p>
+ * <p>The regular expression part of speech tagger uses a regular expressions to assign a part of
+ * speech tag to a spelling.
  */
+public class RegexpTagger extends UnigramTagger {
+  /** Parts of speech for each lexical rule. */
+  protected Pattern[] regexpPatterns;
 
-public class RegexpTagger extends UnigramTagger
-{
-    /** Parts of speech for each lexical rule.
-     */
+  protected Matcher[] regexpMatchers;
+  protected String[] regexpTags;
 
-    protected Pattern[] regexpPatterns;
-    protected Matcher[] regexpMatchers;
-    protected String[] regexpTags;
+  /** Create a suffix tagger. */
+  public RegexpTagger() {}
 
-    /** Create a suffix tagger.
-     */
+  /**
+   * See if tagger uses lexical rules.
+   *
+   * @return True since this tagger uses regular expression based lexical rules.
+   */
+  public boolean usesLexicalRules() {
+    return true;
+  }
 
-    public RegexpTagger()
-    {
+  /**
+   * Set lexical rules for tagging.
+   *
+   * @param lexicalRules String array of lexical rules.
+   * @throws InvalidRuleException if a rule is bad.
+   *     <p>For the regular expression tagger, each rule takes the form:
+   *     <blockquote>
+   *     <p><code>
+   *  regular-expression \t part-of-speech-tag
+   *  </code>
+   *     </blockquote>
+   *     <p>where "regular expression" is the regular expression and "part-of-speech-tag" is the
+   *     part of speech tag to assign to a spelling matched by the regular expression. An ascii tab
+   *     character (\t) separates the pattern from the tag.
+   */
+  public void setLexicalRules(String[] lexicalRules) throws InvalidRuleException {
+    this.regexpPatterns = new Pattern[lexicalRules.length];
+    this.regexpMatchers = new Matcher[lexicalRules.length];
+    this.regexpTags = new String[lexicalRules.length];
+
+    for (int i = 0; i < lexicalRules.length; i++) {
+      String[] tokens = lexicalRules[i].split("\t");
+      this.regexpPatterns[i] = Pattern.compile(tokens[0]);
+      this.regexpMatchers[i] = this.regexpPatterns[i].matcher("");
+      this.regexpTags[i] = tokens[1];
+    }
+  }
+
+  /**
+   * Tag a single word.
+   *
+   * @param word The word.
+   * @return The part of speech for the word.
+   *     <p>Applies each of the regular expressions stored in the lexical rules lexicon and returns
+   *     the tag of associated with the first matching regular expression.
+   */
+  public String tagWord(String word) {
+    String result = "";
+    //  Try each regular expression in turn.
+
+    for (int i = 0; i < regexpMatchers.length; i++) {
+      regexpMatchers[i].reset(word);
+
+      if (regexpMatchers[i].find()) {
+        result = regexpTags[i];
+        break;
+      }
     }
 
-    /** See if tagger uses lexical rules.
-     *
-     *  @return     True since this tagger uses regular expression based
-     *              lexical rules.
-     */
+    return result;
+  }
 
-    public boolean usesLexicalRules()
-    {
-        return true;
-    }
-
-    /** Set lexical rules for tagging.
-     *
-     *  @param  lexicalRules    String array of lexical rules.
-     *
-     *  @throws InvalidRuleException if a rule is bad.
-     *
-     *  <p>
-     *  For the regular expression tagger, each rule takes the form:
-     *  </p>
-     *
-     *  <blockquote>
-     *  <p>
-     *  <code>
-     *  regular-expression \t part-of-speech-tag
-     *  </code>
-     *  </p>
-     *  </blockquote>
-     *
-     *  <p>
-     *  where "regular expression" is the regular expression
-     *  and "part-of-speech-tag" is the part of speech tag to
-     *  assign to a spelling matched by the regular expression.
-     *  An ascii tab character (\t) separates the pattern from
-     *  the tag.
-     *  </p>
-     */
-
-    public void setLexicalRules( String[] lexicalRules )
-        throws InvalidRuleException
-    {
-        this.regexpPatterns = new Pattern[ lexicalRules.length ];
-        this.regexpMatchers = new Matcher[ lexicalRules.length ];
-        this.regexpTags     = new String[ lexicalRules.length ];
-
-        for ( int i = 0 ; i < lexicalRules.length ; i++ )
-        {
-            String[] tokens             = lexicalRules[ i ].split( "\t" );
-            this.regexpPatterns[ i ]    = Pattern.compile( tokens[ 0 ] );
-            this.regexpMatchers[ i ]    =
-                this.regexpPatterns[ i ].matcher( "" );
-            this.regexpTags[ i ]        = tokens[ 1 ];
-        }
-    }
-
-    /** Tag a single word.
-     *
-     *  @param  word    The word.
-     *
-     *  @return         The part of speech for the word.
-     *
-     *  <p>
-     *  Applies each of the regular expressions stored in the lexical
-     *  rules lexicon and returns the tag of associated with the first
-     *  matching regular expression.
-     *  </p>
-     */
-
-    public String tagWord( String word )
-    {
-        String result   = "";
-                                //  Try each regular expression in turn.
-
-        for ( int i = 0 ; i < regexpMatchers.length ; i++ )
-        {
-            regexpMatchers[ i ].reset( word );
-
-            if ( regexpMatchers[ i ].find() )
-            {
-                result  = regexpTags[ i ];
-                break;
-            }
-        }
-
-        return result;
-    }
-
-    /** Return tagger description.
-     *
-     *  @return     Tagger description.
-     */
-
-    public String toString()
-    {
-        return "Regular expression tagger";
-    }
+  /**
+   * Return tagger description.
+   *
+   * @return Tagger description.
+   */
+  public String toString() {
+    return "Regular expression tagger";
+  }
 }
 
 /*
@@ -169,6 +133,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

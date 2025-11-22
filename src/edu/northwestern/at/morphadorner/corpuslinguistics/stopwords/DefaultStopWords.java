@@ -4,20 +4,15 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.stopwords;
 
 import java.util.*;
 
-/** Default stop word list.
+/**
+ * Default stop word list.
  *
- *  <p>
- *  We use Martin Porter's stop word list as the default.
- *  </p>
+ * <p>We use Martin Porter's stop word list as the default.
  */
-
-public class DefaultStopWords
-    extends PorterStopWords
-{
-    public DefaultStopWords()
-    {
-        super();
-    }
+public class DefaultStopWords extends PorterStopWords {
+  public DefaultStopWords() {
+    super();
+  }
 }
 
 /*
@@ -60,6 +55,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

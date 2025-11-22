@@ -1,193 +1,142 @@
 package edu.northwestern.at.utils;
 
-/** A ternary trie node.
- */
+/** A ternary trie node. */
+public class TernaryTrieNode {
+  /** Character stored in this node. */
+  protected char splitchar;
 
-public class TernaryTrieNode
-{
-    /** Character stored in this node. */
+  /** True if this character is the end of a word. */
+  protected boolean endOfWord;
 
-    protected char splitchar;
+  /** Low child of this node. */
+  protected TernaryTrieNode lokid;
 
-    /** True if this character is the end of a word. */
+  /** Equal child of this node. */
+  protected TernaryTrieNode eqkid;
 
-    protected boolean endOfWord;
+  /** High child of this node. */
+  protected TernaryTrieNode hikid;
 
-    /** Low child of this node. */
+  /** Data value for this node. */
+  protected Object value;
 
-    protected TernaryTrieNode lokid;
+  /** Create a new empty node. */
+  public TernaryTrieNode() {}
 
-    /** Equal child of this node. */
+  /**
+   * Create a new node with a specified split char.
+   *
+   * @param c Character for this node.
+   */
+  public TernaryTrieNode(char c) {
+    this.splitchar = c;
+  }
 
-    protected TernaryTrieNode eqkid;
+  /**
+   * Return the trie splitting character for this node.
+   *
+   * @return The trie splitting character for this node.
+   */
+  public char getSplitChar() {
+    return this.splitchar;
+  }
 
-    /** High child of this node. */
+  /**
+   * Set the trie splitting charaacter for this node.
+   *
+   * @param c The trie splitting character.
+   */
+  public void setSplitChar(char c) {
+    this.splitchar = c;
+  }
 
-    protected TernaryTrieNode hikid;
+  /**
+   * This returns the endOfWord for this <code>TernaryTrieNode</code>.
+   *
+   * @return <code>boolean</code>
+   */
+  public boolean isEndOfWord() {
+    return this.endOfWord;
+  }
 
-    /** Data value for this node. */
+  /**
+   * This sets the endOfWord for this <code>TernaryTrieNode</code>.
+   *
+   * @param b <code>boolean</code>
+   */
+  public void setEndOfWord(boolean b) {
+    this.endOfWord = b;
+  }
 
-    protected Object value;
+  /**
+   * This returns the lokid of this <code>TernaryTrieNode</code>.
+   *
+   * @return <code>TernaryTrieNode</code>
+   */
+  public TernaryTrieNode getLokid() {
+    return this.lokid;
+  }
 
-    /** Create a new empty node.
-     */
+  /**
+   * This sets the lokid of this <code>TernaryTrieNode</code>.
+   *
+   * @param node <code>TernaryTrieNode</code>
+   */
+  public void setLokid(TernaryTrieNode node) {
+    this.lokid = node;
+  }
 
-    public TernaryTrieNode()
-    {
-    }
+  /**
+   * This returns the eqkid of this <code>TernaryTrieNode</code>.
+   *
+   * @return <code>TernaryTrieNode</code>
+   */
+  public TernaryTrieNode getEqkid() {
+    return this.eqkid;
+  }
 
-    /** Create a new node with a specified split char.
-     *
-     *  @param  c   Character for this node.
-     */
+  /**
+   * This sets the eqkid of this <code>TernaryTrieNode</code>.
+   *
+   * @param node <code>TernaryTrieNode</code>
+   */
+  public void setEqkid(TernaryTrieNode node) {
+    this.eqkid = node;
+  }
 
-    public TernaryTrieNode( char c )
-    {
-        this.splitchar  = c;
-    }
+  /**
+   * This returns the hikid of this <code>TernaryTrieNode</code>.
+   *
+   * @return <code>TernaryTrieNode</code>
+   */
+  public TernaryTrieNode getHikid() {
+    return this.hikid;
+  }
 
-    /** Return the trie splitting character for this node.
-     *
-     *  @return     The trie splitting character for this node.
-     */
+  /**
+   * This sets the hikid of this <code>TernaryTrieNode</code>.
+   *
+   * @param node <code>TernaryTrieNode</code>
+   */
+  public void setHikid(TernaryTrieNode node) {
+    this.hikid = node;
+  }
 
-    public char getSplitChar()
-    {
-        return this.splitchar;
-    }
+  /**
+   * Set data value for node.
+   *
+   * @param value The data value.
+   */
+  public void setValue(Object value) {
+    this.value = value;
+  }
 
-    /** Set the trie splitting charaacter for this node.
-     *
-     *  @param  c   The trie splitting character.
-     */
-
-    public void setSplitChar( char c )
-    {
-        this.splitchar  = c;
-    }
-
-    /**
-     * <p>
-     * This returns the endOfWord for this <code>TernaryTrieNode</code>.
-     * </p>
-     *
-     * @return <code>boolean</code>
-     */
-
-    public boolean isEndOfWord()
-    {
-        return this.endOfWord;
-    }
-
-    /**
-     * <p>
-     * This sets the endOfWord for this <code>TernaryTrieNode</code>.
-     * </p>
-     *
-     * @param b <code>boolean</code>
-     */
-
-    public void setEndOfWord( boolean b )
-    {
-        this.endOfWord = b;
-    }
-
-    /**
-     * <p>
-     * This returns the lokid of this <code>TernaryTrieNode</code>.
-     * </p>
-     *
-     * @return <code>TernaryTrieNode</code>
-     */
-
-    public TernaryTrieNode getLokid()
-    {
-        return this.lokid;
-    }
-
-    /**
-     * <p>
-     * This sets the lokid of this <code>TernaryTrieNode</code>.
-     * </p>
-     *
-     * @param node <code>TernaryTrieNode</code>
-     */
-
-    public void setLokid( TernaryTrieNode node )
-    {
-        this.lokid = node;
-    }
-
-    /**
-     * <p>
-     * This returns the eqkid of this <code>TernaryTrieNode</code>.
-     * </p>
-     *
-     * @return <code>TernaryTrieNode</code>
-     */
-
-    public TernaryTrieNode getEqkid()
-    {
-        return this.eqkid;
-    }
-
-    /**
-     * <p>
-     * This sets the eqkid of this <code>TernaryTrieNode</code>.
-     * </p>
-     *
-     * @param node <code>TernaryTrieNode</code>
-     */
-
-    public void setEqkid( TernaryTrieNode node )
-    {
-        this.eqkid = node;
-    }
-
-    /**
-     * <p>
-     * This returns the hikid of this <code>TernaryTrieNode</code>.
-     * </p>
-     *
-     * @return <code>TernaryTrieNode</code>
-     */
-
-    public TernaryTrieNode getHikid()
-    {
-        return this.hikid;
-    }
-
-    /**
-     * <p>
-     * This sets the hikid of this <code>TernaryTrieNode</code>.
-     * </p>
-     *
-     * @param node <code>TernaryTrieNode</code>
-     */
-
-    public void setHikid( TernaryTrieNode node )
-    {
-        this.hikid = node;
-    }
-
-    /** Set data value for node.
-     *
-     *  @param  value   The data value.
-     */
-
-    public void setValue( Object value )
-    {
-        this.value  = value;
-    }
-
-    /** Get data value for node.
-     *
-     *  @return     The data value.
-     */
-
-    public Object getValue()
-    {
-        return value;
-    }
+  /**
+   * Get data value for node.
+   *
+   * @return The data value.
+   */
+  public Object getValue() {
+    return value;
+  }
 }
-

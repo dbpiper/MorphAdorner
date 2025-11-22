@@ -5,99 +5,70 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** PreTokenizer factory.
- */
+/** PreTokenizer factory. */
+public class PreTokenizerFactory {
+  /**
+   * Get a preTokenizer.
+   *
+   * @return The preTokenizer.
+   */
+  public static PreTokenizer newPreTokenizer() {
+    String className = System.getProperty("pretokenizer.class");
 
-public class PreTokenizerFactory
-{
-    /** Get a preTokenizer.
-     *
-     *  @return     The preTokenizer.
-     */
-
-    public static PreTokenizer newPreTokenizer()
-    {
-        String className    =
-            System.getProperty( "pretokenizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultPreTokenizer";
-        }
-
-        return newPreTokenizer( className );
+    if (className == null) {
+      className = "DefaultPreTokenizer";
     }
 
-    /** Get a preTokenizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The preTokenizer.
-     */
+    return newPreTokenizer(className);
+  }
 
-    public static PreTokenizer newPreTokenizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a preTokenizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The preTokenizer.
+   */
+  public static PreTokenizer newPreTokenizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "pretokenizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultPreTokenizer";
-        }
-
-        return newPreTokenizer( className );
+    if (properties != null) {
+      className = properties.getProperty("pretokenizer.class");
     }
 
-    /** Get a preTokenizer of a specified class name.
-     *
-     *  @param  className   Class name for the preTokenizer.
-     *
-     *  @return             The preTokenizer.
-     */
-
-    public static PreTokenizer newPreTokenizer( String className )
-    {
-        PreTokenizer preTokenizer   = null;
-
-        try
-        {
-            preTokenizer    =
-                (PreTokenizer)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    PreTokenizerFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                preTokenizer    =
-                    (PreTokenizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create pretokenizer of class " +
-                    fixedClassName + ", using default." );
-
-                preTokenizer    = new DefaultPreTokenizer();
-            }
-        }
-
-        return preTokenizer;
+    if (className == null) {
+      className = "DefaultPreTokenizer";
     }
+
+    return newPreTokenizer(className);
+  }
+
+  /**
+   * Get a preTokenizer of a specified class name.
+   *
+   * @param className Class name for the preTokenizer.
+   * @return The preTokenizer.
+   */
+  public static PreTokenizer newPreTokenizer(String className) {
+    PreTokenizer preTokenizer = null;
+
+    try {
+      preTokenizer = (PreTokenizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(PreTokenizerFactory.class.getName()) + "." + className;
+
+      try {
+        preTokenizer = (PreTokenizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create pretokenizer of class " + fixedClassName + ", using default.");
+
+        preTokenizer = new DefaultPreTokenizer();
+      }
+    }
+
+    return preTokenizer;
+  }
 }
 
 /*
@@ -140,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

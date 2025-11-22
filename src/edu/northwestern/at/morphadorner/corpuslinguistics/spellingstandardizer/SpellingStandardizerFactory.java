@@ -5,150 +5,107 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** SpellingStandardizer factory.
- */
+/** SpellingStandardizer factory. */
+public class SpellingStandardizerFactory {
+  /**
+   * Get a spelling standardizer.
+   *
+   * @return The spelling standardizer.
+   */
+  public static SpellingStandardizer newSpellingStandardizer() {
+    String className = System.getProperty("spellingstandardizer.class");
 
-public class SpellingStandardizerFactory
-{
-    /** Get a spelling standardizer.
-     *
-     *  @return     The spelling standardizer.
-     */
-
-    public static SpellingStandardizer newSpellingStandardizer()
-    {
-        String className    =
-            System.getProperty( "spellingstandardizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultSpellingStandardizer";
-        }
-
-        return newSpellingStandardizer( className );
+    if (className == null) {
+      className = "DefaultSpellingStandardizer";
     }
 
-    /** Get a spelling standardizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The spelling standardizer.
-     */
+    return newSpellingStandardizer(className);
+  }
 
-    public static SpellingStandardizer newSpellingStandardizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a spelling standardizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The spelling standardizer.
+   */
+  public static SpellingStandardizer newSpellingStandardizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "spellingstandardizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultSpellingStandardizer";
-        }
-
-        return newSpellingStandardizer( className );
+    if (properties != null) {
+      className = properties.getProperty("spellingstandardizer.class");
     }
 
-    /** Get an initial spelling standardizer.
-     *
-     *  @return     The spelling standardizer.
-     */
-
-    public static SpellingStandardizer newInitialSpellingStandardizer()
-    {
-        String className    =
-            System.getProperty( "initialspellingstandardizer.class" );
-
-        if ( className == null )
-        {
-            className   = "NoopSpellingStandardizer";
-        }
-
-        return newSpellingStandardizer( className );
+    if (className == null) {
+      className = "DefaultSpellingStandardizer";
     }
 
-    /** Get an initial spelling standardizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The spelling standardizer.
-     */
+    return newSpellingStandardizer(className);
+  }
 
-    public static SpellingStandardizer newInitialSpellingStandardizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get an initial spelling standardizer.
+   *
+   * @return The spelling standardizer.
+   */
+  public static SpellingStandardizer newInitialSpellingStandardizer() {
+    String className = System.getProperty("initialspellingstandardizer.class");
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "initialspellingstandardizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "NoopSpellingStandardizer";
-        }
-
-        return newSpellingStandardizer( className );
+    if (className == null) {
+      className = "NoopSpellingStandardizer";
     }
 
-    /** Get a spelling standardizer of a specified class name.
-     *
-     *  @param  className   Class name for the spelling standardizer.
-     *
-     *  @return             The spelling standardizer.
-     */
+    return newSpellingStandardizer(className);
+  }
 
-    public static SpellingStandardizer newSpellingStandardizer
-    (
-        String className
-    )
-    {
-        SpellingStandardizer spellingStandardizer   = null;
+  /**
+   * Get an initial spelling standardizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The spelling standardizer.
+   */
+  public static SpellingStandardizer newInitialSpellingStandardizer(UTF8Properties properties) {
+    String className = null;
 
-        try
-        {
-            spellingStandardizer    =
-                (SpellingStandardizer)Class.forName(
-                    className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    SpellingStandardizerFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                spellingStandardizer    =
-                    (SpellingStandardizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create spelling standardizer of class " +
-                    fixedClassName + ", using default." );
-
-                spellingStandardizer    = new DefaultSpellingStandardizer();
-            }
-        }
-
-        return spellingStandardizer;
+    if (properties != null) {
+      className = properties.getProperty("initialspellingstandardizer.class");
     }
+
+    if (className == null) {
+      className = "NoopSpellingStandardizer";
+    }
+
+    return newSpellingStandardizer(className);
+  }
+
+  /**
+   * Get a spelling standardizer of a specified class name.
+   *
+   * @param className Class name for the spelling standardizer.
+   * @return The spelling standardizer.
+   */
+  public static SpellingStandardizer newSpellingStandardizer(String className) {
+    SpellingStandardizer spellingStandardizer = null;
+
+    try {
+      spellingStandardizer = (SpellingStandardizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(SpellingStandardizerFactory.class.getName()) + "." + className;
+
+      try {
+        spellingStandardizer = (SpellingStandardizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create spelling standardizer of class "
+                + fixedClassName
+                + ", using default.");
+
+        spellingStandardizer = new DefaultSpellingStandardizer();
+      }
+    }
+
+    return spellingStandardizer;
+  }
 }
 
 /*
@@ -191,6 +148,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

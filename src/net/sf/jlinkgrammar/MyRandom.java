@@ -1,58 +1,55 @@
 package net.sf.jlinkgrammar;
 
-
-/**
- * TODO add javadoc
- *
- */
+/** TODO add javadoc */
 public class MyRandom {
-    static int random_state[] = new int[2];
-    static int random_count = 0;
-    static boolean random_inited = false;
+  static int random_state[] = new int[2];
+  static int random_count = 0;
+  static boolean random_inited = false;
 
-    static int step_generator(int d) {
-        /* no overflow should occur, so this is machine independent */
-        random_state[0] = ((random_state[0] * 3) + d + 104729) % 179424673;
-        random_state[1] = ((random_state[1] * 7) + d + 48611) % 86028121;
-        return random_state[0] + random_state[1];
+  static int step_generator(int d) {
+    /* no overflow should occur, so this is machine independent */
+    random_state[0] = ((random_state[0] * 3) + d + 104729) % 179424673;
+    random_state[1] = ((random_state[1] * 7) + d + 48611) % 86028121;
+    return random_state[0] + random_state[1];
+  }
+
+  static void my_random_initialize(int seed) {
+    if (random_inited) {
+      throw new RuntimeException("Random number generator not finalized.");
     }
 
-    static void my_random_initialize(int seed) {
-        if (random_inited) {
-            throw new RuntimeException("Random number generator not finalized.");
-        }
+    seed = (seed < 0) ? -seed : seed;
+    seed = seed % (1 << 30);
 
-        seed = (seed < 0) ? -seed : seed;
-        seed = seed % (1 << 30);
+    random_state[0] = seed % 3;
+    random_state[1] = seed % 5;
+    random_count = seed;
+    random_inited = true;
+  }
 
-        random_state[0] = seed % 3;
-        random_state[1] = seed % 5;
-        random_count = seed;
-        random_inited = true;
+  static void my_random_finalize() {
+    if (!random_inited) {
+      throw new RuntimeException("Random number generator not initialized.");
     }
+    random_inited = false;
+  }
 
-    static void my_random_finalize() {
-        if (!random_inited) {
-            throw new RuntimeException("Random number generator not initialized.");
-        }
-        random_inited = false;
-    }
+  static int my_random() {
+    random_count++;
+    return step_generator(random_count);
+  }
 
-    static int my_random() {
-        random_count++;
-        return step_generator(random_count);
-    }
+  static int randtable[];
 
-    static int randtable[];
+  /* There is a legitimate question of whether having the hash function    */
+  /* depend on a large array is a good idea.  It might not be fastest on   */
+  /* a machine that depends on caching for its efficiency.  On the other   */
+  /* hand, Phong Vo's hash (and probably other linear-congruential) is     */
+  /* pretty bad.  So, mine is a "competitive" hash function -- you can't   */
+  /* make it perform horribly.                                             */
 
-    /* There is a legitimate question of whether having the hash function    */
-    /* depend on a large array is a good idea.  It might not be fastest on   */
-    /* a machine that depends on caching for its efficiency.  On the other   */
-    /* hand, Phong Vo's hash (and probably other linear-congruential) is     */
-    /* pretty bad.  So, mine is a "competitive" hash function -- you can't   */
-    /* make it perform horribly.                                             */
-
-    static int table[]={1932757444,
+  static int table[] = {
+    1932757444,
     1812851329,
     786279284,
     481968937,
@@ -308,25 +305,22 @@ public class MyRandom {
     2067990811,
     1307470276,
     1447253428
-    };
+  };
 
+  static void init_randtable() {
+    int i;
 
-    static void init_randtable() {
-        int i;
-        
-        randtable = new int[GlobalBean.RTSIZE];
-        for (i = 0; i < GlobalBean.RTSIZE; i++) {
-            randtable[i]=table[i];
-//            randtable[i] = r.nextInt();
-        }
+    randtable = new int[GlobalBean.RTSIZE];
+    for (i = 0; i < GlobalBean.RTSIZE; i++) {
+      randtable[i] = table[i];
+      //            randtable[i] = r.nextInt();
     }
+  }
 
-    static int next_power_of_two_up(int i) {
-        /* Returns the smallest power of two that is at least i and at least 1 */
-        int j = 1;
-        while (j < i)
-            j = j << 1;
-        return j;
-    }
-
+  static int next_power_of_two_up(int i) {
+    /* Returns the smallest power of two that is at least i and at least 1 */
+    int j = 1;
+    while (j < i) j = j << 1;
+    return j;
+  }
 }

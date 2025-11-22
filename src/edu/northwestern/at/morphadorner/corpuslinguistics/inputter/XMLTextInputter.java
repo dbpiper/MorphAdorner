@@ -2,847 +2,594 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inputter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.PatternReplacer;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
 import java.net.URI;
-import java.net.URL;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.*;
 import java.util.*;
-
 import org.jdom2.*;
 import org.jdom2.input.*;
 import org.jdom2.input.sax.*;
 import org.jdom2.output.*;
 import org.jdom2.transform.*;
 
-import org.xml.sax.SAXException;
-
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.PatternReplacer;
-import edu.northwestern.at.utils.math.ArithUtils;
-import edu.northwestern.at.utils.xml.*;
-
-/** Text inputter which reads text from a TEI or EEBO XML file.
+/**
+ * Text inputter which reads text from a TEI or EEBO XML file.
  *
- *  <p>
- *  The XML file can be divided into smaller sections which are stored
- *  in a map.  MorphAdorner uses a modified XGTagger interface to adorn each
- *  section of text separately, and then merge the results to produce
- *  the final adorned XML output.
- *  </p>
+ * <p>The XML file can be divided into smaller sections which are stored in a map. MorphAdorner uses
+ * a modified XGTagger interface to adorn each section of text separately, and then merge the
+ * results to produce the final adorned XML output.
  */
+public class XMLTextInputter extends IsCloseableObject implements TextInputter {
+  /**
+   * Map which holds segmented XML text.
+   *
+   * <p>The key is the segment name. The value is the segment data. The value may be something else
+   * in subclasses.
+   */
+  protected Map<String, Object> segmentMap = new TreeMap<String, Object>();
 
-public class XMLTextInputter
-    extends IsCloseableObject
-    implements TextInputter
-{
-    /** Map which holds segmented XML text.
-     *
-     *  <p>
-     *  The key is the segment name.  The value is the segment data.
-     *  The value may be something else in subclasses.
-     *  </p>
-     */
+  /** Text ID number for generated XML segments. */
+  protected int textID = 0;
 
-    protected Map<String, Object> segmentMap    =
-        new TreeMap<String, Object>();
+  /** Segment names. */
+  protected List<String> segmentNames = ListFactory.createNewList();
 
-    /** Text ID number for generated XML segments. */
+  /** Text encoding. */
+  protected String encoding = "utf-8";
 
-    protected int textID        = 0;
+  /** True to split text body into segments. */
+  protected boolean splitText = true;
 
-    /** Segment names. */
+  /** True to fix <gap> elements. */
+  protected boolean fixGaps = true;
 
-    protected List<String> segmentNames = ListFactory.createNewList();
+  /** True to fix <orig> elements. */
+  protected boolean fixOrigs = true;
 
-    /** Text encoding. */
+  /** True to fix selected split words. */
+  protected boolean fixSplitWords = false;
 
-    protected String encoding   = "utf-8";
+  /** Pattern replacers for fixing split words. */
+  protected List<PatternReplacer> fixSplitWordsPatternReplacers = null;
 
-    /** True to split text body into segments. */
+  /** TEI header element pattern. */
+  protected final String teiHeaderPattern = "tei|tei\\.2|TEI|TEI\\.2";
 
-    protected boolean splitText = true;
+  /** The document text object. */
+  protected Document document;
 
-    /** True to fix <gap> elements. */
+  /** True if segment files are stored in the segment map instead of segment text. */
+  protected boolean storesSegmentFiles = false;
 
-    protected boolean fixGaps   = true;
+  /** Create XML text inputter. */
+  public XMLTextInputter() {
+    super();
 
-    /** True to fix <orig> elements. */
+    segmentMap = new TreeMap<String, Object>();
+  }
 
-    protected boolean fixOrigs  = true;
+  /**
+   * Loads text from a document into a map.
+   *
+   * @param document Document from which to read text.
+   * @param schemaURI XML schema URI. Null if none.
+   * @param docPath Path for original document.
+   * @throws IOException If an I/O error occurs.
+   */
+  protected void doLoadDocument(Document document, String schemaURI, String docPath)
+      throws JDOMException, IOException, URISyntaxException, org.xml.sax.SAXException {
+    //  If no document type was found in
+    //  the file, and a schema was
+    //  provided in the MorphAdorner settings,
+    //  validate against the schema.
 
-    /** True to fix selected split words. */
+    if (document.getDocType() == null) {
+      if ((schemaURI != null) && (schemaURI.length() > 0)) {
+        JDOMUtils.validateDocument(document, schemaURI);
+      }
+    }
+    //  Find text root.
 
-    protected boolean fixSplitWords = false;
+    Element etsNode = document.getRootElement();
 
-    /** Pattern replacers for fixing split words. */
+    Element teiNode;
 
-    protected List<PatternReplacer> fixSplitWordsPatternReplacers = null;
-
-    /** TEI header element pattern. */
-
-    protected final String teiHeaderPattern = "tei|tei\\.2|TEI|TEI\\.2";
-
-    /** The document text object. */
-
-    protected Document document;
-
-    /** True if segment files are stored in the segment map
-        instead of segment text. */
-
-    protected boolean storesSegmentFiles    = false;
-
-    /** Create XML text inputter. */
-
-    public XMLTextInputter()
-    {
-        super();
-
-        segmentMap  = new TreeMap<String, Object>();
+    if (etsNode.getName().matches(teiHeaderPattern)) {
+      teiNode = etsNode;
+    } else {
+      teiNode = findChild(etsNode, teiHeaderPattern);
     }
 
-    /** Loads text from a document into a map.
-     *
-     *  @param  document        Document from which to read text.
-     *  @param  schemaURI       XML schema URI.  Null if none.
-     *  @param  docPath         Path for original document.
-     *
-     *  @throws IOException     If an I/O error occurs.
-     */
+    Element eeboNode = etsNode.getChild("eebo");
 
-    protected void doLoadDocument
-    (
-        Document document ,
-        String schemaURI ,
-        String docPath
-    )
-        throws  JDOMException,
-                IOException,
-                URISyntaxException ,
-                org.xml.sax.SAXException
-    {
-                                //  If no document type was found in
-                                //  the file, and a schema was
-                                //  provided in the MorphAdorner settings,
-                                //  validate against the schema.
-
-        if ( document.getDocType() == null )
-        {
-            if ( ( schemaURI != null ) && ( schemaURI.length() > 0 ) )
-            {
-                JDOMUtils.validateDocument( document , schemaURI );
-            }
-        }
-                                //  Find text root.
-
-        Element etsNode = document.getRootElement();
-
-        Element teiNode;
-
-        if ( etsNode.getName().matches( teiHeaderPattern ) )
-        {
-            teiNode = etsNode;
-        }
-        else
-        {
-            teiNode = findChild( etsNode , teiHeaderPattern );
-        }
-
-        Element eeboNode        = etsNode.getChild( "eebo" );
-
-        if ( eeboNode == null )
-        {
-            eeboNode    = etsNode.getChild( "EEBO" );
-        }
-
-        Element groupTextRoot   = null;
-
-        if ( eeboNode != null )
-        {
-            groupTextRoot   = eeboNode.getChild( "group" );
-
-            if ( groupTextRoot == null )
-            {
-                groupTextRoot   = eeboNode.getChild( "GROUP" );
-            }
-        }
-
-        Element textParent  = null;
-        Element textNode    = null;
-
-        if ( groupTextRoot != null )
-        {
-            textParent  = eeboNode;
-            textNode    = groupTextRoot;
-        }
-        else
-        {
-            textParent  = eeboNode;
-
-            if ( textParent == null )
-            {
-                textParent  = teiNode;
-            }
-
-            textNode    = findChild( textParent , "text|TEXT" );
-        }
-                                //  Fix <gap> elements.
-        if ( fixGaps )
-        {
-            GapFixer.fixGaps( document );
-        }
-                                //  Fix <orig> elements.
-
-        if ( fixOrigs )
-        {
-            OrigFixer.fixOrigs( document );
-        }
-                                //  Output each child of the text
-                                //  portion to a separate map entry.
-
-        writeChildren( textNode , "text" , splitText );
-
-                                //  Output remainder of text portion.
-
-        org.jdom2.output.Format format  =
-            org.jdom2.output.Format.getRawFormat();
-
-        XMLOutputter xmlOut = new XMLOutputter( format );
-
-        putSegment( "text" , xmlOut.outputString( textNode ) );
-
-                                //  Delete text portion.
-
-        textParent.removeContent( textNode );
-
-                                //  Output remainder = header portion.
-
-        putSegment( "head" , xmlOut.outputString( document ) );
-
-                                //  Get list of entry names.
-
-        Iterator<String> iterator   = segmentMap.keySet().iterator();
-
-        while ( iterator.hasNext() )
-        {
-            segmentNames.add( iterator.next() );
-        }
-                            //  Save text encoding.
-
-        if ( ( encoding != null ) && ( encoding.length() > 0 ) )
-        {
-            this.encoding   = encoding;
-        }
-                                //  Get the document type, if any.
-
-        DocType docType     = document.getDocType();
-
-                                //  Get the DTD name URI.
-
-        if ( docType != null )
-        {
-            URI uri = new URI( docType.getSystemID() );
-
-                                //  If DTD is a local file,
-                                //  copy it to the temporary files
-                                //  directory.
-
-            String uriScheme    = uri.getScheme();
-
-            if  (   ( uriScheme == null ) ||
-                    ( uriScheme.equalsIgnoreCase( "file" ) )
-                )
-            {
-                                //  Get path for DTD.
-
-                String uriPath  = uri.getPath();
-
-                                //  If DTD path is not absolute,
-                                //  get its absolute path
-                                //  relative to the original
-                                //  document directory.
-
-                File sourceFile = new File( uriPath );
-
-                if ( !sourceFile.isAbsolute() )
-                {
-                    sourceFile      =
-                        new File
-                        (
-                            new File( docPath ).getParent() ,
-                            sourceFile.getPath()
-                        );
-                }
-                                //  Create file name for DTD copy
-                                //  in temporary files directory.
-
-                File destFile   =
-                    new File
-                    (
-                        DirUtils.getTemporaryFilesDirectory() ,
-                        sourceFile.getName()
-                    );
-
-                FileUtils.copyFile
-                (
-                    sourceFile.getAbsolutePath() ,
-                    destFile.getAbsolutePath()
-                );
-
-                destFile.deleteOnExit();
-            }
-        }
+    if (eeboNode == null) {
+      eeboNode = etsNode.getChild("EEBO");
     }
 
-    /** Loads text from a URL into a map.
-     *
-     *  @param  url             URL from which to read text.
-     *  @param  encoding        Text encoding.
-     *  @param  schemaURI       XML schema URI.  Null if none.
-     *
-     *  @throws IOException     If an I/O error occurs.
-     */
+    Element groupTextRoot = null;
 
-    protected void doLoadText( URL url , String encoding , String schemaURI )
-        throws  JDOMException,
-                IOException,
-                URISyntaxException ,
-                org.xml.sax.SAXException
-    {
-        SAXBuilder builder  = new SAXBuilder( XMLReaders.NONVALIDATING );
+    if (eeboNode != null) {
+      groupTextRoot = eeboNode.getChild("group");
 
-                                //  Load document text.
-
-        WhitespaceTrimmingBufferedReader bufferedReader =
-            new WhitespaceTrimmingBufferedReader
-            (
-                new UnicodeReader
-                (
-                    url.openStream() ,
-                    encoding
-                )
-            );
-
-        document    = builder.build( bufferedReader );
-
-        bufferedReader.close();
-
-        doLoadDocument( document , schemaURI , url.getPath() );
+      if (groupTextRoot == null) {
+        groupTextRoot = eeboNode.getChild("GROUP");
+      }
     }
 
-    /** Find child node name matching regular expression.
-     *
-     *  @param  parent      Node whose child we want.
-     *  @param  namePat     Regular expression for child name.
-     *
-     *  @return             The first child whose name matches
-     *                      the specified namePat, or null if none
-     *                      matches.
-     */
+    Element textParent = null;
+    Element textNode = null;
 
-    public Element findChild( Element parent , String namePat )
-    {
-        Element result  = null;
+    if (groupTextRoot != null) {
+      textParent = eeboNode;
+      textNode = groupTextRoot;
+    } else {
+      textParent = eeboNode;
 
-        if ( parent != null )
-        {
-            List children   = parent.getChildren();
+      if (textParent == null) {
+        textParent = teiNode;
+      }
 
-            for ( int i = 0 ; i < children.size() ; i++ )
-            {
-                Element child   = (Element)children.get( i );
+      textNode = findChild(textParent, "text|TEXT");
+    }
+    //  Fix <gap> elements.
+    if (fixGaps) {
+      GapFixer.fixGaps(document);
+    }
+    //  Fix <orig> elements.
 
-                if ( child.getName().matches( namePat ) )
-                {
-                    result  = child;
-                    break;
-                }
-            }
+    if (fixOrigs) {
+      OrigFixer.fixOrigs(document);
+    }
+    //  Output each child of the text
+    //  portion to a separate map entry.
+
+    writeChildren(textNode, "text", splitText);
+
+    //  Output remainder of text portion.
+
+    org.jdom2.output.Format format = org.jdom2.output.Format.getRawFormat();
+
+    XMLOutputter xmlOut = new XMLOutputter(format);
+
+    putSegment("text", xmlOut.outputString(textNode));
+
+    //  Delete text portion.
+
+    textParent.removeContent(textNode);
+
+    //  Output remainder = header portion.
+
+    putSegment("head", xmlOut.outputString(document));
+
+    //  Get list of entry names.
+
+    Iterator<String> iterator = segmentMap.keySet().iterator();
+
+    while (iterator.hasNext()) {
+      segmentNames.add(iterator.next());
+    }
+    //  Save text encoding.
+
+    if ((encoding != null) && (encoding.length() > 0)) {
+      this.encoding = encoding;
+    }
+    //  Get the document type, if any.
+
+    DocType docType = document.getDocType();
+
+    //  Get the DTD name URI.
+
+    if (docType != null) {
+      URI uri = new URI(docType.getSystemID());
+
+      //  If DTD is a local file,
+      //  copy it to the temporary files
+      //  directory.
+
+      String uriScheme = uri.getScheme();
+
+      if ((uriScheme == null) || (uriScheme.equalsIgnoreCase("file"))) {
+        //  Get path for DTD.
+
+        String uriPath = uri.getPath();
+
+        //  If DTD path is not absolute,
+        //  get its absolute path
+        //  relative to the original
+        //  document directory.
+
+        File sourceFile = new File(uriPath);
+
+        if (!sourceFile.isAbsolute()) {
+          sourceFile = new File(new File(docPath).getParent(), sourceFile.getPath());
         }
+        //  Create file name for DTD copy
+        //  in temporary files directory.
 
-        return result;
+        File destFile = new File(DirUtils.getTemporaryFilesDirectory(), sourceFile.getName());
+
+        FileUtils.copyFile(sourceFile.getAbsolutePath(), destFile.getAbsolutePath());
+
+        destFile.deleteOnExit();
+      }
     }
+  }
 
-    /** Reads text from a URL into a string.
-     *
-     *  @param  url             URL from which to read text.
-     *  @param  encoding        Text encoding.
-     *
-     *  @throws Exception       If an error occurs.
-     */
+  /**
+   * Loads text from a URL into a map.
+   *
+   * @param url URL from which to read text.
+   * @param encoding Text encoding.
+   * @param schemaURI XML schema URI. Null if none.
+   * @throws IOException If an I/O error occurs.
+   */
+  protected void doLoadText(URL url, String encoding, String schemaURI)
+      throws JDOMException, IOException, URISyntaxException, org.xml.sax.SAXException {
+    SAXBuilder builder = new SAXBuilder(XMLReaders.NONVALIDATING);
 
-    public void loadText( URL url , String encoding )
-        throws Exception
-    {
-        try
-        {
-            doLoadText( url , encoding , null );
+    //  Load document text.
+
+    WhitespaceTrimmingBufferedReader bufferedReader =
+        new WhitespaceTrimmingBufferedReader(new UnicodeReader(url.openStream(), encoding));
+
+    document = builder.build(bufferedReader);
+
+    bufferedReader.close();
+
+    doLoadDocument(document, schemaURI, url.getPath());
+  }
+
+  /**
+   * Find child node name matching regular expression.
+   *
+   * @param parent Node whose child we want.
+   * @param namePat Regular expression for child name.
+   * @return The first child whose name matches the specified namePat, or null if none matches.
+   */
+  public Element findChild(Element parent, String namePat) {
+    Element result = null;
+
+    if (parent != null) {
+      List children = parent.getChildren();
+
+      for (int i = 0; i < children.size(); i++) {
+        Element child = (Element) children.get(i);
+
+        if (child.getName().matches(namePat)) {
+          result = child;
+          break;
         }
-        catch ( JDOMException e )
-        {
-        }
-        catch ( URISyntaxException e )
-        {
-        }
+      }
     }
 
-    /** Reads text from a URL using a specified XML schema.
-     *
-     *  @param  url                 URL from which to read text.
-     *  @param  encoding            Text encoding.
-     *  @param  xmlSchemaURI        String URI specifying XML schema.
-     *
-     *  @throws Exception           If an error occurs.
-     *
-     *  <p>
-     *  The schema and schema type should be ignored when the input
-     *  is not an XML file.
-     *  </p>
-     */
+    return result;
+  }
 
-    public void loadText
-    (
-        URL url ,
-        String encoding ,
-        String xmlSchemaURI
-    )
-        throws Exception
-    {
-        try
-        {
-            doLoadText( url , encoding , xmlSchemaURI );
-        }
-        catch ( JDOMException e )
-        {
-e.printStackTrace();
-        }
-        catch ( URISyntaxException e )
-        {
-e.printStackTrace();
-        }
+  /**
+   * Reads text from a URL into a string.
+   *
+   * @param url URL from which to read text.
+   * @param encoding Text encoding.
+   * @throws Exception If an error occurs.
+   */
+  public void loadText(URL url, String encoding) throws Exception {
+    try {
+      doLoadText(url, encoding, null);
+    } catch (JDOMException e) {
+    } catch (URISyntaxException e) {
+    }
+  }
+
+  /**
+   * Reads text from a URL using a specified XML schema.
+   *
+   * @param url URL from which to read text.
+   * @param encoding Text encoding.
+   * @param xmlSchemaURI String URI specifying XML schema.
+   * @throws Exception If an error occurs.
+   *     <p>The schema and schema type should be ignored when the input is not an XML file.
+   */
+  public void loadText(URL url, String encoding, String xmlSchemaURI) throws Exception {
+    try {
+      doLoadText(url, encoding, xmlSchemaURI);
+    } catch (JDOMException e) {
+      e.printStackTrace();
+    } catch (URISyntaxException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Reads text from a String.
+   *
+   * @param str String from which to read text.
+   * @throws IOException If an error occurs.
+   */
+  public void loadText(String str) throws Exception {
+    loadText(str, "");
+  }
+
+  /**
+   * Reads text from a string using a specified XML schema.
+   *
+   * @param str String from which to read text.
+   * @param xmlSchemaURI String URI specifying Xml schema.
+   * @throws Exception If an error occurs.
+   *     <p>The schema and schema type should be ignored when the input is not an XML file.
+   */
+  public void loadText(String str, String xmlSchemaURI) throws Exception {
+    SAXBuilder builder = new SAXBuilder(XMLReaders.NONVALIDATING);
+
+    //  Load document text.
+
+    WhitespaceTrimmingBufferedReader bufferedReader =
+        new WhitespaceTrimmingBufferedReader(new StringReader(str));
+
+    document = builder.build(bufferedReader);
+
+    bufferedReader.close();
+
+    doLoadDocument(document, xmlSchemaURI, DirUtils.getTemporaryFilesDirectory());
+  }
+
+  /**
+   * Returns number of text segments.
+   *
+   * @return Number of text segments.
+   */
+  public int getSegmentCount() {
+    return segmentNames.size();
+  }
+
+  /**
+   * Returns name of specified segment.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @return The name for the specified segment number, or null if the segment number is invalid.
+   */
+  public String getSegmentName(int segmentNumber) {
+    String result = null;
+
+    if ((segmentNumber >= 0) && (segmentNumber < segmentNames.size())) {
+      result = (String) segmentNames.get(segmentNumber);
     }
 
-    /** Reads text from a String.
-     *
-     *  @param  str             String from which to read text.
-     *
-     *  @throws IOException     If an error occurs.
-     */
+    return result;
+  }
 
-    public void loadText( String str )
-        throws Exception
-    {
-        loadText( str , "" );
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @return The text for for the specified segment number, or null if the segment number is
+   *     invalid. The returned text may be an empty string if the segment number is valid but the
+   *     segment contains no text.
+   */
+  public String getSegmentText(int segmentNumber) {
+    String result = null;
+
+    if ((segmentNumber >= 0) && (segmentNumber < segmentNames.size())) {
+      result = "";
+
+      try {
+        result = getSegment((String) segmentNames.get(segmentNumber));
+      } catch (Exception IOException) {
+      }
     }
 
-    /** Reads text from a string using a specified XML schema.
-     *
-     *  @param  str             String from which to read text.
-     *  @param  xmlSchemaURI    String URI specifying Xml schema.
-     *
-     *  @throws Exception       If an error occurs.
-     *
-     *  <p>
-     *  The schema and schema type should be ignored when the input
-     *  is not an XML file.
-     *  </p>
-     */
+    return result;
+  }
 
-    public void loadText
-    (
-        String str ,
-        String xmlSchemaURI
-    )
-        throws Exception
-    {
-        SAXBuilder builder  = new SAXBuilder( XMLReaders.NONVALIDATING );
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentName The segment name.
+   * @return The text for for the specified segment name, or null if the segment name is invalid.
+   *     The returned text may be an empty string if the segment name is valid but the segment
+   *     contains no text.
+   */
+  public String getSegmentText(String segmentName) {
+    String result = null;
 
-                                //  Load document text.
-
-        WhitespaceTrimmingBufferedReader bufferedReader =
-            new WhitespaceTrimmingBufferedReader
-            (
-                new StringReader( str )
-            );
-
-        document    = builder.build( bufferedReader );
-
-        bufferedReader.close();
-
-        doLoadDocument
-        (
-            document ,
-            xmlSchemaURI ,
-            DirUtils.getTemporaryFilesDirectory()
-        );
+    if ((segmentName != null) && (segmentMap.containsKey(segmentName))) {
+      result = getSegment(segmentName);
     }
 
-    /** Returns number of text segments.
-     *
-     *  @return     Number of text segments.
-     */
+    return result;
+  }
 
-    public int getSegmentCount()
-    {
-        return segmentNames.size();
+  /**
+   * Updates specified segment of loaded text.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @param segmentText The updated segment text.
+   */
+  public void setSegmentText(int segmentNumber, String segmentText) {
+    if ((segmentNumber >= 0) && (segmentNumber < segmentNames.size())) {
+      putSegment((String) segmentNames.get(segmentNumber), segmentText);
+    }
+  }
+
+  /**
+   * Updates specified segment of loaded text.
+   *
+   * @param segmentName The segment name.
+   * @param segmentText The updated segment text.
+   */
+  public void setSegmentText(String segmentName, String segmentText) {
+    if ((segmentName != null) && (segmentMap.containsKey(segmentName))) {
+      putSegment(segmentName, segmentText);
+    }
+  }
+
+  /**
+   * Updates specified segment of loaded text from file.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @param segmentTextFile The file containing the updated segment text.
+   */
+  public void setSegmentText(int segmentNumber, File segmentTextFile) {
+    try {
+      setSegmentText(segmentNumber, FileUtils.readTextFile(segmentTextFile, "utf-8"));
+    } catch (Exception e) {
+    }
+  }
+
+  /**
+   * Updates specified segment of loaded text from file.
+   *
+   * @param segmentName The segment name.
+   * @param segmentTextFile The file containing the updated segment text.
+   */
+  public void setSegmentText(String segmentName, File segmentTextFile) {
+    try {
+      setSegmentText(segmentName, FileUtils.readTextFile(segmentTextFile, "utf-8"));
+    } catch (Exception e) {
+    }
+  }
+
+  /**
+   * Get next text ID.
+   *
+   * @return The next text ID.
+   */
+  protected int getNextTextID() {
+    return ++textID;
+  }
+
+  /**
+   * Store children of a DOM element.
+   *
+   * @param element The DOM element to store.
+   * @param baseFileName The base file name for entry names generated from the DOM element.
+   * @param splitText True to split body text into segments.
+   */
+  protected void writeChildren(Element element, String baseFileName, boolean splitText) {
+    if (element == null) return;
+
+    NumberFormat formatter = NumberFormat.getInstance();
+
+    formatter.setGroupingUsed(false);
+    formatter.setMinimumIntegerDigits(5);
+
+    org.jdom2.output.Format format = org.jdom2.output.Format.getRawFormat();
+
+    XMLOutputter xmlOut = new XMLOutputter(format);
+
+    List textChildren = element.getChildren();
+
+    while (textChildren.size() > 0) {
+      Element child = (Element) textChildren.get(0);
+
+      int nextID = getNextTextID();
+
+      if (splitText && child.getName().equalsIgnoreCase("body")) {
+        writeChildren(child, baseFileName, splitText);
+      }
+
+      String segmentText = xmlOut.outputString(child);
+
+      if (fixSplitWords) {
+        segmentText =
+            XMLTextReplacer.performReplacements(segmentText, fixSplitWordsPatternReplacers);
+      }
+
+      putSegment(baseFileName + formatter.format(nextID), segmentText);
+
+      element.removeContent(child);
+    }
+  }
+
+  /**
+   * Get segment text.
+   *
+   * @param segmentName Segment name.
+   * @return Segment text.
+   */
+  protected String getSegment(String segmentName) {
+    String result = "";
+
+    if (segmentMap.containsKey(segmentName)) {
+      result = (String) segmentMap.get(segmentName);
     }
 
-    /** Returns name of specified segment.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *
-     *  @return                 The name for the specified
-     *                          segment number, or null if the
-     *                          segment number is invalid.
-     */
+    return result;
+  }
 
-    public String getSegmentName( int segmentNumber )
-    {
-        String result   = null;
+  /**
+   * Save segment text.
+   *
+   * @param segmentName Segment name.
+   * @param segmentText Segment text.
+   */
+  protected void putSegment(String segmentName, String segmentText) {
+    segmentMap.put(segmentName, segmentText.replaceAll("[\r\n]", " "));
+  }
 
-        if  (   ( segmentNumber >= 0 ) &&
-                ( segmentNumber < segmentNames.size() )
-            )
-        {
-            result  = (String)segmentNames.get( segmentNumber );
-        }
+  /**
+   * Enable gap element fixer.
+   *
+   * @param fixGaps true to fix gap tags.
+   */
+  public void enableGapFixer(boolean fixGaps) {
+    this.fixGaps = fixGaps;
+  }
 
-        return result;
-    }
+  /**
+   * Enable orig element fixer.
+   *
+   * @param fixOrigs true to fix orig tags.
+   */
+  public void enableOrigFixer(boolean fixOrigs) {
+    this.fixOrigs = fixOrigs;
+  }
 
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *
-     *  @return                 The text for for the specified
-     *                          segment number, or null if the
-     *                          segment number is invalid.  The
-     *                          returned text may be an empty string
-     *                          if the segment number is valid but
-     *                          the segment contains no text.
-     */
+  /**
+   * Enable split words fixer.
+   *
+   * @param fixSplitWords true to fix selected split words.
+   * @param patternReplacers Patterns for fixing split words.
+   */
+  public void enableSplitWordsFixer(boolean fixSplitWords, List<PatternReplacer> patternReplacers) {
+    this.fixSplitWords =
+        fixSplitWords && (patternReplacers != null) && (patternReplacers.size() > 0);
 
-    public String getSegmentText( int segmentNumber )
-    {
-        String result   = null;
+    this.fixSplitWordsPatternReplacers = patternReplacers;
+  }
 
-        if  (   ( segmentNumber >= 0 ) &&
-                ( segmentNumber < segmentNames.size() )
-            )
-        {
-            result  = "";
+  /**
+   * Does inputter use segment files?
+   *
+   * @return true if inputter uses segment files.
+   */
+  public boolean usesSegmentFiles() {
+    return storesSegmentFiles;
+  }
 
-            try
-            {
-                result  =
-                    getSegment
-                    (
-                        (String)segmentNames.get( segmentNumber )
-                    );
-            }
-            catch ( Exception IOException )
-            {
-            }
-        }
+  /** Close inputter. */
+  public void close() {
+    segmentMap.clear();
+    segmentNames.clear();
 
-        return result;
-    }
+    segmentMap = null;
+    segmentNames = null;
 
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentName     The segment name.
-     *
-     *  @return                 The text for for the specified
-     *                          segment name, or null if the
-     *                          segment name is invalid.  The
-     *                          returned text may be an empty string
-     *                          if the segment name is valid but
-     *                          the segment contains no text.
-     */
+    document = null;
 
-    public String getSegmentText( String segmentName )
-    {
-        String result   = null;
+    super.close();
+  }
 
-        if  (   ( segmentName != null ) &&
-                ( segmentMap.containsKey( segmentName ) ) )
-        {
-            result  = getSegment( segmentName );
-        }
+  /** Finalize, */
+  public void finalize() throws Throwable {
+    close();
 
-        return result;
-    }
-
-    /** Updates specified segment of loaded text.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *  @param  segmentText     The updated segment text.
-     */
-
-
-    public void setSegmentText( int segmentNumber , String segmentText )
-    {
-        if  (   ( segmentNumber >= 0 ) &&
-                ( segmentNumber < segmentNames.size() )
-            )
-        {
-            putSegment
-            (
-                (String)segmentNames.get( segmentNumber ) ,
-                segmentText
-            );
-        }
-    }
-
-    /** Updates specified segment of loaded text.
-     *
-     *  @param  segmentName     The segment name.
-     *  @param  segmentText     The updated segment text.
-     */
-
-    public void setSegmentText( String segmentName , String segmentText )
-    {
-        if  (   ( segmentName != null ) &&
-                ( segmentMap.containsKey( segmentName ) ) )
-        {
-            putSegment( segmentName , segmentText );
-        }
-    }
-
-    /** Updates specified segment of loaded text from file.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *  @param  segmentTextFile The file containing the updated segment text.
-     */
-
-    public void setSegmentText( int segmentNumber , File segmentTextFile )
-    {
-        try
-        {
-            setSegmentText
-            (
-                segmentNumber ,
-                FileUtils.readTextFile( segmentTextFile , "utf-8" )
-            );
-        }
-        catch ( Exception e )
-        {
-        }
-    }
-
-    /** Updates specified segment of loaded text from file.
-     *
-     *  @param  segmentName     The segment name.
-     *  @param  segmentTextFile The file containing the updated segment text.
-     */
-
-    public void setSegmentText( String segmentName , File segmentTextFile )
-    {
-        try
-        {
-            setSegmentText
-            (
-                segmentName ,
-                FileUtils.readTextFile( segmentTextFile , "utf-8" )
-            );
-        }
-        catch ( Exception e )
-        {
-        }
-    }
-
-    /** Get next text ID.
-     *
-     *  @return     The next text ID.
-     */
-
-    protected int getNextTextID()
-    {
-        return ++textID;
-    }
-
-    /** Store children of a DOM element.
-     *
-     *  @param  element         The DOM element to store.
-     *  @param  baseFileName    The base file name for entry names
-     *                              generated from the DOM element.
-     *  @param  splitText       True to split body text into segments.
-     */
-
-    protected void writeChildren
-    (
-        Element element ,
-        String baseFileName ,
-        boolean splitText
-    )
-    {
-        if ( element == null ) return;
-
-        NumberFormat formatter  = NumberFormat.getInstance();
-
-        formatter.setGroupingUsed( false );
-        formatter.setMinimumIntegerDigits( 5 );
-
-        org.jdom2.output.Format format  =
-            org.jdom2.output.Format.getRawFormat();
-
-        XMLOutputter xmlOut = new XMLOutputter( format );
-
-        List textChildren   = element.getChildren();
-
-        while ( textChildren.size() > 0 )
-        {
-            Element child   = (Element)textChildren.get( 0 );
-
-            int nextID      = getNextTextID();
-
-            if ( splitText && child.getName().equalsIgnoreCase( "body" ) )
-            {
-                writeChildren
-                (
-                    child ,
-                    baseFileName ,
-                    splitText
-                );
-            }
-
-            String segmentText  = xmlOut.outputString( child );
-
-            if ( fixSplitWords )
-            {
-                segmentText =
-                    XMLTextReplacer.performReplacements
-                    (
-                        segmentText ,
-                        fixSplitWordsPatternReplacers
-                    );
-            }
-
-            putSegment
-            (
-                baseFileName + formatter.format( nextID ) ,
-                segmentText
-            );
-
-            element.removeContent( child );
-        }
-    }
-
-    /** Get segment text.
-     *
-     *  @param  segmentName     Segment name.
-
-     *  @return                 Segment text.
-     */
-
-    protected String getSegment
-    (
-        String segmentName
-    )
-    {
-        String result   = "";
-
-        if ( segmentMap.containsKey( segmentName ) )
-        {
-            result  = (String)segmentMap.get( segmentName );
-        }
-
-        return result;
-    }
-
-    /** Save segment text.
-     *
-     *  @param  segmentName     Segment name.
-     *  @param  segmentText     Segment text.
-     */
-
-    protected void putSegment
-    (
-        String segmentName ,
-        String segmentText
-    )
-    {
-        segmentMap.put(
-            segmentName , segmentText.replaceAll( "[\r\n]" , " " ) );
-    }
-
-    /** Enable gap element fixer.
-     *
-     *  @param  fixGaps     true to fix gap tags.
-     */
-
-    public void enableGapFixer( boolean fixGaps )
-    {
-        this.fixGaps    = fixGaps;
-    }
-
-    /** Enable orig element fixer.
-     *
-     *  @param  fixOrigs            true to fix orig tags.
-     */
-
-    public void enableOrigFixer( boolean fixOrigs )
-    {
-        this.fixOrigs           = fixOrigs;
-    }
-
-    /** Enable split words fixer.
-     *
-     *  @param  fixSplitWords       true to fix selected split words.
-     *  @param  patternReplacers    Patterns for fixing split words.
-     */
-
-    public void enableSplitWordsFixer
-    (
-        boolean fixSplitWords ,
-        List<PatternReplacer> patternReplacers
-    )
-    {
-        this.fixSplitWords  =
-            fixSplitWords &&
-            ( patternReplacers != null ) &&
-            ( patternReplacers.size() > 0 );
-
-        this.fixSplitWordsPatternReplacers  = patternReplacers;
-    }
-
-    /** Does inputter use segment files?
-     *
-     *  @return     true if inputter uses segment files.
-     */
-
-    public boolean usesSegmentFiles()
-    {
-        return storesSegmentFiles;
-    }
-
-    /** Close inputter.
-     */
-
-    public void close()
-    {
-        segmentMap.clear();
-        segmentNames.clear();
-
-        segmentMap      = null;
-        segmentNames    = null;
-
-        document        = null;
-
-        super.close();
-    }
-
-    /** Finalize,
-     */
-
-    public void finalize()
-        throws Throwable
-    {
-        close();
-
-        super.finalize();
-    }
+    super.finalize();
+  }
 }
 
 /*
@@ -885,6 +632,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

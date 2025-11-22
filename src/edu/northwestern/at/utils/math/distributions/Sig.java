@@ -2,144 +2,116 @@ package edu.northwestern.at.utils.math.distributions;
 
 /*  Please see the license information at the end of this file. */
 
-/** Point probabilities and percentage points for statistical distributions.
+/**
+ * Point probabilities and percentage points for statistical distributions.
  *
- *  <p>
- *  This class provides "one stop shopping" for point probabilities
- *  percentage points for commonly used statistical distributions.
- *  These include the Beta, F, t, chi-square, and normal distributions.
- *  Both the forward (probability) and inverse (percentage point) functions
- *  are provided.  This class is actually just provides a shim to the
- *  methods in the individual classes for each distribution.
- *  </p>
+ * <p>This class provides "one stop shopping" for point probabilities percentage points for commonly
+ * used statistical distributions. These include the Beta, F, t, chi-square, and normal
+ * distributions. Both the forward (probability) and inverse (percentage point) functions are
+ * provided. This class is actually just provides a shim to the methods in the individual classes
+ * for each distribution.
  *
- *  <p>
- *  Point probability routines
- *  </p>
+ * <p>Point probability routines
  *
- *  <ul>
- *  <li>chisquare       -- significance of chi-square</li>
- *  <li>f               -- significance of F</li>
- *  <li>normal          -- significance of normal value</li>
- *  <li>t               -- significance of Student's t</li>
- *  </ul>
+ * <ul>
+ *   <li>chisquare -- significance of chi-square
+ *   <li>f -- significance of F
+ *   <li>normal -- significance of normal value
+ *   <li>t -- significance of Student's t
+ * </ul>
  *
- *  <p>
- *  Inverse distributions (percentage points)
- *  </p>
+ * <p>Inverse distributions (percentage points)
  *
- *  <ul>
- *  <li>chisquareInverse            -- inverse chi-square</li>
- *  <li>fInverse                    -- inverse F</li>
- *  <li>normalInverse               -- inverse normal</li>
- *  <li>tInverse                    -- inverse t</li>
- *  </ul>
+ * <ul>
+ *   <li>chisquareInverse -- inverse chi-square
+ *   <li>fInverse -- inverse F
+ *   <li>normalInverse -- inverse normal
+ *   <li>tInverse -- inverse t
+ * </ul>
  */
+public class Sig {
+  /*  --- Chisquare --- */
 
-public class Sig
-{
-    /*  --- Chisquare --- */
+  public static double chisquare(double chiSquare, double df) {
+    return ChiSquare.chisquare(chiSquare, df);
+  }
 
-    public static double chisquare( double chiSquare , double df )
-    {
-        return ChiSquare.chisquare( chiSquare , df );
-    }
+  public static double chisquare(double chiSquare, int df) {
+    return ChiSquare.chisquare(chiSquare, (double) df);
+  }
 
-    public static double chisquare( double chiSquare , int df )
-    {
-        return ChiSquare.chisquare( chiSquare , (double)df );
-    }
+  public static double chisquareInverse(double p, double df) {
+    return ChiSquare.chisquareInverse(p, df);
+  }
 
-    public static double chisquareInverse( double p , double df )
-    {
-        return ChiSquare.chisquareInverse( p , df );
-    }
+  public static double chisquareInverse(double p, int df) {
+    return ChiSquare.chisquareInverse(p, (double) df);
+  }
 
-    public static double chisquareInverse( double p , int df )
-    {
-        return ChiSquare.chisquareInverse( p , (double)df );
-    }
+  /*  --- Fisher's F --- */
 
-    /*  --- Fisher's F --- */
+  public static double f(double f, double dfn, double dfd) {
+    return FishersF.f(f, dfn, dfd);
+  }
 
-    public static double f( double f , double dfn , double dfd )
-    {
-        return FishersF.f( f , dfn , dfd  );
-    }
+  public static double f(double f, int dfn, int dfd) {
+    return FishersF.f(f, (double) dfn, (double) dfd);
+  }
 
-    public static double f( double f , int dfn , int dfd )
-    {
-        return FishersF.f( f , (double)dfn , (double)dfd  );
-    }
+  public static double fInverse(double p, double dfn, double dfd) {
+    return FishersF.fInverse(p, dfn, dfd);
+  }
 
-    public static double fInverse( double p , double dfn , double dfd )
-    {
-        return FishersF.fInverse( p , dfn , dfd );
-    }
+  public static double fInverse(double p, int dfn, int dfd) {
+    return FishersF.fInverse(p, (double) dfn, (double) dfd);
+  }
 
-    public static double fInverse( double p , int dfn , int dfd )
-    {
-        return FishersF.fInverse( p , (double)dfn , (double)dfd );
-    }
+  /*  --- Normal distribution --- */
 
-    /*  --- Normal distribution --- */
+  public static double normal(double z) {
+    return Normal.normal(z);
+  }
 
-    public static double normal( double z )
-    {
-        return Normal.normal( z );
-    }
+  public static double normalInverse(double p) {
+    return Normal.normalInverse(p);
+  }
 
-    public static double normalInverse( double p )
-    {
-        return Normal.normalInverse( p );
-    }
+  /*  --- Student's t --- */
 
-    /*  --- Student's t --- */
+  public static double t(double t, double df) {
+    return Studentst.t(t, df);
+  }
 
-    public static double t( double t , double df )
-    {
-        return Studentst.t( t , df );
-    }
+  public static double t(double t, int df) {
+    return Studentst.t(t, (double) df);
+  }
 
-    public static double t( double t , int df )
-    {
-        return Studentst.t( t , (double)df );
-    }
+  public static double tInverse(double p, double df) {
+    return Studentst.tInverse(p, df);
+  }
 
-    public static double tInverse( double p , double df )
-    {
-        return Studentst.tInverse( p , df );
-    }
+  public static double tInverse(double p, int df) {
+    return Studentst.tInverse(p, (double) df);
+  }
 
-    public static double tInverse( double p , int df )
-    {
-        return Studentst.tInverse( p , (double)df );
-    }
+  public static double sidak(double p, int n) {
+    double result = p;
 
-    public static double sidak( double p , int n )
-    {
-        double result   = p;
+    if (n > 1) result = 1.0D - Math.pow(1.0D - p, (1.0D / n));
 
-        if ( n > 1 ) result = 1.0D - Math.pow( 1.0D - p , ( 1.0D / n ) );
+    return result;
+  }
 
-        return result;
-    }
+  public static double bonferroni(double p, int n) {
+    double result = p;
 
-    public static double bonferroni( double p , int n )
-    {
-        double result   = p;
+    if (n > 1) result = result / (double) n;
 
-        if ( n > 1 ) result = result / (double)n;
+    return result;
+  }
 
-        return result;
-    }
-
-    /** Make class non-instantiable but inheritable.
-     */
-
-    protected Sig()
-    {
-    }
+  /** Make class non-instantiable but inheritable. */
+  protected Sig() {}
 }
 
 /*
@@ -182,5 +154,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

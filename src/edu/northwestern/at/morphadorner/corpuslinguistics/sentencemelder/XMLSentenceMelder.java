@@ -2,149 +2,106 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.sentencemelder;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import com.megginson.sax.*;
+import java.util.*;
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-/** XML Sentence melder
- */
+/** XML Sentence melder */
+public class XMLSentenceMelder extends SentenceMelder {
+  /** Single blank character. */
+  protected static final char[] oneBlankChar = new char[] {' '};
 
-public class XMLSentenceMelder extends SentenceMelder
-{
-    /** Single blank character. */
+  /** True to emit XML wrapper element for a blank. */
+  protected boolean emitXMLWrapperForBlank = true;
 
-    protected final static char[] oneBlankChar  = new char[]{ ' ' };
+  /** XML element to wrap a blank. */
+  protected String xmlBlankWrapper = "c";
 
-    /** True to emit XML wrapper element for a blank. */
+  /** Create XML sentence melder. */
+  public XMLSentenceMelder() {}
 
-    protected boolean emitXMLWrapperForBlank    = true;
+  /**
+   * Create sentence melder.
+   *
+   * @param xmlWriter XML output data writer.
+   */
+  public XMLSentenceMelder(XMLWriter xmlWriter) {
+    this.state.xmlWriter = xmlWriter;
+  }
 
-    /** XML element to wrap a blank. */
+  /**
+   * Set XML writer.
+   *
+   * @param xmlWriter XML output data writer.
+   */
+  public void seWriter(XMLWriter xmlWriter) {
+    this.state.xmlWriter = xmlWriter;
+  }
 
-    protected String xmlBlankWrapper            = "c";
+  /**
+   * Set XML wrapper flag for blanks.
+   *
+   * @param xmlBlankWrapper Wrap blank with specified XML element.
+   *     <p>If the specified wrapper is empty or null, blanks are not wrapped.
+   */
+  public void setEmitXMLWrapperForBlank(String xmlBlankWrapper) {
+    this.xmlBlankWrapper = xmlBlankWrapper;
+    this.emitXMLWrapperForBlank = (xmlBlankWrapper != null) && (xmlBlankWrapper.length() > 0);
+  }
 
-    /** Create XML sentence melder.
-     */
+  /**
+   * Set XML wrapper flag for blanks.
+   *
+   * @param emitXMLWrapperForBlank Wrap blank with given XML element.
+   *     <p>If the specified wrapper is empty or null, blanks are not wrapped.
+   */
+  public void setEmitXMLWrapperForBlank(boolean emitXMLWrapperForBlank) {
+    this.emitXMLWrapperForBlank = emitXMLWrapperForBlank;
+    this.xmlBlankWrapper = "c";
+  }
 
-    public XMLSentenceMelder()
-    {
+  /**
+   * Set URI for XML elements.
+   *
+   * @param elementURI URI for XML elements,
+   */
+  public void setURI(String elementURI) {
+    this.state.elementURI = elementURI;
+  }
+
+  /** Add blank to sentence. */
+  public void outputBlank() {
+    try {
+      if (emitXMLWrapperForBlank) {
+        state.xmlWriter.startElement(
+            state.elementURI, xmlBlankWrapper, xmlBlankWrapper, new AttributesImpl());
+      }
+
+      state.xmlWriter.characters(oneBlankChar, 0, 1);
+
+      if (emitXMLWrapperForBlank) {
+        state.xmlWriter.endElement(state.elementURI, xmlBlankWrapper, xmlBlankWrapper);
+      }
+    } catch (Exception e) {
     }
+  }
 
-    /** Create sentence melder.
-     *
-     *  @param  xmlWriter   XML output data writer.
-     */
+  /**
+   * Add word to sentence.
+   *
+   * @param word The word to add.
+   */
+  protected void outputWord(String word) {}
 
-    public XMLSentenceMelder( XMLWriter xmlWriter )
-    {
-        this.state.xmlWriter    = xmlWriter;
-    }
-
-    /** Set XML writer.
-     *
-     *  @param  xmlWriter   XML output data writer.
-     */
-
-    public void seWriter( XMLWriter xmlWriter )
-    {
-        this.state.xmlWriter    = xmlWriter;
-    }
-
-    /** Set XML wrapper flag for blanks.
-     *
-     *  @param  xmlBlankWrapper     Wrap blank with specified XML element.
-     *
-     *  <p>
-     *  If the specified wrapper is empty or null, blanks are not wrapped.
-     *  </p>
-     */
-
-    public void setEmitXMLWrapperForBlank( String xmlBlankWrapper )
-    {
-        this.xmlBlankWrapper        = xmlBlankWrapper;
-        this.emitXMLWrapperForBlank =
-            ( xmlBlankWrapper != null ) && ( xmlBlankWrapper.length() > 0 );
-    }
-
-    /** Set XML wrapper flag for blanks.
-     *
-     *  @param  emitXMLWrapperForBlank  Wrap blank with given XML element.
-     *
-     *  <p>
-     *  If the specified wrapper is empty or null, blanks are not wrapped.
-     *  </p>
-     */
-
-    public void setEmitXMLWrapperForBlank( boolean emitXMLWrapperForBlank )
-    {
-        this.emitXMLWrapperForBlank = emitXMLWrapperForBlank;
-        this.xmlBlankWrapper        = "c";
-    }
-
-    /** Set URI for XML elements.
-     *
-     *  @param  elementURI      URI for XML elements,
-     */
-
-    public void setURI( String elementURI )
-    {
-        this.state.elementURI   = elementURI;
-    }
-
-    /** Add blank to sentence.
-     */
-
-    public void outputBlank()
-    {
-        try
-        {
-            if ( emitXMLWrapperForBlank )
-            {
-                state.xmlWriter.startElement
-                (
-                    state.elementURI ,
-                    xmlBlankWrapper ,
-                    xmlBlankWrapper ,
-                    new AttributesImpl()
-                );
-            }
-
-            state.xmlWriter.characters( oneBlankChar , 0 , 1 );
-
-            if ( emitXMLWrapperForBlank )
-            {
-                state.xmlWriter.endElement
-                (
-                    state.elementURI ,
-                    xmlBlankWrapper ,
-                    xmlBlankWrapper
-                );
-            }
-        }
-        catch ( Exception e )
-        {
-        }
-    }
-
-    /** Add word to sentence.
-     *
-     *  @param  word    The word to add.
-     */
-
-    protected void outputWord( String word )
-    {
-    }
-
-    /** Finish sentence.
-     *
-     *  @return Returned sentence.
-     */
-
-    public String endSentence()
-    {
-        return "";
-    }
+  /**
+   * Finish sentence.
+   *
+   * @return Returned sentence.
+   */
+  public String endSentence() {
+    return "";
+  }
 }
 
 /*
@@ -187,6 +144,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

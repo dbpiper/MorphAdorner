@@ -5,26 +5,17 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector.conjugator;
 import edu.northwestern.at.morphadorner.corpuslinguistics.inflector.Person;
 import edu.northwestern.at.morphadorner.corpuslinguistics.inflector.VerbTense;
 
-/** Defines an interface for conjugating a verb..
- */
-
-public interface Conjugator
-{
-    /** Conjugate a verb from its lemma (infinitive), tense, and person.
-     *
-     *  @param  infinitive  The infinitive of the verb to inflect.
-     *  @param  tense       The verb tense to generate.
-     *  @param  person      The person (1st, 2nd, 3rd) to generate.
-     *
-     *  @return             The conjugated form of the verb.
-     */
-
-    public String conjugate
-    (
-        String infinitive ,
-        VerbTense tense ,
-        Person person
-    );
+/** Defines an interface for conjugating a verb.. */
+public interface Conjugator {
+  /**
+   * Conjugate a verb from its lemma (infinitive), tense, and person.
+   *
+   * @param infinitive The infinitive of the verb to inflect.
+   * @param tense The verb tense to generate.
+   * @param person The person (1st, 2nd, 3rd) to generate.
+   * @return The conjugated form of the verb.
+   */
+  public String conjugate(String infinitive, VerbTense tense, Person person);
 }
 
 /*
@@ -67,6 +58,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,173 +2,127 @@ package edu.northwestern.at.morphadorner.tools.taggertrainer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.util.*;
 
-import edu.northwestern.at.morphadorner.tools.taggertrainer.*;
-import edu.northwestern.at.utils.*;
-
-/** Tag confusion matrix entry.
+/**
+ * Tag confusion matrix entry.
  *
- *  <p>
- *  A TagError entry contains a (correct tag, incorrect tag, error count)
- *  tuple.  The error count is the number of times a part of speech
- *  tagger generated "incorrect tag" instead of "correct tag" in
- *  a tagged corpus.  A list of TagError entries can be used by a
- *  transformation based learning program to generate contextual rules
- *  to correct the tag errors.
- *  </p>
+ * <p>A TagError entry contains a (correct tag, incorrect tag, error count) tuple. The error count
+ * is the number of times a part of speech tagger generated "incorrect tag" instead of "correct tag"
+ * in a tagged corpus. A list of TagError entries can be used by a transformation based learning
+ * program to generate contextual rules to correct the tag errors.
  */
+public class TagError implements Comparable {
+  /** Correct tag. */
+  public final String correctTag;
 
-public class TagError implements Comparable
-{
-    /** Correct tag. */
+  /** Incorrect tag. */
+  public final String incorrectTag;
 
-    public final String correctTag;
+  /** List of word positions where this error occurs. */
+  public final List<Integer> errorPositions;
 
-    /** Incorrect tag. */
+  /** Number of times incorrect tag appears instead of correct tag. */
+  public final int incorrectTagCount;
 
-    public final String incorrectTag;
+  /** The hash code. */
+  protected final int hashCode;
 
-    /** List of word positions where this error occurs.
-     */
+  /**
+   * Create a tag error entry.
+   *
+   * @param correctTag The correct part of speech tag.
+   * @param incorrectTag The incorrect part of speech tag.
+   * @param errorPositions The list of tag error positions.
+   */
+  public TagError(String correctTag, String incorrectTag, List<Integer> errorPositions) {
+    this.correctTag = correctTag;
+    this.incorrectTag = incorrectTag;
+    this.errorPositions = errorPositions;
+    this.incorrectTagCount = this.errorPositions.size();
 
-    public final List<Integer> errorPositions;
+    //  Compute hash code.
 
-    /** Number of times incorrect tag appears instead of correct tag. */
+    this.hashCode =
+        this.correctTag.hashCode()
+            ^ this.incorrectTag.hashCode()
+            ^ (new Integer(incorrectTagCount)).hashCode();
+  }
 
-    public final int incorrectTagCount;
+  /**
+   * Check if another object is equal to this one.
+   *
+   * @param object Other object to test for equality.
+   * @return true if other object is equal to this one.
+   */
+  public boolean equals(Object object) {
+    boolean result = false;
 
-    /** The hash code. */
+    if ((object != null) && (object instanceof TagError)) {
+      TagError otherTagError = (TagError) object;
 
-    protected final int hashCode;
-
-    /** Create a tag error entry.
-     *
-     *  @param  correctTag          The correct part of speech tag.
-     *  @param  incorrectTag        The incorrect part of speech tag.
-     *  @param  errorPositions      The list of tag error positions.
-     */
-
-    public TagError
-    (
-        String correctTag ,
-        String incorrectTag ,
-        List<Integer> errorPositions
-    )
-    {
-        this.correctTag         = correctTag;
-        this.incorrectTag       = incorrectTag;
-        this.errorPositions     = errorPositions;
-        this.incorrectTagCount  = this.errorPositions.size();
-
-                                //  Compute hash code.
-
-        this.hashCode           =
-            this.correctTag.hashCode() ^
-            this.incorrectTag.hashCode() ^
-            (new Integer( incorrectTagCount )).hashCode();
+      result =
+          (correctTag.equals(otherTagError.correctTag))
+              && (incorrectTag.equals(otherTagError.incorrectTag))
+              && (incorrectTagCount == otherTagError.incorrectTagCount);
     }
 
-    /** Check if another object is equal to this one.
-     *
-     *  @param  object  Other object to test for equality.
-     *
-     *  @return         true if other object is equal to this one.
-     */
+    return result;
+  }
 
-    public boolean equals( Object object )
-    {
-        boolean result  = false;
+  /**
+   * Compare this object with another.
+   *
+   * @param object The other object.
+   * @return < 0 if the other object is less than this one, = 0 if the two objects are equal, > 0 if
+   *     the other object is greater than this one.
+   *     <p>We use compareTo on the array entries in the key. This may not give the desired result
+   *     if the array entries are themselves arrays.
+   */
+  public int compareTo(Object object) {
+    int result = 0;
 
-        if ( ( object != null ) && ( object instanceof TagError ) )
-        {
-            TagError otherTagError  = (TagError)object;
+    if ((object == null) || !(object instanceof TagError)) {
+      result = Integer.MIN_VALUE;
+    } else {
+      TagError otherTagError = (TagError) object;
 
-            result  =
-                ( correctTag.equals( otherTagError.correctTag ) ) &&
-                ( incorrectTag.equals( otherTagError.incorrectTag ) ) &&
-                ( incorrectTagCount == otherTagError.incorrectTagCount );
-        }
+      if (incorrectTagCount > otherTagError.incorrectTagCount) {
+        result = -1;
+      } else if (incorrectTagCount < otherTagError.incorrectTagCount) {
+        result = 1;
+      }
 
-        return result;
+      if (result == 0) {
+        result = Compare.compare(incorrectTag, otherTagError.incorrectTag);
+      }
+
+      if (result == 0) {
+        result = Compare.compare(correctTag, otherTagError.correctTag);
+      }
     }
 
-    /** Compare this object with another.
-     *
-     *  @param  object  The other object.
-     *
-     *  @return         < 0 if the other object is less than this one,
-     *                  = 0 if the two objects are equal,
-     *                  > 0 if the other object is greater than this one.
-     *
-     *  <p>
-     *  We use compareTo on the array entries in the key.
-     *  This may not give the desired result if the array entries
-     *  are themselves arrays.
-     *  </p>
-     */
+    return result;
+  }
 
-    public int compareTo( Object object )
-    {
-        int result  = 0;
+  /**
+   * Get the hash code of the keys.
+   *
+   * @return The hash code.
+   */
+  public int hashCode() {
+    return hashCode;
+  }
 
-        if ( ( object == null ) ||
-            !( object instanceof TagError ) )
-        {
-            result  = Integer.MIN_VALUE;
-        }
-        else
-        {
-            TagError otherTagError  = (TagError)object;
-
-            if ( incorrectTagCount > otherTagError.incorrectTagCount )
-            {
-                result  = -1;
-            }
-            else if ( incorrectTagCount < otherTagError.incorrectTagCount )
-            {
-                result  = 1;
-            }
-
-            if ( result == 0 )
-            {
-                result  =
-                    Compare.compare(
-                        incorrectTag , otherTagError.incorrectTag );
-            }
-
-            if ( result == 0 )
-            {
-                result  =
-                    Compare.compare(
-                        correctTag , otherTagError.correctTag );
-            }
-        }
-
-        return result;
-    }
-
-    /** Get the hash code of the keys.
-     *
-     *  @return     The hash code.
-     */
-
-    public int hashCode()
-    {
-        return hashCode;
-    }
-
-    /** Return a string representation of this object.
-     *
-     *  @return     A string representation of this object.
-     */
-
-    public String toString()
-    {
-        return
-            incorrectTagCount + " " +
-            incorrectTag + " should be " + correctTag;
-    }
+  /**
+   * Return a string representation of this object.
+   *
+   * @return A string representation of this object.
+   */
+  public String toString() {
+    return incorrectTagCount + " " + incorrectTag + " should be " + correctTag;
+  }
 }
 
 /*
@@ -211,6 +165,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

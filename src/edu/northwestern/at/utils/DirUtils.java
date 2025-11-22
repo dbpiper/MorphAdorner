@@ -5,158 +5,120 @@ package edu.northwestern.at.utils;
 import java.io.*;
 import java.util.*;
 
-/** Directory utilities.
+/**
+ * Directory utilities.
  *
- *  <p>
- *  This static class provides various utility methods for manipulating
- *  directories.
- *  </p>
+ * <p>This static class provides various utility methods for manipulating directories.
  */
+public class DirUtils {
+  /** Maximum number of tries to create a temporary directory. */
+  protected static int MAX_DIR_CREATE_TRIES = 10000;
 
-public class DirUtils
-{
-    /** Maximum number of tries to create a temporary directory. */
+  /**
+   * Get temporary files directory.
+   *
+   * @return Temporary files directory.
+   */
+  public static String getTemporaryFilesDirectory() {
+    return System.getProperty("java.io.tmpdir");
+  }
 
-    protected static int MAX_DIR_CREATE_TRIES   = 10000;
+  /**
+   * Create a temporary directory.
+   *
+   * @param baseName Base name for generating temporory name.
+   * @return Temporary directory.
+   * @throws IllegalStateException If temporary directory cannot be created.
+   */
+  public static File createTemporaryDirectory(String baseName) throws IllegalStateException {
+    //  Get system temporary files directory.
 
-    /** Get temporary files directory.
-     *
-     *  @return     Temporary files directory.
-     */
+    File baseDir = new File(System.getProperty("java.io.tmpdir"));
 
-    public static String getTemporaryFilesDirectory()
-    {
-        return System.getProperty( "java.io.tmpdir" );
+    //  Add current time to given base name.
+
+    if (baseName == null) {
+      baseName = "";
     }
 
-    /** Create a temporary directory.
-     *
-     *  @param  baseName    Base name for generating temporory name.
-     *
-     *  @return             Temporary directory.
-     *
-     *  @throws             IllegalStateException
-     *                          If temporary directory cannot be created.
-     */
+    baseName = baseName + System.currentTimeMillis() + "-";
 
-    public static File createTemporaryDirectory( String baseName )
-        throws IllegalStateException
-    {
-                                //  Get system temporary files directory.
+    //  Try to create directory.
+    //  Add increment to end of file name
+    //  and try again if the directory
+    //  already exists.
 
-        File baseDir    =
-            new File( System.getProperty( "java.io.tmpdir" ) );
+    for (int i = 0; i < MAX_DIR_CREATE_TRIES; i++) {
+      File tempDir = new File(baseDir, baseName + i);
 
-                                //  Add current time to given base name.
+      if (tempDir.mkdir()) {
+        return tempDir;
+      }
+    }
+    //  Throw exception if directory
+    //  could not be created.
 
-        if ( baseName == null )
-        {
-            baseName    = "";
+    throw new IllegalStateException("Could not create temporary directory.");
+  }
+
+  /**
+   * Delete a directory.
+   *
+   * @param directory Directory to delete
+   * @return true if directory deleted, false otherwise.
+   */
+  public static boolean deleteDirectory(File directory) {
+    //  Assume deletion works.
+
+    boolean result = true;
+
+    //  If directory exists, try to delete
+    //  its contents.
+
+    if ((directory != null) && directory.exists() && directory.isDirectory()) {
+      emptyOutDirectory(directory);
+
+      //  Remove top level directory.
+
+      result = directory.delete();
+    }
+
+    return result;
+  }
+
+  /**
+   * Delete a directory.
+   *
+   * @param directory Directory to delete
+   * @return true if directory deleted, false otherwise.
+   */
+  public static boolean deleteDirectory(String directory) {
+    return deleteDirectory(new File(directory));
+  }
+
+  /**
+   * Empty out a directory.
+   *
+   * @param directory Directory to empty.
+   */
+  protected static void emptyOutDirectory(File directory) {
+    if ((directory != null) && directory.exists() && directory.isDirectory()) {
+      File[] files = directory.listFiles();
+
+      for (int i = 0; i < files.length; i++) {
+        File file = files[i];
+
+        if (file.isFile()) {
+          file.delete();
+        } else {
+          emptyOutDirectory(file);
         }
-
-        baseName    = baseName + System.currentTimeMillis() + "-";
-
-                                //  Try to create directory.
-                                //  Add increment to end of file name
-                                //  and try again if the directory
-                                //  already exists.
-
-        for ( int i = 0 ; i < MAX_DIR_CREATE_TRIES ; i++ )
-        {
-            File tempDir    = new File( baseDir , baseName + i );
-
-            if ( tempDir.mkdir() )
-            {
-                return tempDir;
-            }
-        }
-                                //  Throw exception if directory
-                                //  could not be created.
-
-        throw new IllegalStateException
-        (
-            "Could not create temporary directory."
-        );
+      }
     }
+  }
 
-    /** Delete a directory.
-     *
-     *  @param  directory   Directory to delete
-     *
-     *  @return     true if directory deleted, false otherwise.
-     */
-
-    public static boolean deleteDirectory( File directory )
-    {
-                                //  Assume deletion works.
-
-        boolean result  = true;
-
-                                //  If directory exists, try to delete
-                                //  its contents.
-
-        if  (   ( directory != null ) &&
-                directory.exists() &&
-                directory.isDirectory()
-            )
-        {
-            emptyOutDirectory( directory );
-
-                                //  Remove top level directory.
-
-            result  = directory.delete();
-        }
-
-        return result;
-    }
-
-    /** Delete a directory.
-     *
-     *  @param  directory   Directory to delete
-     *
-     *  @return     true if directory deleted, false otherwise.
-     */
-
-    public static boolean deleteDirectory( String directory )
-    {
-        return deleteDirectory( new File( directory ) );
-    }
-
-    /** Empty out a directory.
-     *
-     *  @param  directory   Directory to empty.
-     */
-
-    protected static void emptyOutDirectory( File directory )
-    {
-        if ( ( directory != null ) &&
-            directory.exists() &&
-            directory.isDirectory()
-        )
-        {
-            File[] files    = directory.listFiles();
-
-            for ( int i = 0 ; i < files.length ; i++ )
-            {
-                File file   = files[ i ];
-
-                if ( file.isFile() )
-                {
-                    file.delete();
-                }
-                else
-                {
-                    emptyOutDirectory( file );
-                }
-            }
-        }
-    }
-
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected DirUtils()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected DirUtils() {}
 }
 
 /*
@@ -199,6 +161,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

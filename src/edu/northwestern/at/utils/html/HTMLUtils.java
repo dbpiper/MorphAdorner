@@ -4,116 +4,88 @@ import edu.northwestern.at.utils.StringUtils;
 
 /*  Please see the license information at the end of this file. */
 
-/** HTML utilities.
+/**
+ * HTML utilities.
  *
- *  <p>
- *  This static class provides various utility methods for manipulating
- *  html and xml.
- *  </p>
+ * <p>This static class provides various utility methods for manipulating html and xml.
  */
+public class HTMLUtils {
+  /**
+   * Simple-minded test for determining if string is HTML/XML tagged .
+   *
+   * @param text The text to check.
+   * @return True if text appears to be tagged XML/HTML.
+   */
+  public static boolean isHTMLTaggedText(String text) {
+    boolean result = false;
 
-public class HTMLUtils
-{
-    /** Simple-minded test for determining if string is HTML/XML tagged .
-     *
-     *  @param  text    The text to check.
-     *
-     *  @return         True if text appears to be tagged XML/HTML.
-     */
-
-    public static boolean isHTMLTaggedText( String text )
-    {
-        boolean result  = false;
-
-        if ( text != null )
-        {
-            result  =
-                text.startsWith( "<?xml " ) ||
-                (
-                    (   ( text.indexOf( "<html" ) != -1 ) ||
-                        ( text.indexOf( "<HTML" ) != -1 ) ) &&
-                    (   ( text.indexOf( "</html" ) != -1 ) ||
-                        ( text.indexOf( "</HTML" ) != -1 ) )
-                );
-        }
-
-        return result;
+    if (text != null) {
+      result =
+          text.startsWith("<?xml ")
+              || (((text.indexOf("<html") != -1) || (text.indexOf("<HTML") != -1))
+                  && ((text.indexOf("</html") != -1) || (text.indexOf("</HTML") != -1)));
     }
 
-    /** Simple-minded tag stripper for HTML/XML .
-     *
-     *  @param  taggedText  Text from which to strip tags.
-     *
-     *  @return             Text with tagged text removed.
-     */
+    return result;
+  }
 
-    public static String stripHTMLTags( String taggedText )
-    {
-        if ( taggedText == null ) return null;
+  /**
+   * Simple-minded tag stripper for HTML/XML .
+   *
+   * @param taggedText Text from which to strip tags.
+   * @return Text with tagged text removed.
+   */
+  public static String stripHTMLTags(String taggedText) {
+    if (taggedText == null) return null;
 
-        taggedText  =
-            taggedText.replaceAll( "(<script.+?</script>)+" , "" );
+    taggedText = taggedText.replaceAll("(<script.+?</script>)+", "");
 
-        taggedText  =
-            taggedText.replaceAll( "(<style.+?</style>)+" , "" );
+    taggedText = taggedText.replaceAll("(<style.+?</style>)+", "");
 
-        taggedText  =
-            taggedText.replaceAll( "(<applet.+?</applet>)+" , "" );
+    taggedText = taggedText.replaceAll("(<applet.+?</applet>)+", "");
 
-        taggedText  =
-            taggedText.replaceAll( "(<object.+?</object>)+" , "" );
+    taggedText = taggedText.replaceAll("(<object.+?</object>)+", "");
 
-        StringBuffer strippedText   = new StringBuffer( "" );
+    StringBuffer strippedText = new StringBuffer("");
 
-        int tagCount                = 0;
+    int tagCount = 0;
 
-        for ( int i = 0 ; i < taggedText.length() ; i++ )
-        {
-            if ( taggedText.charAt( i ) == '<' )
-            {
-                tagCount++;
-            }
-            else if ( taggedText.charAt( i ) == '>' )
-            {
-                tagCount--;
+    for (int i = 0; i < taggedText.length(); i++) {
+      if (taggedText.charAt(i) == '<') {
+        tagCount++;
+      } else if (taggedText.charAt(i) == '>') {
+        tagCount--;
 
-                if ( tagCount < 0 ) tagCount = 0;
-            }
-            else if ( tagCount == 0 )
-                strippedText.append( taggedText.charAt( i ) );
-        }
-
-        return unescapeHTML( strippedText.toString() );
+        if (tagCount < 0) tagCount = 0;
+      } else if (tagCount == 0) strippedText.append(taggedText.charAt(i));
     }
 
-    public static String escapeHTML( String s )
-    {
-        s   = StringUtils.replaceAll( s , "&" , "&amp;" );
-        s   = StringUtils.replaceAll( s , "<" , "&lt;" );
-        s   = StringUtils.replaceAll( s , ">" , "&gt;" );
-        s   = StringUtils.replaceAll( s , "\"" , "&quot;" );
-        s   = StringUtils.replaceAll( s , "'" , "&apos;" );
+    return unescapeHTML(strippedText.toString());
+  }
 
-        return s;
-    }
+  public static String escapeHTML(String s) {
+    s = StringUtils.replaceAll(s, "&", "&amp;");
+    s = StringUtils.replaceAll(s, "<", "&lt;");
+    s = StringUtils.replaceAll(s, ">", "&gt;");
+    s = StringUtils.replaceAll(s, "\"", "&quot;");
+    s = StringUtils.replaceAll(s, "'", "&apos;");
 
-    public static String unescapeHTML( String s )
-    {
-        s   = StringUtils.replaceAll( s , "&amp;" , "&" );
-        s   = StringUtils.replaceAll( s , "&lt;" , "<" );
-        s   = StringUtils.replaceAll( s , "&gt;" , ">" );
-        s   = StringUtils.replaceAll( s , "&quot;" , "\"" );
-        s   = StringUtils.replaceAll( s , "&apos;" , "'" );
-        s   = StringUtils.replaceAll( s , "&nbsp;" , " " );
+    return s;
+  }
 
-        return s;
-    }
+  public static String unescapeHTML(String s) {
+    s = StringUtils.replaceAll(s, "&amp;", "&");
+    s = StringUtils.replaceAll(s, "&lt;", "<");
+    s = StringUtils.replaceAll(s, "&gt;", ">");
+    s = StringUtils.replaceAll(s, "&quot;", "\"");
+    s = StringUtils.replaceAll(s, "&apos;", "'");
+    s = StringUtils.replaceAll(s, "&nbsp;", " ");
 
-    /** Don't allow instantiation, do allow overrides. */
+    return s;
+  }
 
-    protected HTMLUtils()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected HTMLUtils() {}
 }
 
 /*
@@ -156,6 +128,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

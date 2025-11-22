@@ -2,36 +2,26 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-/** Factory for creating a HashMap3D.
- */
+/** Factory for creating a HashMap3D. */
+public class Map3DFactory {
+  /** Create a new HashMap3D. */
+  public static <R extends Comparable, C extends Comparable, S extends Comparable, V>
+      Map3D<R, C, S, V> createNewMap3D() {
+    return new HashMap3D<R, C, S, V>();
+  }
 
-public class Map3DFactory
-{
-    /** Create a new HashMap3D.
-     */
+  /**
+   * Create a new HashMap3D.
+   *
+   * @param capacity Initial capacity.
+   */
+  public static <R extends Comparable, C extends Comparable, S extends Comparable, V>
+      Map3D<R, C, S, V> createNewMap3D(int capacity) {
+    return new HashMap3D<R, C, S, V>(capacity);
+  }
 
-    public static<R extends Comparable, C extends Comparable,
-        S extends Comparable, V> Map3D<R, C, S, V> createNewMap3D()
-    {
-        return new HashMap3D<R, C, S, V>();
-    }
-
-    /** Create a new HashMap3D.
-     *
-     *  @param  capacity    Initial capacity.
-     */
-
-    public static<R extends Comparable, C extends Comparable,
-        S extends Comparable, V> Map3D<R, C, S, V> createNewMap3D( int capacity )
-    {
-        return new HashMap3D<R, C, S, V>( capacity );
-    }
-
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected Map3DFactory()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected Map3DFactory() {}
 }
 
 /*
@@ -74,6 +64,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

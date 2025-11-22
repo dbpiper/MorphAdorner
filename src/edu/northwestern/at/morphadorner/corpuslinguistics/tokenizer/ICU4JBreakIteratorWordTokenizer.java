@@ -2,304 +2,232 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-
-import java.util.*;
 import com.ibm.icu.text.BreakIterator;
 import com.ibm.icu.text.RuleBasedBreakIterator;
-
 import edu.northwestern.at.morphadorner.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.abbreviations.*;
 import edu.northwestern.at.utils.*;
+import java.io.*;
+import java.util.*;
 
 /** Word tokenizer which uses ICU library for tokenization. */
+public class ICU4JBreakIteratorWordTokenizer extends AbstractWordTokenizer
+    implements WordTokenizer, CanTokenizeWhitespace, CanSplitAroundPeriods {
+  /** Locale. */
+  protected Locale locale = Locale.US;
 
-public class ICU4JBreakIteratorWordTokenizer
-    extends AbstractWordTokenizer
-    implements WordTokenizer, CanTokenizeWhitespace, CanSplitAroundPeriods
-{
-    /** Locale. */
+  /** Store whitespace tokens. */
+  protected boolean storeWhitespaceTokens = false;
 
-    protected Locale locale = Locale.US;
+  /** Merge whitespace tokens. */
+  protected boolean mergeWhitespaceTokens = false;
 
-    /** Store whitespace tokens. */
+  /** Check for potential splitting of tokens around periods. */
+  protected boolean splitAroundPeriods = true;
 
-    protected boolean storeWhitespaceTokens = false;
+  /** The word based break iterator. */
+  protected BreakIterator wordIterator = null;
 
-    /** Merge whitespace tokens. */
+  /** Word break rules template file. */
+  protected String wordBreakRulesFileName = "resources/wordbreakrules.txt";
 
-    protected boolean mergeWhitespaceTokens = false;
+  /** Create a word tokenizer that uses the ICU4J word break iterator. */
+  public ICU4JBreakIteratorWordTokenizer() {
+    super();
 
-    /** Check for potential splitting of tokens around periods. */
+    createWordIterator();
+  }
 
-    protected boolean splitAroundPeriods    = true;
+  /**
+   * Create a word tokenizer that uses the ICU4J word break iterator.
+   *
+   * @param locale Locale to use for tokenization.
+   */
+  public ICU4JBreakIteratorWordTokenizer(Locale locale) {
+    super();
 
-    /** The word based break iterator. */
+    this.locale = locale;
 
-    protected BreakIterator wordIterator = null;
+    createWordIterator();
+  }
 
-    /** Word break rules template file. */
+  /** Get store whitespace tokens. */
+  public boolean getStoreWhitespaceTokens() {
+    return storeWhitespaceTokens;
+  }
 
-    protected String wordBreakRulesFileName = "resources/wordbreakrules.txt";
+  /** Set store whitespace tokens. */
+  public void setStoreWhitespaceTokens(boolean storeWhitespaceTokens) {
+    this.storeWhitespaceTokens = storeWhitespaceTokens;
+  }
 
-    /** Create a word tokenizer that uses the ICU4J word break iterator.
-     */
+  /** Get merge whitespace tokens. */
+  public boolean getMergeWhitespaceTokens() {
+    return mergeWhitespaceTokens;
+  }
 
-    public ICU4JBreakIteratorWordTokenizer()
-    {
-        super();
+  /** Set merge whitespace tokens. */
+  public void setMergeWhitespaceTokens(boolean mergeWhitespaceTokens) {
+    this.mergeWhitespaceTokens = mergeWhitespaceTokens;
+  }
 
-        createWordIterator();
-    }
+  /** Get splitting around periods. */
+  public boolean getSplitAroundPeriods() {
+    return splitAroundPeriods;
+  }
 
-    /** Create a word tokenizer that uses the ICU4J word break iterator.
-     *
-     *  @param  locale  Locale to use for tokenization.
-     */
+  /** Set splitting around periods. */
+  public void setSplitAroundPeriods(boolean splitAroundPeriods) {
+    this.splitAroundPeriods = splitAroundPeriods;
+  }
 
-    public ICU4JBreakIteratorWordTokenizer( Locale locale )
-    {
-        super();
+  /** Create word based break iterator. */
+  protected void createWordIterator() {
+    //  Create noop pretokenizer.
 
-        this.locale = locale;
+    preTokenizer = new NoopPreTokenizer();
 
-        createWordIterator();
-    }
+    //  Create a word-based break iterator.
 
-    /** Get store whitespace tokens. */
+    String abbrevsPattern = Abbreviations.createAbbreviationsPattern(null);
 
-    public boolean getStoreWhitespaceTokens()
-    {
-        return storeWhitespaceTokens;
-    }
+    Reader reader = null;
 
-    /** Set store whitespace tokens. */
+    try {
+      reader =
+          new UnicodeReader(
+              ICU4JBreakIteratorWordTokenizer.class.getResourceAsStream(wordBreakRulesFileName),
+              "utf-8");
 
-    public void setStoreWhitespaceTokens( boolean storeWhitespaceTokens )
-    {
-        this.storeWhitespaceTokens  = storeWhitespaceTokens;
-    }
+      String wordBreakRules = FileUtils.readTextFile(reader);
 
-    /** Get merge whitespace tokens. */
+      reader.close();
 
-    public boolean getMergeWhitespaceTokens()
-    {
-        return mergeWhitespaceTokens;
-    }
+      wordBreakRules = StringUtils.replaceAll(wordBreakRules, "%abbreviations%", abbrevsPattern);
 
-    /** Set merge whitespace tokens. */
-
-    public void setMergeWhitespaceTokens( boolean mergeWhitespaceTokens )
-    {
-        this.mergeWhitespaceTokens  = mergeWhitespaceTokens;
-    }
-
-    /** Get splitting around periods. */
-
-    public boolean getSplitAroundPeriods()
-    {
-        return splitAroundPeriods;
-    }
-
-    /** Set splitting around periods. */
-
-    public void setSplitAroundPeriods( boolean splitAroundPeriods )
-    {
-        this.splitAroundPeriods = splitAroundPeriods;
-    }
-
-    /** Create word based break iterator.
-     */
-
-    protected void createWordIterator()
-    {
-                                //  Create noop pretokenizer.
-
-        preTokenizer    = new NoopPreTokenizer();
-
-                                //  Create a word-based break iterator.
-
-        String abbrevsPattern   =
-            Abbreviations.createAbbreviationsPattern( null );
-
-        Reader reader   = null;
-
-        try
-        {
-            reader  =
-                new UnicodeReader
-                (
-                    ICU4JBreakIteratorWordTokenizer.class.getResourceAsStream
-                    (
-                        wordBreakRulesFileName
-                    ),
-                    "utf-8"
-                );
-
-            String wordBreakRules   = FileUtils.readTextFile( reader );
-
-            reader.close();
-
-            wordBreakRules  =
-                StringUtils.replaceAll
-                (
-                    wordBreakRules ,
-                    "%abbreviations%" ,
-                    abbrevsPattern
-                );
-
-            wordIterator    = new RuleBasedBreakIterator( wordBreakRules );
+      wordIterator = new RuleBasedBreakIterator(wordBreakRules);
+    } catch (Exception e) {
+      wordIterator = BreakIterator.getWordInstance(locale);
+    } finally {
+      try {
+        if (reader != null) {
+          reader.close();
         }
-        catch ( Exception e )
-        {
-            wordIterator = BreakIterator.getWordInstance( locale );
-        }
-        finally
-        {
-            try
-            {
-                if ( reader != null )
-                {
-                    reader.close();
-                }
-            }
-            catch ( Exception e2 )
-            {
-            }
-        }
+      } catch (Exception e2) {
+      }
     }
+  }
 
-    /** Break text into word tokens.
-     *
-     *  @param  text            Text to break into word tokens.
-     *
-     *  @return                 Input text broken into list of tokens.
-     */
+  /**
+   * Break text into word tokens.
+   *
+   * @param text Text to break into word tokens.
+   * @return Input text broken into list of tokens.
+   */
+  public List<String> extractWords(String text) {
+    //  Create list to hold extracted tokens.
 
-     public List<String> extractWords( String text )
-     {
-                                //  Create list to hold extracted tokens.
+    List<String> result = ListFactory.createNewList();
 
-        List<String> result = ListFactory.createNewList();
+    //  Set the text to tokenize into the
+    //  break iterator.
 
-                                //  Set the text to tokenize into the
-                                //  break iterator.
+    String fixedText = preTokenizer.pretokenize(text);
 
-        String fixedText    = preTokenizer.pretokenize( text );
+    wordIterator.setText(fixedText);
 
-        wordIterator.setText( fixedText );
+    //  Find the start and end of the
+    //  first token.
 
-                                //  Find the start and end of the
-                                //  first token.
+    int start = wordIterator.first();
+    int end = wordIterator.next();
 
-        int start   = wordIterator.first();
-        int end     = wordIterator.next();
+    //  While there are tokens left to
+    //  extract ...
 
-                                //  While there are tokens left to
-                                //  extract ...
+    while (end != BreakIterator.DONE) {
+      //  Get text for next token.
 
-        while ( end != BreakIterator.DONE )
-        {
-                                //  Get text for next token.
+      String token = fixedText.substring(start, end);
 
-            String token    = fixedText.substring( start , end );
+      //  Check if token is whitespace.
 
-                                //  Check if token is whitespace.
+      if (Character.isWhitespace(token.charAt(0))) {
+        //  Check if we're storing whitespace.
 
-            if ( Character.isWhitespace( token.charAt( 0 ) ) )
-            {
-                                //  Check if we're storing whitespace.
+        if (storeWhitespaceTokens) {
+          //  Check if we're merging a sequence
+          //  of whitespace tokens into a single
+          //  token.
 
-                if ( storeWhitespaceTokens )
-                {
-                                //  Check if we're merging a sequence
-                                //  of whitespace tokens into a single
-                                //  token.
+          if (mergeWhitespaceTokens && (result.size() > 1)) {
+            //  Merging whitespace token.  Get
+            //  previous token.
 
-                    if ( mergeWhitespaceTokens && ( result.size() > 1 ) )
-                    {
-                                //  Merging whitespace token.  Get
-                                //  previous token.
+            String prevToken = result.get(result.size() - 1);
 
-                        String prevToken    =
-                            result.get( result.size() - 1 );
+            //  If the previous token is whitespace,
+            //  append the current whitespace token
+            //  and replace the previous token with
+            //  the merged token.
 
-                                //  If the previous token is whitespace,
-                                //  append the current whitespace token
-                                //  and replace the previous token with
-                                //  the merged token.
-
-                        if ( Character.isWhitespace( prevToken.charAt( 0 ) ) )
-                        {
-                            result.set
-                            (
-                                result.size() - 1 ,
-                                prevToken + token
-                            );
-                        }
-                                //  If the previous token was not
-                                //  whitespace, store this whitespace
-                                //  token.
-                        else
-                        {
-                            addWordToSentence( result , token );
-                        }
-                    }
-                                //  Not merging whitespace tokens.
-                                //  Just add this whitespace token
-                                //  to the list of tokens.
-                    else
-                    {
-                        addWordToSentence( result , token );
-                    }
-                }
-                                //  Not storing whitespace tokens?
-                                //  Ignore this whitespace token.
-                else
-                {
-                }
+            if (Character.isWhitespace(prevToken.charAt(0))) {
+              result.set(result.size() - 1, prevToken + token);
             }
-                                //  Token is not whitespace.
-            else
-            {
-                token   = preprocessToken( token , result );
-
-                                //  If the token is not empty,
-                                //  add it to the sentence.
-
-                if ( token.length() > 0 )
-                {
-                                //  Check if we need to split a token
-                                //  containing an internal period.
-
-                    if ( splitAroundPeriods )
-                    {
-                        String[] tokens = splitToken( token );
-
-                        for ( int k = 0 ; k < tokens.length ; k++ )
-                        {
-                            if ( tokens[ k ].length() > 0 )
-                            {
-                                addWordToSentence( result ,  tokens[ k ] );
-                            }
-                        }
-                    }
-                                //  Just store token if not checking
-                                //  for splits around periods.
-                    else
-                    {
-                        addWordToSentence( result , token );
-                    }
-                }
+            //  If the previous token was not
+            //  whitespace, store this whitespace
+            //  token.
+            else {
+              addWordToSentence(result, token);
             }
-                                //  Find start and end of next token
-                                //  if any.
-            start   = end;
-            end     = wordIterator.next();
+          }
+          //  Not merging whitespace tokens.
+          //  Just add this whitespace token
+          //  to the list of tokens.
+          else {
+            addWordToSentence(result, token);
+          }
         }
-                                //  Return result.
-        return result;
-     }
+        //  Not storing whitespace tokens?
+        //  Ignore this whitespace token.
+        else {
+        }
+      }
+      //  Token is not whitespace.
+      else {
+        token = preprocessToken(token, result);
+
+        //  If the token is not empty,
+        //  add it to the sentence.
+
+        if (token.length() > 0) {
+          //  Check if we need to split a token
+          //  containing an internal period.
+
+          if (splitAroundPeriods) {
+            String[] tokens = splitToken(token);
+
+            for (int k = 0; k < tokens.length; k++) {
+              if (tokens[k].length() > 0) {
+                addWordToSentence(result, tokens[k]);
+              }
+            }
+          }
+          //  Just store token if not checking
+          //  for splits around periods.
+          else {
+            addWordToSentence(result, token);
+          }
+        }
+      }
+      //  Find start and end of next token
+      //  if any.
+      start = end;
+      end = wordIterator.next();
+    }
+    //  Return result.
+    return result;
+  }
 }
 
 /*
@@ -342,6 +270,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

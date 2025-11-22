@@ -5,63 +5,46 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector;
 import edu.northwestern.at.morphadorner.corpuslinguistics.inflector.conjugator.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.inflector.pluralizer.*;
 
-/** English inflector which returns a lemma uninflected.
- */
+/** English inflector which returns a lemma uninflected. */
+public class EnglishInflector implements Inflector {
+  /** English conjugator. */
+  protected Conjugator englishConjugator = new EnglishConjugator();
 
-public class EnglishInflector implements Inflector
-{
-    /** English conjugator. */
+  /** English pluralizer. */
+  protected Pluralizer englishPluralizer = new EnglishPluralizer();
 
-    protected Conjugator englishConjugator  = new EnglishConjugator();
+  /**
+   * Conjugate a verb from its infinitive, tense, and person.
+   *
+   * @param infinitive The infinitive of the verb to inflect.
+   * @param tense The verb tense to generate.
+   * @param person The person (1st, 2nd, 3rd) to generate.
+   * @return The infinitive unchanged.
+   */
+  public String conjugate(String infinitive, VerbTense tense, Person person) {
+    return englishConjugator.conjugate(infinitive, tense, person);
+  }
 
-    /** English pluralizer. */
+  /**
+   * Pluralize a noun or pronoun.
+   *
+   * @param nounOrPronoun The singular form of the noun or pronoun.
+   * @return The noun or pronoun unchanged.
+   */
+  public String pluralize(String nounOrPronoun) {
+    return englishPluralizer.pluralize(nounOrPronoun);
+  }
 
-    protected Pluralizer englishPluralizer  = new EnglishPluralizer();
-
-    /** Conjugate a verb from its infinitive, tense, and person.
-     *
-     *  @param  infinitive  The infinitive of the verb to inflect.
-     *  @param  tense       The verb tense to generate.
-     *  @param  person      The person (1st, 2nd, 3rd) to generate.
-     *
-     *  @return             The infinitive unchanged.
-     */
-
-    public String conjugate
-    (
-        String infinitive ,
-        VerbTense tense ,
-        Person person
-    )
-    {
-        return englishConjugator.conjugate( infinitive , tense , person );
-    }
-
-    /** Pluralize a noun or pronoun.
-     *
-     *  @param  nounOrPronoun   The singular form of the noun or pronoun.
-     *
-     *  @return                 The noun or pronoun unchanged.
-     */
-
-    public String pluralize( String nounOrPronoun )
-    {
-        return englishPluralizer.pluralize( nounOrPronoun );
-    }
-
-    /** Pluralize a noun or pronoun.
-     *
-     *  @param  nounOrPronoun   The singular form of the noun or pronoun.
-     *  @param  number          The number for the noun or pronoun.
-     *
-     *  @return                 The form of the noun or pronoun for the
-     *                          specified number.
-     */
-
-    public String pluralize( String nounOrPronoun , int number )
-    {
-        return englishPluralizer.pluralize( nounOrPronoun , number );
-    }
+  /**
+   * Pluralize a noun or pronoun.
+   *
+   * @param nounOrPronoun The singular form of the noun or pronoun.
+   * @param number The number for the noun or pronoun.
+   * @return The form of the noun or pronoun for the specified number.
+   */
+  public String pluralize(String nounOrPronoun, int number) {
+    return englishPluralizer.pluralize(nounOrPronoun, number);
+  }
 }
 
 /*
@@ -104,6 +87,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

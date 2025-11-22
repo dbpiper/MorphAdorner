@@ -2,358 +2,233 @@ package edu.northwestern.at.morphadorner.tools.tcp;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.namerecognizer.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.math.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
-
 import org.jdom2.*;
 import org.jdom2.filter.*;
 import org.jdom2.input.*;
 import org.jdom2.output.*;
 
-import edu.northwestern.at.morphadorner.tools.*;
+/** Determine which words containing soft hyphens should actually be hyphenated. */
+public class FindSoftHyphens {
+  /** Wrapper for printStream to allow utf-8 output. */
+  protected static PrintStream printStream;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.namerecognizer.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
-import edu.northwestern.at.utils.math.*;
-import edu.northwestern.at.utils.xml.*;
+  /** File containing words with a word break. */
+  protected static String dividedWordsFileName;
 
-/** Determine which words containing soft hyphens should actually be hyphenated.
-  */
+  /** File containing word counts. */
+  protected static String wordCountsFileName;
 
-public class FindSoftHyphens
-{
-    /** Wrapper for printStream to allow utf-8 output. */
+  /** File containing standard spellings. */
+  protected static String standardSpellingsFileName;
 
-    protected static PrintStream printStream;
+  /** File containing fixed words. */
+  protected static String fixedWordsFileName;
 
-    /** File containing words with a word break. */
+  /** Standard words. */
+  protected static Set<String> standardSpellings;
 
-    protected static String dividedWordsFileName;
+  /** Divided words. */
+  protected static Set<String> dividedWords;
 
-    /** File containing word counts. */
+  /** Word counts. */
+  protected static Map<String, Number> wordCounts;
 
-    protected static String wordCountsFileName;
+  /**
+   * Main program.
+   *
+   * @param args Program parameters.
+   */
+  public static void main(String[] args) {
+    //  Initialize.
+    try {
+      if (!initialize(args)) {
+        System.exit(1);
+      }
+      //  Process divided words.
 
-    /** File containing standard spellings. */
+      long startTime = System.currentTimeMillis();
 
-    protected static String standardSpellingsFileName;
+      Map<String, String> correctedSpellings = processWords();
 
-    /** File containing fixed words. */
+      //  Save file words.
+      MapUtils.saveMap(correctedSpellings, fixedWordsFileName, "\t", "", "utf-8");
 
-    protected static String fixedWordsFileName;
+      long processingTime = (System.currentTimeMillis() - startTime + 999) / 1000;
 
-    /** Standard words. */
+      //  Terminate.
 
-    protected static Set<String> standardSpellings;
+      terminate(correctedSpellings.size(), processingTime);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println(e.getMessage());
+    }
+  }
 
-    /** Divided words. */
+  /** Initialize. */
+  protected static boolean initialize(String[] args) throws Exception {
+    //  Check if we have enough parameters.
 
-    protected static Set<String> dividedWords;
+    if (args.length < 4) {
+      System.err.println("Not enough parameters.");
+      return false;
+    }
+    //  Allow utf-8 output to printStream .
+    printStream = new PrintStream(new BufferedOutputStream(System.out), true, "utf-8");
+    //  Get arguments.
 
-    /** Word counts. */
+    dividedWordsFileName = args[0];
+    wordCountsFileName = args[1];
+    standardSpellingsFileName = args[2];
+    fixedWordsFileName = args[3];
 
-    protected static Map<String, Number> wordCounts;
+    //  Get divided words.
+    dividedWords = SetUtils.loadSortedSet(dividedWordsFileName, "utf-8");
 
-    /** Main program.
-     *
-     *  @param  args    Program parameters.
-     */
+    System.err.println(
+        "Loaded " + Formatters.formatIntegerWithCommas(dividedWords.size()) + " divided words.");
+    //  Get word counts.
+    wordCounts = CountMapUtils.loadCountMapFromFile(new File(wordCountsFileName), "utf-8");
 
-    public static void main( String[] args )
-    {
-                                //  Initialize.
-        try
-        {
-            if ( !initialize( args ) )
-            {
-                System.exit( 1 );
-            }
-                                //  Process divided words.
+    System.err.println(
+        "Loaded " + Formatters.formatIntegerWithCommas(wordCounts.size()) + " word counts.");
+    //  Get standard spellings list.
+    standardSpellings = SetUtils.loadSortedSet(standardSpellingsFileName, "utf-8");
 
-            long startTime      = System.currentTimeMillis();
+    System.err.println(
+        "Loaded "
+            + Formatters.formatIntegerWithCommas(standardSpellings.size())
+            + " standard spellings.");
 
-            Map<String, String> correctedSpellings  = processWords();
+    return true;
+  }
 
-                                //  Save file words.
-            MapUtils.saveMap
-            (
-                correctedSpellings ,
-                fixedWordsFileName ,
-                "\t" ,
-                "" ,
-                "utf-8"
-            );
+  /**
+   * Process words.
+   *
+   * <p>Output the following for each word.
+   *
+   * <ul>
+   *   <li>The divided word.
+   *   <li>Probable corrected spelling.
+   *   <li>Count of hyphenated word appearances.
+   *   <li>Count of unhyphenated word appearances.
+   *   <li>True/false if word appears unhyphenated in standard spellings list.
+   *   <li>True/false if word appears hyphenated in standard spellings list.
+   * </ul>
+   */
+  protected static Map<String, String> processWords() {
+    //  Process each divided word.
 
-            long processingTime =
-                ( System.currentTimeMillis() - startTime + 999 ) / 1000;
+    Map<String, String> correctedSpellings = MapFactory.createNewSortedMap();
 
-                                //  Terminate.
+    Names names = new Names();
 
-            terminate( correctedSpellings.size() , processingTime );
+    Iterator<String> iterator = dividedWords.iterator();
+
+    while (iterator.hasNext()) {
+      String token = iterator.next();
+
+      String unhyphenated = StringUtils.replaceAll(token, "|", "");
+
+      String unhyphenatedLower = unhyphenated.toLowerCase();
+
+      String hyphenated = StringUtils.replaceAll(token, "|", "-");
+
+      String hyphenatedLower = hyphenated.toLowerCase();
+
+      String correctedSpelling = unhyphenated;
+
+      int unhyphenatedCount = getWordCount(unhyphenated) + getWordCount(unhyphenatedLower);
+
+      int hyphenatedCount = getWordCount(hyphenated) + getWordCount(hyphenatedLower);
+
+      if (unhyphenatedCount == 0) {
+        if (hyphenatedCount == 0) {
+          if (standardSpellings.contains(unhyphenated)) {
+            correctedSpelling = unhyphenated;
+          } else if (standardSpellings.contains(unhyphenatedLower)) {
+            correctedSpelling = unhyphenated;
+          } else if (standardSpellings.contains(hyphenated)) {
+            correctedSpelling = hyphenated;
+          } else if (standardSpellings.contains(hyphenatedLower)) {
+            correctedSpelling = hyphenated;
+          } else if (names.isNameOrPlace(unhyphenated)) {
+            correctedSpelling = unhyphenated;
+          } else if (names.isNameOrPlace(hyphenated)) {
+            correctedSpelling = hyphenated;
+          } else {
+            //                      correctedSpelling   = "*****";
+          }
+        } else {
+          correctedSpelling = hyphenated;
         }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-            System.out.println( e.getMessage() );
+      } else /* unhyphenated count > 0 */ {
+        if (hyphenatedCount == 0) {
+          correctedSpelling = unhyphenated;
+        } else if (unhyphenatedCount > hyphenatedCount) {
+          correctedSpelling = unhyphenated;
+        } else {
+          correctedSpelling = hyphenated;
         }
+      }
+
+      printStream.print(token);
+      printStream.print("\t");
+      printStream.print(correctedSpelling);
+      printStream.print("\t");
+      printStream.print(unhyphenatedCount);
+      printStream.print("\t");
+      printStream.print(hyphenatedCount);
+      printStream.println();
+
+      correctedSpellings.put(token, correctedSpelling);
     }
 
-    /** Initialize.
-     */
+    return correctedSpellings;
+  }
 
-    protected static boolean initialize( String[] args )
-        throws Exception
-    {
-                                //  Check if we have enough parameters.
+  /**
+   * Get word count for a word.
+   *
+   * @param word The word for which to get the count.
+   * @return The word count.
+   */
+  protected static int getWordCount(String word) {
+    int result = 0;
 
-        if ( args.length < 4 )
-        {
-            System.err.println( "Not enough parameters." );
-            return false;
-        }
-                                //  Allow utf-8 output to printStream .
-        printStream =
-            new PrintStream
-            (
-                new BufferedOutputStream( System.out ) ,
-                true ,
-                "utf-8"
-            );
-                                //  Get arguments.
+    Number count = wordCounts.get(word);
 
-        dividedWordsFileName        = args[ 0 ];
-        wordCountsFileName          = args[ 1 ];
-        standardSpellingsFileName   = args[ 2 ];
-        fixedWordsFileName          = args[ 3 ];
-
-                                //  Get divided words.
-        dividedWords        =
-            SetUtils.loadSortedSet
-            (
-                dividedWordsFileName ,
-                "utf-8"
-            );
-
-        System.err.println
-        (
-            "Loaded " +
-            Formatters.formatIntegerWithCommas
-            (
-                dividedWords.size()
-            ) +
-            " divided words."
-        );
-                                //  Get word counts.
-        wordCounts  =
-            CountMapUtils.loadCountMapFromFile
-            (
-                new File( wordCountsFileName ) ,
-                "utf-8"
-            );
-
-        System.err.println
-        (
-            "Loaded " +
-            Formatters.formatIntegerWithCommas
-            (
-                wordCounts.size()
-            ) +
-            " word counts."
-        );
-                                //  Get standard spellings list.
-        standardSpellings   =
-            SetUtils.loadSortedSet
-            (
-                standardSpellingsFileName ,
-                "utf-8"
-            );
-
-        System.err.println
-        (
-            "Loaded " +
-            Formatters.formatIntegerWithCommas
-            (
-                standardSpellings.size()
-            ) +
-            " standard spellings."
-        );
-
-        return true;
+    if (count != null) {
+      result = count.intValue();
     }
 
-    /** Process words.
-     *
-     *  <p>
-     *  Output the following for each word.
-     *  </p>
-     *
-     *  <ul>
-     *      <li>The divided word.</li>
-     *      <li>Probable corrected spelling.</li>
-     *      <li>Count of hyphenated word appearances.</li>
-     *      <li>Count of unhyphenated word appearances.</li>
-     *      <li>True/false if word appears unhyphenated in standard
-     *          spellings list.</li>
-     *      <li>True/false if word appears hyphenated in standard
-     *          spellings list.</li>
-     *  </ul>
-     */
+    return result;
+  }
 
-    protected static Map<String, String> processWords()
-    {
-                                //  Process each divided word.
-
-        Map<String, String> correctedSpellings  =
-            MapFactory.createNewSortedMap();
-
-        Names names = new Names();
-
-        Iterator<String> iterator   = dividedWords.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            String token    = iterator.next();
-
-            String unhyphenated =
-                StringUtils.replaceAll( token , "|" , "" );
-
-            String unhyphenatedLower    = unhyphenated.toLowerCase();
-
-            String hyphenated   =
-                StringUtils.replaceAll( token , "|" , "-" );
-
-            String hyphenatedLower  = hyphenated.toLowerCase();
-
-            String correctedSpelling    = unhyphenated;
-
-            int unhyphenatedCount   =
-                getWordCount( unhyphenated ) +
-                getWordCount( unhyphenatedLower );
-
-            int hyphenatedCount     =
-                getWordCount( hyphenated ) +
-                getWordCount( hyphenatedLower );
-
-            if ( unhyphenatedCount == 0 )
-            {
-                if ( hyphenatedCount == 0 )
-                {
-                    if ( standardSpellings.contains( unhyphenated ) )
-                    {
-                        correctedSpelling   = unhyphenated;
-                    }
-                    else if ( standardSpellings.contains( unhyphenatedLower ) )
-                    {
-                        correctedSpelling   = unhyphenated;
-                    }
-                    else if ( standardSpellings.contains( hyphenated ) )
-                    {
-                        correctedSpelling   = hyphenated;
-                    }
-                    else if ( standardSpellings.contains( hyphenatedLower ) )
-                    {
-                        correctedSpelling   = hyphenated;
-                    }
-                    else if ( names.isNameOrPlace( unhyphenated ) )
-                    {
-                        correctedSpelling   = unhyphenated;
-                    }
-                    else if ( names.isNameOrPlace( hyphenated ) )
-                    {
-                        correctedSpelling   = hyphenated;
-                    }
-                    else
-                    {
-//                      correctedSpelling   = "*****";
-                    }
-                }
-                else
-                {
-                    correctedSpelling   = hyphenated;
-                }
-            }
-            else /* unhyphenated count > 0 */
-            {
-                if ( hyphenatedCount == 0 )
-                {
-                    correctedSpelling   = unhyphenated;
-                }
-                else if ( unhyphenatedCount > hyphenatedCount )
-                {
-                    correctedSpelling   = unhyphenated;
-                }
-                else
-                {
-                    correctedSpelling   = hyphenated;
-                }
-            }
-
-            printStream.print( token );
-            printStream.print( "\t" );
-            printStream.print( correctedSpelling );
-            printStream.print( "\t" );
-            printStream.print( unhyphenatedCount );
-            printStream.print( "\t" );
-            printStream.print( hyphenatedCount );
-            printStream.println();
-
-            correctedSpellings.put( token , correctedSpelling );
-        }
-
-        return correctedSpellings;
-    }
-
-    /** Get word count for a word.
-     *
-     *  @param  word    The word for which to get the count.
-     *
-     *  @return         The word count.
-     */
-
-    protected static int getWordCount( String word )
-    {
-        int result      = 0;
-
-        Number count    = wordCounts.get( word );
-
-        if ( count != null )
-        {
-            result  = count.intValue();
-        }
-
-        return result;
-    }
-
-    /** Terminate.
-     *
-     *  @param  wordsProcessed  Number of words processed.
-     *  @param  processingTime  Processing time in seconds.
-     */
-
-    protected static void terminate
-    (
-        int wordsProcessed ,
-        long processingTime
-    )
-    {
-        System.err.println
-        (
-            "Processed " +
-            Formatters.formatIntegerWithCommas
-            (
-                wordsProcessed
-            ) +
-            " words in " +
-            Formatters.formatLongWithCommas
-            (
-                processingTime
-            ) +
-            " seconds."
-        );
-    }
+  /**
+   * Terminate.
+   *
+   * @param wordsProcessed Number of words processed.
+   * @param processingTime Processing time in seconds.
+   */
+  protected static void terminate(int wordsProcessed, long processingTime) {
+    System.err.println(
+        "Processed "
+            + Formatters.formatIntegerWithCommas(wordsProcessed)
+            + " words in "
+            + Formatters.formatLongWithCommas(processingTime)
+            + " seconds.");
+  }
 }
 
 /*
@@ -396,6 +271,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

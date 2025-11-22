@@ -2,15 +2,14 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lexicon;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
+import edu.northwestern.at.utils.*;
+import java.io.*;
+import java.net.URL;
+import java.util.*;
 
 /** Lexicon: stores spellings and their possible lemmata and parts of speech.
  *
@@ -47,317 +46,246 @@ import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*
  *  If lemmata are not available, an "*' should appear in the lemma field.
  *  </p>
  */
+public interface Lexicon {
+  /**
+   * Load entries into a lexicon.
+   *
+   * @param lexiconURL URL for the file containing the lexicon.
+   * @param compressed true if lexicon is gzip compressed.
+   * @param encoding Character encoding of lexicon file text.
+   */
+  public void loadLexicon(URL lexiconURL, boolean compressed, String encoding) throws IOException;
 
-public interface Lexicon
-{
-    /** Load entries into a lexicon.
-     *
-     *  @param  lexiconURL  URL for the file containing the lexicon.
-     *  @param  compressed  true if lexicon is gzip compressed.
-     *  @param  encoding    Character encoding of lexicon file text.
-     */
+  /**
+   * Load entries into a lexicon.
+   *
+   * @param lexiconURL URL for the file containing the lexicon.
+   * @param encoding Character encoding of lexicon file text.
+   */
+  public void loadLexicon(URL lexiconURL, String encoding) throws IOException;
 
-    public void loadLexicon
-    (
-        URL lexiconURL ,
-        boolean compressed ,
-        String encoding
-    )
-        throws IOException;
+  /**
+   * Update entry count in lexicon for a given category.
+   *
+   * @param entry The entry.
+   * @param category The category.
+   * @param lemma The lemma.
+   * @param entryCount The entry count to add to the current count. Must be positive.
+   */
+  public void updateEntryCount(String entry, String category, String lemma, int entryCount);
 
-    /** Load entries into a lexicon.
-     *
-     *  @param  lexiconURL  URL for the file containing the lexicon.
-     *  @param  encoding    Character encoding of lexicon file text.
-     */
+  /**
+   * Remove given category for an entry.
+   *
+   * @param entry The entry.
+   * @param category The category to remove
+   */
+  public void removeEntryCategory(String entry, String category);
 
-    public void loadLexicon( URL lexiconURL , String encoding )
-        throws IOException;
+  /**
+   * Remove entry.
+   *
+   * @param entry The entry to remove.
+   */
+  public void removeEntry(String entry);
 
-    /** Update entry count in lexicon for a given category.
-     *
-     *  @param  entry       The entry.
-     *  @param  category    The category.
-     *  @param  lemma       The lemma.
-     *  @param  entryCount  The entry count to add to the current count.
-     *                          Must be positive.
-     */
+  /**
+   * Get a lexicon entry.
+   *
+   * @param entry Entry for which to get lexicon information.
+   * @return LexiconEntry for entry, or null if not found.
+   *     <p>Note: this does NOT call the part of speech guesser.
+   */
+  public LexiconEntry getLexiconEntry(String entry);
 
-    public void updateEntryCount
-    (
-        String entry ,
-        String category ,
-        String lemma ,
-        int entryCount
-    );
+  /**
+   * Set a lexicon entry.
+   *
+   * @param entry Entry for which to get lexicon information.
+   * @param entryData The lexicon entry data.
+   * @return Previous lexicon data for entry, if any.
+   */
+  public LexiconEntry setLexiconEntry(String entry, LexiconEntry entryData);
 
-    /** Remove given category for an entry.
-     *
-     *  @param  entry       The entry.
-     *  @param  category    The category to remove
-     */
+  /**
+   * Get number of entries in Lexicon.
+   *
+   * @return Number of entries in Lexicon.
+   */
+  public int getLexiconSize();
 
-    public void removeEntryCategory
-    (
-        String entry ,
-        String category
-    );
+  /**
+   * Get the entries, sorted in ascending order.
+   *
+   * @return The sorted entry strings as an array of string.
+   */
+  public String[] getEntries();
 
-    /** Remove entry.
-     *
-     *  @param  entry       The entry to remove.
-     */
+  /**
+   * Get the categories, sorted in ascending order.
+   *
+   * @return The sorted category strings as an array of string.
+   */
+  public String[] getCategories();
 
-    public void removeEntry
-    (
-        String entry
-    );
+  /**
+   * Checks if lexicon contains an entry.
+   *
+   * @param entry Entry to look up.
+   * @return true if lexicon contains entry. Only an exact match is considered.
+   */
+  public boolean containsEntry(String entry);
 
-    /** Get a lexicon entry.
-     *
-     *  @param  entry   Entry for which to get lexicon information.
-     *
-     *  @return         LexiconEntry for entry, or null if not found.
-     *
-     *  <p>
-     *  Note: this does NOT call the part of speech guesser.
-     *  </p>
-     */
+  /**
+   * Get categories for an entry in the lexicon.
+   *
+   * @param entry Entry to look up.
+   * @return Set of categories. Null if entry not found in lexicon.
+   */
+  public Set<String> getCategoriesForEntry(String entry);
 
-    public LexiconEntry getLexiconEntry( String entry );
+  /**
+   * Get categories for an entry.
+   *
+   * @param entry Entry to look up.
+   * @param isFirstEntry True if entry is first in sentence.
+   * @return Set of categories. Null if entry not found in lexicon.
+   */
+  public Set<String> getCategoriesForEntry(String entry, boolean isFirstEntry);
 
-    /** Set a lexicon entry.
-     *
-     *  @param  entry       Entry for which to get lexicon information.
-     *  @param  entryData   The lexicon entry data.
-     *
-     *  @return             Previous lexicon data for entry, if any.
-     */
+  /**
+   * Get categories for an entry in a sentence.
+   *
+   * @param sentence List of entries in sentence.
+   * @param entryIndex Index within sentence (0-based) of entry.
+   * @return Set of categories. Null if entry not found in lexicon.
+   */
+  public Set<String> getCategoriesForEntry(List<String> sentence, int entryIndex);
 
-    public LexiconEntry setLexiconEntry
-    (
-        String entry ,
-        LexiconEntry entryData
-    );
+  /**
+   * Get number of categories for an entry.
+   *
+   * @param entry Entry for which to find number of categories.
+   * @return Number of categories for entry.
+   */
+  public int getNumberOfCategoriesForEntry(String entry);
 
-    /** Get number of entries in Lexicon.
-     *
-     *  @return     Number of entries in Lexicon.
-     */
+  /**
+   * Get category counts for an entry.
+   *
+   * @param entry Entry to look up.
+   * @return Map of counts for each category. String keys are tags, Integer counts are values.
+   *     <p>Null if entry not found in lexicon.
+   */
+  public Map<String, MutableInteger> getCategoryCountsForEntry(String entry);
 
-    public int getLexiconSize();
+  /**
+   * Get category with largest count for an entry.
+   *
+   * @param entry Entry to look up.
+   * @return Category with largest count. Null if entry not found in lexicon.
+   */
+  public String getLargestCategory(String entry);
 
-    /** Get the entries, sorted in ascending order.
-     *
-     *  @return     The sorted entry strings as an array of string.
-     */
+  /**
+   * Get count for an entry in a specific category.
+   *
+   * @param entry Entry to look up.
+   * @param category Category for which to retrieve count.
+   * @return Number of occurrences of entry in category.
+   */
+  public int getCategoryCount(String entry, String category);
 
-    public String[] getEntries();
+  /**
+   * Get lemma for an entry.
+   *
+   * @param entry Entry to look up.
+   * @return Lemma form of entry.
+   */
+  public String getLemma(String entry);
 
-    /** Get the categories, sorted in ascending order.
-     *
-     *  @return     The sorted category strings as an array of string.
-     */
+  /**
+   * Get all lemmata for an entry.
+   *
+   * @param entry Entry to look up.
+   * @return Lemmata forms of entry.
+   */
+  public String[] getLemmata(String entry);
 
-    public String[] getCategories();
+  /**
+   * Get lemma for an entry in a specific category.
+   *
+   * @param entry Entry to look up.
+   * @param category Category for which to retrieve lemma.
+   * @return Lemma form of entry.
+   */
+  public String getLemma(String entry, String category);
 
-    /** Checks if lexicon contains an entry.
-     *
-     *  @param  entry   Entry to look up.
-     *
-     *  @return         true if lexicon contains entry.
-     *                  Only an exact match is considered.
-     */
+  /**
+   * Get total count for an entry.
+   *
+   * @param entry Entry to look up.
+   * @return Count of occurrences of entry.
+   */
+  public int getEntryCount(String entry);
 
-    public boolean containsEntry( String entry );
+  /**
+   * Get category count.
+   *
+   * @param category Get number of times category appears in lexicon.
+   * @return Category count.
+   */
+  public int getCategoryCount(String category);
 
-    /** Get categories for an entry in the lexicon.
-     *
-     *  @param  entry   Entry to look up.
-     *
-     *  @return         Set of categories.
-     *                  Null if entry not found in lexicon.
-     */
+  /**
+   * Get category counts.
+   *
+   * @return Category counts map.
+   */
+  public Map<String, MutableInteger> getCategoryCounts();
 
-    public Set<String> getCategoriesForEntry( String entry );
+  /**
+   * Get number of categories.
+   *
+   * @return Number of categories.
+   */
+  public int getNumberOfCategories();
 
-    /** Get categories for an entry.
-     *
-     *  @param  entry           Entry to look up.
-     *  @param  isFirstEntry    True if entry is first in sentence.
-     *
-     *  @return         Set of categories.
-     *                  Null if entry not found in lexicon.
-     */
+  /**
+   * Save lexicon to a file.
+   *
+   * @param lexiconFileName File containing the lexicon.
+   * @param encoding Character encoding of lexicon file text.
+   */
+  public void saveLexiconToTextFile(String lexiconFileName, String encoding) throws IOException;
 
-    public Set<String> getCategoriesForEntry
-    (
-        String entry ,
-        boolean isFirstEntry
-    );
+  /**
+   * Get the part of speech tags list used by the lexicon.
+   *
+   * @return Part of speech tags list.
+   */
+  public PartOfSpeechTags getPartOfSpeechTags();
 
-    /** Get categories for an entry in a sentence.
-     *
-     *  @param  sentence    List of entries in sentence.
-     *  @param  entryIndex  Index within sentence (0-based) of entry.
-     *
-     *  @return             Set of categories.
-     *                      Null if entry not found in lexicon.
-     */
+  /**
+   * Set the part of speech tags list used by the lexicon.
+   *
+   * @param partOfSpeechTags Part of speech tags list.
+   */
+  public boolean setPartOfSpeechTags(PartOfSpeechTags partOfSpeechTags);
 
-    public Set<String> getCategoriesForEntry
-    (
-        List<String> sentence ,
-        int entryIndex
-    );
+  /**
+   * Get the longest entry length in the lexicon.
+   *
+   * @return The longest entry length in the lexicon.
+   */
+  public int getLongestEntryLength();
 
-    /** Get number of categories for an entry.
-     *
-     *  @param  entry   Entry for which to find number of categories.
-     *
-     *  @return         Number of categories for entry.
-     */
-
-    public int getNumberOfCategoriesForEntry( String entry );
-
-    /** Get category counts for an entry.
-     *
-     *  @param  entry   Entry to look up.
-     *
-     *  @return         Map of counts for each category.  String keys are
-     *                  tags, Integer counts are values.
-     *
-     *                  Null if entry not found in lexicon.
-     */
-
-    public Map<String, MutableInteger> getCategoryCountsForEntry
-    (
-        String entry
-    );
-
-    /** Get category with largest count for an entry.
-     *
-     *  @param  entry   Entry to look up.
-     *
-     *  @return         Category with largest count.
-     *                  Null if entry not found in lexicon.
-     */
-
-    public String getLargestCategory( String entry );
-
-    /** Get count for an entry in a specific category.
-     *
-     *  @param  entry       Entry to look up.
-     *  @param  category    Category for which to retrieve count.
-     *
-     *  @return             Number of occurrences of entry in category.
-     */
-
-    public int getCategoryCount( String entry , String category );
-
-    /** Get lemma for an entry.
-     *
-     *  @param  entry       Entry to look up.
-     *
-     *  @return             Lemma form of entry.
-     */
-
-    public String getLemma( String entry );
-
-    /** Get all lemmata for an entry.
-     *
-     *  @param  entry       Entry to look up.
-     *
-     *  @return             Lemmata forms of entry.
-     */
-
-    public String[] getLemmata( String entry );
-
-    /** Get lemma for an entry in a specific category.
-     *
-     *  @param  entry       Entry to look up.
-     *  @param  category    Category for which to retrieve lemma.
-     *
-     *  @return             Lemma form of entry.
-     */
-
-    public String getLemma( String entry , String category );
-
-    /** Get total count for an entry.
-     *
-     *  @param  entry       Entry to look up.
-     *
-     *  @return             Count of occurrences of entry.
-     */
-
-    public int getEntryCount( String entry );
-
-    /** Get category count.
-     *
-     *  @param  category    Get number of times category appears in lexicon.
-     *
-     *  @return             Category count.
-     */
-
-    public int getCategoryCount( String category );
-
-    /** Get category counts.
-     *
-     *  @return     Category counts map.
-     */
-
-    public Map<String, MutableInteger> getCategoryCounts();
-
-    /** Get number of categories.
-     *
-     *  @return     Number of categories.
-     */
-
-    public int getNumberOfCategories();
-
-    /** Save lexicon to a file.
-     *
-     *  @param  lexiconFileName File containing the lexicon.
-     *  @param  encoding            Character encoding of lexicon file text.
-     */
-
-    public void saveLexiconToTextFile
-    (
-        String lexiconFileName ,
-        String encoding
-    )
-        throws IOException;
-
-    /** Get the part of speech tags list used by the lexicon.
-     *
-     *  @return     Part of speech tags list.
-     */
-
-    public PartOfSpeechTags getPartOfSpeechTags();
-
-    /** Set the part of speech tags list used by the lexicon.
-     *
-     *  @param  partOfSpeechTags    Part of speech tags list.
-     */
-
-    public boolean setPartOfSpeechTags
-    (
-        PartOfSpeechTags partOfSpeechTags
-    );
-
-    /** Get the longest entry length in the lexicon.
-     *
-     *  @return     The longest entry length in the lexicon.
-     */
-
-    public int getLongestEntryLength();
-
-    /** Get the shortest entry length in the lexicon.
-     *
-     *  @return     The shortest entry length in the lexicon.
-     */
-
-    public int getShortestEntryLength();
+  /**
+   * Get the shortest entry length in the lexicon.
+   *
+   * @return The shortest entry length in the lexicon.
+   */
+  public int getShortestEntryLength();
 }
 
 /*
@@ -400,6 +328,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

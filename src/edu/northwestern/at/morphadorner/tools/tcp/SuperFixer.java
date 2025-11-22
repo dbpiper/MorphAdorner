@@ -2,183 +2,136 @@ package edu.northwestern.at.morphadorner.tools.tcp;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.morphadorner.tools.compareadornedfiles.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
 import java.util.*;
-
 import java.util.regex.*;
-
 import org.jdom2.*;
 import org.jdom2.filter.*;
 import org.jdom2.input.*;
 import org.jdom2.output.*;
 import org.jdom2.xpath.*;
 
-import edu.northwestern.at.morphadorner.tools.*;
-import edu.northwestern.at.morphadorner.tools.compareadornedfiles.*;
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
-
-/** SuperFixer marks "^" characters with special tags.
+/**
+ * SuperFixer marks "^" characters with special tags.
  *
- *  <p>
- *  Usage:
- *  </p>
- *  <blockquote>
- *  <pre>
+ * <p>Usage:
+ *
+ * <blockquote>
+ *
+ * <pre>
  *  java edu.northwestern.at.morphadorner.tools.tcp.SuperFixer outputdirectory input1.xml input2.xml ...
  *  </pre>
- *  </blockquote>
- *  <p>
- *  where <strong>outputdirectory</strong> is the output directory containing
- *  the resultant XML files with &lt;zzzzlj&gt;text&lt;/zzzzlj&gt; added
- *  to surround tokens containing "^" superscript markers, and input*.xml
- *  are the input tokenized XML files.
- *  </p>
  *
- *  <p>
- *  Tokens which end in ^d where "d" is a single digit are converted
- *  to the token followed by a <ref rend="superscript">d</ref>.  This
- *  provides for inserting the missing targets of these apparent
- *  note references at a later editing stage.
- *  </p>
+ * </blockquote>
+ *
+ * <p>where <strong>outputdirectory</strong> is the output directory containing the resultant XML
+ * files with &lt;zzzzlj&gt;text&lt;/zzzzlj&gt; added to surround tokens containing "^" superscript
+ * markers, and input*.xml are the input tokenized XML files.
+ *
+ * <p>Tokens which end in ^d where "d" is a single digit are converted to the token followed by a
+ * <ref rend="superscript">d</ref>. This provides for inserting the missing targets of these
+ * apparent note references at a later editing stage.
  */
+public class SuperFixer {
+  /** TEI name spaces. */
+  protected static Namespace teiNamespace = Namespace.getNamespace("http://www.tei-c.org/ns/1.0");
 
-public class SuperFixer
-{
-    /** TEI name spaces. */
+  protected static Namespace teiNamespace2 =
+      Namespace.getNamespace("tei", "http://www.tei-c.org/ns/1.0");
 
-    protected static Namespace teiNamespace =
-        Namespace.getNamespace
-        (
-            "http://www.tei-c.org/ns/1.0"
-        );
+  /** Superscript number replacers. */
+  protected static PatternReplacer replacer1 =
+      new PatternReplacer(
+          "(\\w)(\\^)([1|2|3|4|5|6|7|8|9|0])(\\.|\\?|!)",
+          "<zzzzlj>$1</zzzzlj> <ref rend=\"superscript\">$3</ref> $4");
 
-    protected static Namespace teiNamespace2    =
-        Namespace.getNamespace
-        (
-            "tei" ,
-            "http://www.tei-c.org/ns/1.0"
-        );
+  protected static PatternReplacer replacer2 =
+      new PatternReplacer(
+          "(\\w)(\\^)([1|2|3|4|5|6|7|8|9|0])(\\W)",
+          "$1 <ref rend=\"superscript\"><zzzzlj>$3</zzzzlj></ref><zzzzbl/> $4");
 
-    /** Superscript number replacers. */
+  /** Main ^ character replacer. */
 
-    protected static PatternReplacer replacer1  =
-        new PatternReplacer
-        (
-            "(\\w)(\\^)([1|2|3|4|5|6|7|8|9|0])(\\.|\\?|!)" ,
-            "<zzzzlj>$1</zzzzlj> <ref rend=\"superscript\">$3</ref> $4"
-        );
+  //  protected static Pattern pattern    = Pattern.compile( "((\\^.)+)" );
+  protected static Pattern pattern = Pattern.compile("((\\^<hi>.+</hi>)+|(\\^.)+)");
 
-    protected static PatternReplacer replacer2  =
-        new PatternReplacer
-        (
-            "(\\w)(\\^)([1|2|3|4|5|6|7|8|9|0])(\\W)" ,
-            "$1 <ref rend=\"superscript\"><zzzzlj>$3</zzzzlj></ref><zzzzbl/> $4"
-        );
+  protected static Matcher matcher = pattern.matcher("");
 
-    /** Main ^ character replacer. */
-
-//  protected static Pattern pattern    = Pattern.compile( "((\\^.)+)" );
-    protected static Pattern pattern    =
-        Pattern.compile( "((\\^<hi>.+</hi>)+|(\\^.)+)" );
-
-    protected static Matcher matcher    = pattern.matcher( "" );
-
-    /** Main program. */
-
-    public static void main( String[] args )
-    {
-        try
-        {
-            superFixer( args );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+  /** Main program. */
+  public static void main(String[] args) {
+    try {
+      superFixer(args);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
 
-    public static void superFixer( String[] args )
-        throws Exception
-    {
-        FileBatchProcessor processor    =
-            new FileBatchProcessor()
-        {
-            public void processOneFile( String inputFileName )
-                throws Exception
-            {
-                                //  Read XML file.
+  public static void superFixer(String[] args) throws Exception {
+    FileBatchProcessor processor =
+        new FileBatchProcessor() {
+          public void processOneFile(String inputFileName) throws Exception {
+            //  Read XML file.
 
-                String xml  = FileUtils.readTextFile( inputFileName );
+            String xml = FileUtils.readTextFile(inputFileName);
 
-                                //  Perform superscript number replacements.
+            //  Perform superscript number replacements.
 
-//              xml = replacer1.replace( xml );
-//              xml = replacer2.replace( xml );
+            //              xml = replacer1.replace( xml );
+            //              xml = replacer2.replace( xml );
 
-                                //  Replace other superscript patterns.
+            //  Replace other superscript patterns.
 
-                matcher.reset( xml );
+            matcher.reset(xml);
 
-                StringBuffer sb = new StringBuffer();
+            StringBuffer sb = new StringBuffer();
 
-                while ( matcher.find() )
-                {
-                    String rep  = matcher.group( 1 );
-                    rep         = "<zzzzlj>" + rep + "</zzzzlj>";
+            while (matcher.find()) {
+              String rep = matcher.group(1);
+              rep = "<zzzzlj>" + rep + "</zzzzlj>";
 
-                    matcher.appendReplacement( sb , rep );
-                }
-
-                matcher.appendTail( sb );
-
-                xml = sb.toString();
-
-                                //  Strip path from input file name.
-
-                String strippedFileName =
-                    FileNameUtils.stripPathName( inputFileName );
-
-                strippedFileName    =
-                    FileNameUtils.changeFileExtension( strippedFileName , "" );
-
-                                //  Create output file name.
-
-                String xmlOutputFileName    =
-                    new File
-                    (
-                        outputDirectoryName ,
-                        strippedFileName + ".xml"
-                    ).getAbsolutePath();
-
-                FileUtils.createPathForFile( xmlOutputFileName );
-
-                FileUtils.writeTextFile
-                (
-                    xmlOutputFileName ,
-                    false ,
-                    xml ,
-                    "utf-8"
-                );
+              matcher.appendReplacement(sb, rep);
             }
 
-            /** Create an element.
-             *
-             *  @param  name    Element name.
-            */
+            matcher.appendTail(sb);
 
-            public Element createElement( String name )
-            {
-                Element element = new Element( name , teiNamespace );
-                return element;
-            }
+            xml = sb.toString();
+
+            //  Strip path from input file name.
+
+            String strippedFileName = FileNameUtils.stripPathName(inputFileName);
+
+            strippedFileName = FileNameUtils.changeFileExtension(strippedFileName, "");
+
+            //  Create output file name.
+
+            String xmlOutputFileName =
+                new File(outputDirectoryName, strippedFileName + ".xml").getAbsolutePath();
+
+            FileUtils.createPathForFile(xmlOutputFileName);
+
+            FileUtils.writeTextFile(xmlOutputFileName, false, xml, "utf-8");
+          }
+
+          /**
+           * Create an element.
+           *
+           * @param name Element name.
+           */
+          public Element createElement(String name) {
+            Element element = new Element(name, teiNamespace);
+            return element;
+          }
         };
 
-        processor.setOutputDirectoryName( args[ 0 ] );
+    processor.setOutputDirectoryName(args[0]);
 
-        processor.setInputFileNames( args , 1 );
-        processor.run();
-    }
+    processor.setInputFileNames(args, 1);
+    processor.run();
+  }
 }
 
 /*
@@ -221,6 +174,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

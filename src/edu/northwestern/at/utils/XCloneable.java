@@ -2,13 +2,9 @@ package edu.northwestern.at.utils;
 
 /*  Please see the license information at the end of this file. */
 
-/** Interface for a cloneable object.
- */
-
-public interface XCloneable extends Cloneable
-{
-    public Object clone()
-        throws CloneNotSupportedException;
+/** Interface for a cloneable object. */
+public interface XCloneable extends Cloneable {
+  public Object clone() throws CloneNotSupportedException;
 }
 
 /*
@@ -51,6 +47,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

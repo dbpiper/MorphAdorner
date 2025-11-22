@@ -2,35 +2,28 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingmapper;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.spellcheck.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.spellcheck.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
-
-/** DefaultSpellingMapper: Default spelling mapper.
+/**
+ * DefaultSpellingMapper: Default spelling mapper.
  *
- *  <p>
- *  The default spelling mapper returns the original spelling unchanged.
- *  </p>
+ * <p>The default spelling mapper returns the original spelling unchanged.
  */
-
-public class DefaultSpellingMapper
-    implements SpellingMapper
-{
-    /** Returns mapped spelling for a given spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The mapped spelling.
-     */
-
-    public String mapSpelling( String spelling )
-    {
-        return spelling;
-    }
+public class DefaultSpellingMapper implements SpellingMapper {
+  /**
+   * Returns mapped spelling for a given spelling.
+   *
+   * @param spelling The spelling.
+   * @return The mapped spelling.
+   */
+  public String mapSpelling(String spelling) {
+    return spelling;
+  }
 }
 
 /*
@@ -73,6 +66,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

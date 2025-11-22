@@ -2,58 +2,50 @@ package edu.northwestern.at.morphadorner.gate;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.Vector;
-
 import gate.*;
+import gate.corpora.*;
 import gate.creole.*;
 import gate.util.*;
-import gate.corpora.*;
+import java.util.Vector;
 
-public class SortedAnnotationList extends Vector<Annotation>
-{
-    public SortedAnnotationList()
-    {
-        super();
+public class SortedAnnotationList extends Vector<Annotation> {
+  public SortedAnnotationList() {
+    super();
+  }
+
+  public boolean addSortedExclusive(Annotation annot) {
+    Annotation currAnot;
+    // overlapping check
+
+    for (int i = 0; i < size(); ++i) {
+      currAnot = get(i);
+
+      if (annot.overlaps(currAnot)) {
+        return false;
+      }
     }
 
-    public boolean addSortedExclusive( Annotation annot )
-    {
-        Annotation currAnot;
-                                // overlapping check
+    long annotStart = annot.getStartNode().getOffset();
+    long currStart;
+    //  insert
 
-        for ( int i = 0 ; i < size() ; ++i )
-        {
-            currAnot = get( i );
+    for (int i = 0; i < size(); ++i) {
+      currAnot = get(i);
 
-            if ( annot.overlaps( currAnot ) )
-            {
-                return false;
-            }
-        }
+      currStart = currAnot.getStartNode().getOffset();
 
-        long annotStart = annot.getStartNode().getOffset();
-        long currStart;
-                                //  insert
-
-        for ( int i = 0 ; i < size() ; ++i )
-        {
-            currAnot    = get( i );
-
-            currStart   = currAnot.getStartNode().getOffset();
-
-            if ( annotStart < currStart )
-            {
-                insertElementAt( annot , i );
-                return true;
-            }
-        }
-
-        int size = size();
-
-        insertElementAt( annot , size );
-
+      if (annotStart < currStart) {
+        insertElementAt(annot, i);
         return true;
+      }
     }
+
+    int size = size();
+
+    insertElementAt(annot, size);
+
+    return true;
+  }
 }
 
 /*
@@ -96,6 +88,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,99 +2,73 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namestandardizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+/** NoopNameStandardizer -- returns original proper name untouched. */
+public class NoopNameStandardizer implements NameStandardizer {
+  /**
+   * Load spelling data.
+   *
+   * @param properNamesFileName File containing proper names data.
+   *     <p>Does nothing here.
+   */
+  public void loadNames(String properNamesFileName) throws IOException {}
 
-/** NoopNameStandardizer -- returns original proper name untouched.
- */
+  /**
+   * Load names from a collection of names.
+   *
+   * @param properNamesCollection Collection containing proper names.
+   */
+  public void loadNames(Collection<String> properNamesCollection) {}
 
-public class NoopNameStandardizer
-    implements NameStandardizer
-{
-    /** Load spelling data.
-     *
-     *  @param  properNamesFileName     File containing proper names data.
-     *
-     *  <p>
-     *  Does nothing here.
-     *  </p>
-     */
+  /**
+   * Load names from a lexicon.
+   *
+   * @param lexicon The lexicon from which to load names.
+   *     <p>Does nothing here.
+   */
+  public void loadNamesFromLexicon(Lexicon lexicon) throws IOException {}
 
-    public void loadNames( String properNamesFileName )
-        throws IOException
-    {
-    }
+  /**
+   * Return number of names.
+   *
+   * @return Always returns 0.
+   */
+  public int getNumberOfNames() {
+    return 0;
+  }
 
-    /** Load names from a collection of names.
-     *
-     *  @param  properNamesCollection   Collection containing proper names.
-     */
+  /**
+   * Check if we should not standardize a name.
+   *
+   * @param properName Name to check.
+   * @return Always true to avoid standardizing name.
+   */
+  public boolean dontStandardize(String properName) {
+    return true;
+  }
 
-    public void loadNames( Collection<String> properNamesCollection )
-    {
-    }
+  /**
+   * Preprocess proper name.
+   *
+   * @param properName Proper name to preprocess before standardization.
+   * @return Proper name untouched.
+   */
+  public String preprocessProperName(String properName) {
+    return properName;
+  }
 
-    /** Load names from a lexicon.
-     *
-     *  @param  lexicon     The lexicon from which to load names.
-     *
-     *  <p>
-     *  Does nothing here.
-     *  </p>
-     */
-
-    public void loadNamesFromLexicon( Lexicon lexicon )
-        throws IOException
-    {
-    }
-
-    /** Return number of names.
-     *
-     *  @return     Always returns 0.
-     */
-
-    public int getNumberOfNames()
-    {
-        return 0;
-    }
-
-    /** Check if we should not standardize a name.
-     *
-     *  @param  properName  Name to check.
-     *
-     *  @return             Always true to avoid standardizing name.
-     */
-
-    public boolean dontStandardize( String properName )
-    {
-        return true;
-    }
-
-    /** Preprocess proper name.
-     *
-     *  @param  properName  Proper name to preprocess before standardization.
-     *
-     *  @return             Proper name untouched.
-     */
-
-    public String preprocessProperName( String properName )
-    {
-        return properName;
-    }
-
-    /** Returns standard proper name given a proper name.
-     *
-     *  @param  properName  The proper name.
-     *
-     *  @return             The propert name untouched.
-     */
-
-    public String standardizeProperName( String properName )
-    {
-        return properName;
-    }
+  /**
+   * Returns standard proper name given a proper name.
+   *
+   * @param properName The proper name.
+   * @return The propert name untouched.
+   */
+  public String standardizeProperName(String properName) {
+    return properName;
+  }
 }
 
 /*
@@ -137,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -5,114 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector.conjugator;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** Conjugator factory.
- */
+/** Conjugator factory. */
+public class ConjugatorFactory {
+  /**
+   * Get a conjugator.
+   *
+   * @return The conjugator.
+   */
+  public static Conjugator newConjugator() {
+    String className = System.getProperty("conjugator.class");
 
-public class ConjugatorFactory
-{
-    /** Get a conjugator.
-     *
-     *  @return     The conjugator.
-     */
-
-    public static Conjugator newConjugator()
-    {
-        String className    =
-            System.getProperty( "conjugator.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultConjugator";
-        }
-
-        return newConjugator( className );
+    if (className == null) {
+      className = "DefaultConjugator";
     }
 
-    /** Get a conjugator.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The conjugator.
-     */
+    return newConjugator(className);
+  }
 
-    public static Conjugator newConjugator
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a conjugator.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The conjugator.
+   */
+  public static Conjugator newConjugator(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "conjugator.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultConjugator";
-        }
-
-        return newConjugator( className );
+    if (properties != null) {
+      className = properties.getProperty("conjugator.class");
     }
 
-    /** Get a conjugator of a specified class name.
-     *
-     *  @param  className   Class name for the conjugator.
-     *
-     *  @return             The conjugator.
-     */
-
-    public static Conjugator newConjugator( String className )
-    {
-        Conjugator conjugator   = null;
-
-        try
-        {
-            conjugator  =
-                (Conjugator)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    ConjugatorFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                conjugator  =
-                    (Conjugator)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create conjugator of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    conjugator  = new DefaultConjugator();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null conjugator.
-/*
-                    System.err.println(
-                        "Unable to create conjugator, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return conjugator;
+    if (className == null) {
+      className = "DefaultConjugator";
     }
+
+    return newConjugator(className);
+  }
+
+  /**
+   * Get a conjugator of a specified class name.
+   *
+   * @param className Class name for the conjugator.
+   * @return The conjugator.
+   */
+  public static Conjugator newConjugator(String className) {
+    Conjugator conjugator = null;
+
+    try {
+      conjugator = (Conjugator) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(ConjugatorFactory.class.getName()) + "." + className;
+
+      try {
+        conjugator = (Conjugator) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create conjugator of class " + fixedClassName + ", using default.");
+
+        try {
+          conjugator = new DefaultConjugator();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null conjugator.
+          /*
+                              System.err.println(
+                                  "Unable to create conjugator, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return conjugator;
+  }
 }
 
 /*
@@ -155,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

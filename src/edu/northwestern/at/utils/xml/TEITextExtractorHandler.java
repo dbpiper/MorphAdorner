@@ -2,130 +2,96 @@ package edu.northwestern.at.utils.xml;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
-
 import java.text.*;
 import java.util.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
-
-/** SAX event handler to extract text from a TEI XML file.
+/**
+ * SAX event handler to extract text from a TEI XML file.
  *
- *  <p>
- *  Only the text between &lt;text&gt; and &lt;/text&gt; tags
- *  is extracted.  No effort is made to capture any of the
- *  original text division marked by the XML tags.
- *  </p>
+ * <p>Only the text between &lt;text&gt; and &lt;/text&gt; tags is extracted. No effort is made to
+ * capture any of the original text division marked by the XML tags.
  */
+public class TEITextExtractorHandler extends DefaultHandler {
+  /** Holds the extracted text. */
+  protected StringBuffer extractedText = new StringBuffer();
 
-public class TEITextExtractorHandler extends DefaultHandler
-{
-    /** Holds the extracted text. */
+  /** Track if we're in <text> element. */
+  protected static boolean inText = false;
 
-    protected StringBuffer extractedText    = new StringBuffer();
+  /** Create text extractor handler. */
+  public TEITextExtractorHandler() {
+    super();
+  }
 
-    /** Track if we're in <text> element. */
+  /**
+   * Handle start of an XML element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   * @param atts The XML element's attributes.
+   */
+  public void startElement(String uri, String localName, String qName, Attributes atts)
+      throws SAXException {
+    //  Start accumulating text
+    //  if <text> seen.
 
-    protected static boolean inText = false;
-
-    /** Create text extractor handler.
-      */
-
-    public TEITextExtractorHandler()
-    {
-        super();
+    if (qName.equals("text")) {
+      inText = true;
     }
 
-    /** Handle start of an XML element.
-      *
-      * @param  uri         The XML element's URI.
-      * @param  localName   The XML element's local name.
-      * @param  qName       The XML element's qname.
-      * @param  atts        The XML element's attributes.
-      */
+    super.startElement(uri, localName, qName, atts);
+  }
 
-    public void startElement
-    (
-        String uri ,
-        String localName ,
-        String qName ,
-        Attributes atts
-    )
-        throws SAXException
-    {
-                                //  Start accumulating text
-                                //  if <text> seen.
+  /**
+   * Handle end of an element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   */
+  public void endElement(String uri, String localName, String qName) throws SAXException {
+    //  Stop accumulating text
+    //  if </text> found.
 
-        if ( qName.equals( "text" ) )
-        {
-            inText  = true;
-        }
-
-        super.startElement( uri , localName , qName , atts );
+    if (qName.equals("text")) {
+      inText = false;
     }
 
-    /** Handle end of an element.
-     *
-     *  @param  uri         The XML element's URI.
-     *  @param  localName   The XML element's local name.
-     *  @param  qName       The XML element's qname.
-     */
+    super.endElement(uri, localName, qName);
+  }
 
-    public void endElement
-    (
-        String uri ,
-        String localName ,
-        String qName
-    )
-        throws SAXException
-    {
-                                //  Stop accumulating text
-                                //  if </text> found.
-
-        if ( qName.equals( "text" ) )
-        {
-            inText  = false;
-        }
-
-        super.endElement( uri , localName , qName );
+  /**
+   * Handle character data.
+   *
+   * @param ch Array of characters.
+   * @param start The starting position in the array.
+   * @param length The number of characters.
+   * @throws org.xml.sax.SAXException If there is an error.
+   */
+  public void characters(char ch[], int start, int length) throws SAXException {
+    //  If we're in <text> ... </text>,
+    //  append these characters to
+    //  the output text.
+    if (inText) {
+      extractedText.append(new String(ch, start, length));
     }
 
-    /** Handle character data.
-     *
-     *  @param  ch      Array of characters.
-     *  @param  start   The starting position in the array.
-     *  @param  length  The number of characters.
-     *
-     *  @throws org.xml.sax.SAXException If there is an error.
-     */
+    super.characters(ch, start, length);
+  }
 
-    public void characters( char ch[] , int start , int length )
-        throws SAXException
-    {
-                                //  If we're in <text> ... </text>,
-                                //  append these characters to
-                                //  the output text.
-        if ( inText )
-        {
-            extractedText.append( new String( ch , start , length ) );
-        }
-
-        super.characters( ch , start , length );
-    }
-
-    /** Return extracted text.
-     *
-     *  @return     The extracted text.
-     */
-
-    public String getExtractedText()
-    {
-        return extractedText.toString();
-    }
+  /**
+   * Return extracted text.
+   *
+   * @return The extracted text.
+   */
+  public String getExtractedText() {
+    return extractedText.toString();
+  }
 }
 
 /*
@@ -168,6 +134,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

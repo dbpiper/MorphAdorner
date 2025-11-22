@@ -143,8 +143,8 @@
 	<target name="resolve"
 		depends="install-ivy"
 		description="Retrieve dependencies using ivy">
-		<ivy:retrieve pattern="${lib.dir}/[originalname].[ext]" conf="main" type="jar"/>
-		<ivy:retrieve pattern="${gatelib.dir}/[originalname].[ext]" conf="gate" type="jar"/>
+		<ivy:retrieve pattern="${lib.dir}/[originalname].[ext]" conf="main" type="jar,bundle"/>
+		<ivy:retrieve pattern="${gatelib.dir}/[originalname].[ext]" conf="gate" type="jar,bundle"/>
 	</target>
 
 	<!-- Delete the output directories. -->
@@ -154,6 +154,31 @@
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${dist.dir}"/>
 	</target>
+
+    <!-- Format all Java sources using google-java-format. -->
+
+    <target name="format"
+        depends="resolve"
+        description="Format all Java sources with google-java-format">
+        <pathconvert property="formatter.files.list" pathsep=" ">
+            <fileset dir="${src.dir}" includes="**/*.java"/>
+        </pathconvert>
+        <path id="formatter.classpath">
+            <fileset dir="${lib.dir}" includes="**/*.jar"/>
+        </path>
+        <java classname="com.google.googlejavaformat.java.Main"
+            classpathref="formatter.classpath"
+            fork="true"
+            failonerror="true">
+            <arg value="-i"/>
+            <arg line="${formatter.files.list}"/>
+            <jvmarg value="--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"/>
+            <jvmarg value="--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED"/>
+            <jvmarg value="--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED"/>
+            <jvmarg value="--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"/>
+            <jvmarg value="--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"/>
+        </java>
+    </target>
 
 	<!-- Create the output directories for the classes, javadocs, etc. -->
 

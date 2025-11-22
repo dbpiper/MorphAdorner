@@ -2,122 +2,100 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.adornedword;
 
 /*  Please see the license information at the end of this file. */
 
-/** Interface for a word adorned with addition morphological information.
+/**
+ * Interface for a word adorned with addition morphological information.
  *
- *  <p>
- *  An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
- *  represents a single word spelling,
- *  symbol, or punctuation mark in text.
- *  </p>
+ * <p>An {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
+ * represents a single word spelling, symbol, or punctuation mark in text.
  *
- *  <p>
- *  An adorned word records the following information.
- *  </p>
+ * <p>An adorned word records the following information.
  *
- *  <ul>
- *      <li>The original form of the token as it appears in input text.
- *          </li>
- *      <li>The spelling form of the token with transcription errors
- *          corrected.  This is the form used by MorphAdorner for
- *          subsequent morphological processing.
- *          </li>
- *      <li>A standard spelling.  This is the standard modern form
- *          of the spelling for a word.  If the word is obsolete, the
- *          standard form is the most recent commonly used spelling.
- *          </li>
- *      <li>A lemma.  This is the standard dictionary headword form
- *          of the spelling.  Some spellings such as contractions
- *          contain multiple lemmata.  In this case, the lemma
- *          consists of a string of individual lemmata separated
- *          by a separator character, usually a vertical bar "|".
- *          For example, the lemma form of
- *          the contraction "isn't" is "be|not".
- *          </li>
- *      <li>A part of speech.  Each lemma form in the spelling
- *          has an associated part of speech.  Depending upon
- *          the tag set, the individual parts of speech may be
- *          separated by colons, slashes, vertical bars, etc.
- *          </li>
- *  </ul>
+ * <ul>
+ *   <li>The original form of the token as it appears in input text.
+ *   <li>The spelling form of the token with transcription errors corrected. This is the form used
+ *       by MorphAdorner for subsequent morphological processing.
+ *   <li>A standard spelling. This is the standard modern form of the spelling for a word. If the
+ *       word is obsolete, the standard form is the most recent commonly used spelling.
+ *   <li>A lemma. This is the standard dictionary headword form of the spelling. Some spellings such
+ *       as contractions contain multiple lemmata. In this case, the lemma consists of a string of
+ *       individual lemmata separated by a separator character, usually a vertical bar "|". For
+ *       example, the lemma form of the contraction "isn't" is "be|not".
+ *   <li>A part of speech. Each lemma form in the spelling has an associated part of speech.
+ *       Depending upon the tag set, the individual parts of speech may be separated by colons,
+ *       slashes, vertical bars, etc.
+ * </ul>
  */
+public interface AdornedWord {
+  /**
+   * Get the original token.
+   *
+   * @return The original token.
+   */
+  public String getToken();
 
-public interface AdornedWord
-{
-    /** Get the original token.
-     *
-     *  @return     The original token.
-     */
+  /**
+   * Set the original token.
+   *
+   * @param token The original token.
+   */
+  public void setToken(String token);
 
-    public String getToken();
+  /**
+   * Get the spelling.
+   *
+   * @return The spelling.
+   */
+  public String getSpelling();
 
-    /** Set the original token.
-     *
-     *  @param  token   The original token.
-     */
+  /**
+   * Set the spelling.
+   *
+   * @param spelling The spelling.
+   */
+  public void setSpelling(String spelling);
 
-    public void setToken( String token );
+  /**
+   * Get the standard spelling.
+   *
+   * @return The standard spelling.
+   */
+  public String getStandardSpelling();
 
-    /** Get the spelling.
-     *
-     *  @return     The spelling.
-     */
+  /**
+   * Set the standard spelling.
+   *
+   * @param standardSpelling The standard spelling.
+   */
+  public void setStandardSpelling(String standardSpelling);
 
-    public String getSpelling();
+  /**
+   * Get the lemmata.
+   *
+   * @return The lemmata.
+   *     <p>Compound lemmata are separated by a separator tring.
+   */
+  public String getLemmata();
 
-    /** Set the spelling.
-     *
-     *  @param  spelling    The spelling.
-     */
+  /**
+   * Set the lemmata.
+   *
+   * @param lemmata The lemmata.
+   */
+  public void setLemmata(String lemmata);
 
-    public void setSpelling( String spelling );
+  /**
+   * Get the parts of speech.
+   *
+   * @return The parts of speech.
+   */
+  public String getPartsOfSpeech();
 
-    /** Get the standard spelling.
-     *
-     *  @return     The standard spelling.
-     */
-
-    public String getStandardSpelling();
-
-    /** Set the standard spelling.
-     *
-     *  @param  standardSpelling    The standard spelling.
-     */
-
-    public void setStandardSpelling( String standardSpelling );
-
-    /** Get the lemmata.
-     *
-     *  @return     The lemmata.
-     *
-     *  <p>
-     *  Compound lemmata are separated by a separator tring.
-     *  </p>
-     */
-
-    public String getLemmata();
-
-    /** Set the lemmata.
-     *
-     *  @param  lemmata     The lemmata.
-     */
-
-    public void setLemmata( String lemmata );
-
-    /** Get the parts of speech.
-     *
-     *  @return     The parts of speech.
-     */
-
-    public String getPartsOfSpeech();
-
-    /** Set the parts of speech.
-     *
-     *  @param  partsOfSpeech   The parts of speech, separated by
-     *                              a tag set dependent separator
-     *                              string.
-     */
-
-    public void setPartsOfSpeech( String partsOfSpeech );
+  /**
+   * Set the parts of speech.
+   *
+   * @param partsOfSpeech The parts of speech, separated by a tag set dependent separator string.
+   */
+  public void setPartsOfSpeech(String partsOfSpeech);
 }
 
 /*
@@ -160,6 +138,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

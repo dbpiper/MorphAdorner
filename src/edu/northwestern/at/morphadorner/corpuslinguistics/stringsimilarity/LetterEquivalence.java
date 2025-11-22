@@ -2,124 +2,99 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.MapFactory;
 import java.math.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.MapFactory;
+/** Letter equivalence for two strings. */
+public class LetterEquivalence implements StringSimilarity {
+  /** Create LetterEquivalence instance. */
+  public LetterEquivalence() {}
 
-/** Letter equivalence for two strings.
- */
+  /**
+   * Compute letter equivalence for two strings.
+   *
+   * @param s1 First string.
+   * @param s2 Second string.
+   * @return Letter equivalence value.
+   */
+  public static int letterEquivalence(String s1, String s2) {
+    int result = 0;
 
-public class LetterEquivalence implements StringSimilarity
-{
-    /** Create LetterEquivalence instance. */
+    if ((s1 == null) || (s2 == null)) return result;
 
-    public LetterEquivalence()
-    {
+    Map<String, Integer> s1Map = MapFactory.createNewMap();
+    Map<String, Integer> s2Map = MapFactory.createNewMap();
+
+    for (int i = 0; i < s1.length(); i++) {
+      String c = s1.charAt(i) + "";
+
+      if (s1Map.get(c) == null) {
+        s1Map.put(c, new Integer(1));
+      } else {
+        int count = ((Integer) s1Map.get(c)).intValue();
+        s1Map.put(c, new Integer(count + 1));
+      }
     }
 
-    /** Compute letter equivalence for two strings.
-     *
-     *  @param  s1  First string.
-     *  @param  s2  Second string.
-     *
-     *  @return     Letter equivalence value.
-     */
+    for (int i = 0; i < s2.length(); i++) {
+      String c = s2.charAt(i) + "";
 
-    public static int letterEquivalence( String s1 , String s2 )
-    {
-        int result  = 0;
-
-        if ( ( s1 == null ) || ( s2 == null ) ) return result;
-
-        Map<String, Integer> s1Map  = MapFactory.createNewMap();
-        Map<String, Integer> s2Map  = MapFactory.createNewMap();
-
-        for ( int i = 0 ; i < s1.length() ; i++ )
-        {
-            String c    = s1.charAt( i ) + "";
-
-            if ( s1Map.get( c ) == null )
-            {
-                s1Map.put( c , new Integer( 1 ) );
-            }
-            else
-            {
-                int count   = ((Integer)s1Map.get( c )).intValue();
-                s1Map.put( c , new Integer( count + 1 ) );
-            }
-        }
-
-        for ( int i = 0 ; i < s2.length() ; i++ )
-        {
-            String c    = s2.charAt( i ) + "";
-
-            if ( s2Map.get( c ) == null )
-            {
-                s2Map.put( c , new Integer( 1 ) );
-            }
-            else
-            {
-                int count   = ((Integer)s2Map.get( c )).intValue();
-                s2Map.put( c , new Integer( count + 1 ) );
-            }
-        }
-
-        Iterator<String> iterator   = s1Map.keySet().iterator();
-
-        while ( iterator.hasNext() )
-        {
-            String c    = iterator.next();
-            int count   = s1Map.get( c ).intValue();
-
-            if ( s2Map.get( c ) != null )
-            {
-                int count2  = s2Map.get( c ).intValue();
-
-                if ( count == count2 ) result++;
-            }
-        }
-
-        return result;
+      if (s2Map.get(c) == null) {
+        s2Map.put(c, new Integer(1));
+      } else {
+        int count = ((Integer) s2Map.get(c)).intValue();
+        s2Map.put(c, new Integer(count + 1));
+      }
     }
 
-    /** Compute letter equivalence similarity of two strings.
-     *
-     *  @param  s1  First string.
-     *  @param  s2  Second string.
-     *
-     *  @return     Similarity measure in the range [0,1] .
-     */
+    Iterator<String> iterator = s1Map.keySet().iterator();
 
-    public static double letterEquivalenceSimilarity( String s1 , String s2 )
-    {
-        double result   = 0.0D;
+    while (iterator.hasNext()) {
+      String c = iterator.next();
+      int count = s1Map.get(c).intValue();
 
-        if ( ( s1 != null ) && ( s2 != null ) )
-        {
-            double dl   = Math.min( s1.length() , s2.length() );
+      if (s2Map.get(c) != null) {
+        int count2 = s2Map.get(c).intValue();
 
-            if ( dl > 0.0D )
-            {
-                result  = letterEquivalence( s1 , s2 ) / dl;
-            }
-        }
-
-        return result;
+        if (count == count2) result++;
+      }
     }
 
-    /** Compute letter equivalence similarity of two strings.
-     *
-     *  @param  s1  First string.
-     *  @param  s2  Second string.
-     *
-     *  @return     Similarity measure in the range [0,1] .
-     */
+    return result;
+  }
 
-    public double similarity( String s1 , String s2 )
-    {
-        return letterEquivalenceSimilarity( s1 , s2 );
+  /**
+   * Compute letter equivalence similarity of two strings.
+   *
+   * @param s1 First string.
+   * @param s2 Second string.
+   * @return Similarity measure in the range [0,1] .
+   */
+  public static double letterEquivalenceSimilarity(String s1, String s2) {
+    double result = 0.0D;
+
+    if ((s1 != null) && (s2 != null)) {
+      double dl = Math.min(s1.length(), s2.length());
+
+      if (dl > 0.0D) {
+        result = letterEquivalence(s1, s2) / dl;
+      }
     }
+
+    return result;
+  }
+
+  /**
+   * Compute letter equivalence similarity of two strings.
+   *
+   * @param s1 First string.
+   * @param s2 Second string.
+   * @return Similarity measure in the range [0,1] .
+   */
+  public double similarity(String s1, String s2) {
+    return letterEquivalenceSimilarity(s1, s2);
+  }
 }
 
 /*
@@ -162,6 +137,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

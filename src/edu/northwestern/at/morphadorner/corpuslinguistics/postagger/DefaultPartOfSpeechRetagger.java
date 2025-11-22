@@ -2,32 +2,24 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.iretagger.*;
+import edu.northwestern.at.utils.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.iretagger.*;
-
-/** Default Part of Speech Retagger.
+/**
+ * Default Part of Speech Retagger.
  *
- *  <p>
- *  The default part of speech retagger fixes up the tagging of
- *  "I" spellings.
- *  </p>
+ * <p>The default part of speech retagger fixes up the tagging of "I" spellings.
  */
-
-public class DefaultPartOfSpeechRetagger
-    extends IRetagger
-    implements PartOfSpeechRetagger
-{
-    /** Create default part of speech retagger.
-     *
-     *  @throws Exception   when retagger initialization fails.
-     */
-
-    public DefaultPartOfSpeechRetagger()
-    {
-        super();
-    }
+public class DefaultPartOfSpeechRetagger extends IRetagger implements PartOfSpeechRetagger {
+  /**
+   * Create default part of speech retagger.
+   *
+   * @throws Exception when retagger initialization fails.
+   */
+  public DefaultPartOfSpeechRetagger() {
+    super();
+  }
 }
 
 /*
@@ -70,6 +62,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

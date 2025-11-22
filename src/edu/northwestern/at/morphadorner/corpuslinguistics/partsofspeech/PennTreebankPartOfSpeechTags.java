@@ -6,33 +6,17 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-/** PennTreebankPartOfSpeechTags: Penn Treebank part of speech tags.
- */
+/** PennTreebankPartOfSpeechTags: Penn Treebank part of speech tags. */
+public class PennTreebankPartOfSpeechTags extends AbstractPartOfSpeechTags
+    implements PartOfSpeechTags {
+  /** Path to Penn Treebank tag definitions. */
+  protected static final String pennTreebankResourcePath = "resources/penntreebanktags.properties";
 
-public class PennTreebankPartOfSpeechTags
-    extends AbstractPartOfSpeechTags
-    implements PartOfSpeechTags
-{
-    /** Path to Penn Treebank tag definitions. */
-
-    protected final static String pennTreebankResourcePath  =
-        "resources/penntreebanktags.properties";
-
-    /** Create Penn Treebank part of speech tags.
-     */
-
-    public PennTreebankPartOfSpeechTags()
-        throws IOException
-    {
-        loadTags
-        (
-            PennTreebankPartOfSpeechTags.class.getResourceAsStream
-            (
-                pennTreebankResourcePath
-            ) ,
-            "utf-8"
-        );
-    }
+  /** Create Penn Treebank part of speech tags. */
+  public PennTreebankPartOfSpeechTags() throws IOException {
+    loadTags(
+        PennTreebankPartOfSpeechTags.class.getResourceAsStream(pennTreebankResourcePath), "utf-8");
+  }
 }
 
 /*
@@ -75,6 +59,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

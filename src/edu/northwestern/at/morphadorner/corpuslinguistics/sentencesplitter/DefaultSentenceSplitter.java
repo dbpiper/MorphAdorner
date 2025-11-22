@@ -2,33 +2,26 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
 import java.util.regex.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-
-/** Splits text into sentences.
+/**
+ * Splits text into sentences.
  *
- *  <p>
- *  Uses the built-in Java BreakIterator class to identify candidate
- *  sentences.  Several heuristics are used to correct the sentence
- *  identification produced by BreakIterator when a sentence potentially
- *  ends with an abbreviation or a bracket character (right parenthesis,
- *  right bracket, or right brace).
- *  </p>
+ * <p>Uses the built-in Java BreakIterator class to identify candidate sentences. Several heuristics
+ * are used to correct the sentence identification produced by BreakIterator when a sentence
+ * potentially ends with an abbreviation or a bracket character (right parenthesis, right bracket,
+ * or right brace).
  */
-
-public class DefaultSentenceSplitter
-    extends ICU4JBreakIteratorSentenceSplitter
-    implements SentenceSplitter
-{
-    public DefaultSentenceSplitter()
-    {
-        super();
-    }
+public class DefaultSentenceSplitter extends ICU4JBreakIteratorSentenceSplitter
+    implements SentenceSplitter {
+  public DefaultSentenceSplitter() {
+    super();
+  }
 }
 
 /*
@@ -71,6 +64,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

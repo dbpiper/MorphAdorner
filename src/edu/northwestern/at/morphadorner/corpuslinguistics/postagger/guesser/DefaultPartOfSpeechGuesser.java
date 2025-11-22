@@ -2,434 +2,315 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.guesser;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** Default part of speech guesser.
+/**
+ * Default part of speech guesser.
  *
- *  <p>
- *  This default guesser returns a noun, number or punctuation tag.
- *  The lexicon provides the part of speech tags for these items.
- *  </p>
+ * <p>This default guesser returns a noun, number or punctuation tag. The lexicon provides the part
+ * of speech tags for these items.
  */
-
-public class DefaultPartOfSpeechGuesser
-    extends AbstractPartOfSpeechGuesser
-    implements PartOfSpeechGuesser
-{
-    /** Guesses candidate parts of speech for a word.
-     *
-     *  @param  theWord     The word.
-     *
-     *  @return             Guessed parts of speech.
-     */
-
-    public Map<String, MutableInteger> guessPartsOfSpeech( String theWord )
-    {
-        if ( debug )
-        {
-            logger.logDebug( "guessPartsOfSpeech: word=" + theWord );
-        }
-
-        String word = theWord;
-
-                                //  Is word in cache?  Return
-                                //  existing parts of speech if so.
-
-        Map<String, MutableInteger> result  = checkCachedWord( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   in cache, pos=" + result
-                );
-            }
-
-            if ( result.size() == 0 ) result = null;
-        }
-
-        if ( result != null ) return result;
-
-                                //  If the word is in the word lexicon,
-                                //  get the parts of speech from
-                                //  the lexicon.
-
-        if ( wordLexicon != null )
-        {
-            if ( wordLexicon.containsEntry( word ) )
-            {
-                result  =
-                    clonePosTagMap
-                    (
-                        wordLexicon.getCategoryCountsForEntry( word )
-                    );
-            }
-
-            if ( result != null )
-            {
-                if ( debug )
-                {
-                    logger.logDebug
-                    (
-                        "guessPartsOfSpeech:   in word lexicon, pos=" + result
-                    );
-                }
-            }
-
-            if ( result != null ) return result;
-
-                                //  If the word is all caps,
-                                //  change it to first letter capitalized
-                                //  only for the remainder of the
-                                //  checks.
-
-//          word    = EnglishDecruftifier.decruftify( word );
-
-            if ( CharUtils.allLettersCapital( word ) )
-            {
-                word    = CharUtils.capitalizeFirstLetter( word );
-
-                                //  Look up recapitalized word
-                                //  in lexicon.
-
-                if ( wordLexicon.containsEntry( word ) )
-                {
-                    result  =
-                        clonePosTagMap
-                        (
-                            wordLexicon.getCategoryCountsForEntry( word )
-                        );
-                }
-
-                if ( result != null )
-                {
-                    if ( debug )
-                    {
-                        logger.logDebug
-                        (
-                            "guessPartsOfSpeech:   recapitalized in word " +
-                            "lexicon, pos=" + result
-                        );
-                    }
-                }
-
-                if ( result != null ) return result;
-            }
-        }
-                                //  If punctuation, return that
-                                //  unchanged.
-
-        result  = checkPunctuation( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is punctuation, pos=" + result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  If symbol, return that
-                                //  unchanged.
-
-        result  = checkSymbol( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is symbol, pos=" + result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  See if it is a number.
-
-        result  = checkNumber( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is number, pos=" + result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  See if it is currency.
-
-        result  = checkCurrency( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is currency, pos=" + result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  See if it is an abbreviation.
-
-        result  = checkAbbreviation( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is abbreviation, pos=" + result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  See if it is a Roman Numeral.
-
-        result  = checkRomanNumeral( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is Roman numeral, pos=" +
-                    result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  Check for hyphenated word.
-
-        result  = checkHyphenatedWord( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is hyphenated word, pos=" +
-                    result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  See if we have any standardized
-                                //  spellings for this word.  If so,
-                                //  and the word is in the word lexicon,
-                                //  return the parts of speech for
-                                //  the standardized spellings.
-
-        String[] standardSpellings  = getStandardizedSpellings( word );
-
-        if ( standardSpellings != null )
-        {
-            result  = checkStandardSpellings( word , standardSpellings );
-
-            if ( result != null )
-            {
-                if ( debug )
-                {
-                    logger.logDebug
-                    (
-                        "guessPartsOfSpeech:   from standard spellings, " +
-                        "pos=" + result
-                    );
-                }
-            }
-
-            if ( result != null ) return result;
-        }
-                                //  Standard spelling not found in
-                                //  lexicon.
-
-                                //  See if it is a proper name.
-
-        result  = checkName( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is name, pos=" + result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  See if it is a possessive.
-
-        result  = checkPossessiveNoun( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is possessive, pos=" + result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  See if word is in the auxiliary
-                                //  word lists.
-
-        result  = checkAuxiliaryWordLists( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   from auxiliary word lists, " +
-                    "pos=" + result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  Try looking at successively shorter
-                                //  suffixes and assign part of speech tags
-                                //  for the longest matching suffix in
-                                //  the suffix lexicon, if any.
-
-        if ( suffixLexicon != null )
-        {
-            result  = checkSuffixes( word , standardSpellings );
-
-            if ( result != null )
-            {
-                if ( debug )
-                {
-                    logger.logDebug
-                    (
-                        "guessPartsOfSpeech:   from suffix analysis, " +
-                        "pos=" + result
-                    );
-                }
-            }
-
-            if ( result != null ) return result;
-        }
-                                //  No suffix matched.
-                                //  If all uppercase, assume it is
-                                //  a noun.
-
-        result  = checkAllUpperCase( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   is all uppercase, pos=" +
-                    result
-                );
-            }
-        }
-
-        if ( result != null ) return result;
-
-                                //  Nothing matched so far.
-                                //  Assume word is a noun.
-
-        result  = getNoun( word );
-
-        if ( result != null )
-        {
-            if ( debug )
-            {
-                logger.logDebug
-                (
-                    "guessPartsOfSpeech:   assigning noun, pos=" + result
-                );
-            }
-        }
-
-        // Last chance (zz = "unknown") if we still don't have a POS
-        if (result == null) result = posTagToMap("zz");
-
-        return result;
+public class DefaultPartOfSpeechGuesser extends AbstractPartOfSpeechGuesser
+    implements PartOfSpeechGuesser {
+  /**
+   * Guesses candidate parts of speech for a word.
+   *
+   * @param theWord The word.
+   * @return Guessed parts of speech.
+   */
+  public Map<String, MutableInteger> guessPartsOfSpeech(String theWord) {
+    if (debug) {
+      logger.logDebug("guessPartsOfSpeech: word=" + theWord);
     }
 
-    /** Guesses part of speech for a word in a sentence.
-     *
-     *  @param  sentence        Sentence as a list of words.
-     *  @param  wordIndex       The word index in the sentence.
-     *
-     *  @return                 Guessed parts of speech.
-     */
+    String word = theWord;
 
-     public Map<String, MutableInteger> guessPartsOfSpeech
-     (
-        List<String> sentence ,
-        int wordIndex
-     )
-     {
-        String word = (String)sentence.get( wordIndex );
+    //  Is word in cache?  Return
+    //  existing parts of speech if so.
 
-                                //  Check for capitalized word not
-                                //  first word in sentence.
-/*
-        if ( wordIndex > 0 )
-        {
-                                //  If word starts with a capital
-                                //  letter, assume it is a proper name.
+    Map<String, MutableInteger> result = checkCachedWord(word);
 
-            if ( ( 'A' <= word.charAt( 0 ) ) && ( word.charAt( 0 ) <= 'Z' ) )
-            {
-                String[] result =
-                    new String[]{ wordLexicon.getSingularProperNounPOS() };
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   in cache, pos=" + result);
+      }
 
-                addCachedWord( word , result );
+      if (result.size() == 0) result = null;
+    }
 
-                return result;
-            }
+    if (result != null) return result;
+
+    //  If the word is in the word lexicon,
+    //  get the parts of speech from
+    //  the lexicon.
+
+    if (wordLexicon != null) {
+      if (wordLexicon.containsEntry(word)) {
+        result = clonePosTagMap(wordLexicon.getCategoryCountsForEntry(word));
+      }
+
+      if (result != null) {
+        if (debug) {
+          logger.logDebug("guessPartsOfSpeech:   in word lexicon, pos=" + result);
         }
-*/
-        return guessPartsOfSpeech( word );
-     }
+      }
+
+      if (result != null) return result;
+
+      //  If the word is all caps,
+      //  change it to first letter capitalized
+      //  only for the remainder of the
+      //  checks.
+
+      //          word    = EnglishDecruftifier.decruftify( word );
+
+      if (CharUtils.allLettersCapital(word)) {
+        word = CharUtils.capitalizeFirstLetter(word);
+
+        //  Look up recapitalized word
+        //  in lexicon.
+
+        if (wordLexicon.containsEntry(word)) {
+          result = clonePosTagMap(wordLexicon.getCategoryCountsForEntry(word));
+        }
+
+        if (result != null) {
+          if (debug) {
+            logger.logDebug(
+                "guessPartsOfSpeech:   recapitalized in word " + "lexicon, pos=" + result);
+          }
+        }
+
+        if (result != null) return result;
+      }
+    }
+    //  If punctuation, return that
+    //  unchanged.
+
+    result = checkPunctuation(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is punctuation, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  If symbol, return that
+    //  unchanged.
+
+    result = checkSymbol(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is symbol, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  See if it is a number.
+
+    result = checkNumber(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is number, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  See if it is currency.
+
+    result = checkCurrency(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is currency, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  See if it is an abbreviation.
+
+    result = checkAbbreviation(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is abbreviation, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  See if it is a Roman Numeral.
+
+    result = checkRomanNumeral(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is Roman numeral, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  Check for hyphenated word.
+
+    result = checkHyphenatedWord(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is hyphenated word, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  See if we have any standardized
+    //  spellings for this word.  If so,
+    //  and the word is in the word lexicon,
+    //  return the parts of speech for
+    //  the standardized spellings.
+
+    String[] standardSpellings = getStandardizedSpellings(word);
+
+    if (standardSpellings != null) {
+      result = checkStandardSpellings(word, standardSpellings);
+
+      if (result != null) {
+        if (debug) {
+          logger.logDebug("guessPartsOfSpeech:   from standard spellings, " + "pos=" + result);
+        }
+      }
+
+      if (result != null) return result;
+    }
+    //  Standard spelling not found in
+    //  lexicon.
+
+    //  See if it is a proper name.
+
+    result = checkName(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is name, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  See if it is a possessive.
+
+    result = checkPossessiveNoun(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is possessive, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  See if word is in the auxiliary
+    //  word lists.
+
+    result = checkAuxiliaryWordLists(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   from auxiliary word lists, " + "pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  Try looking at successively shorter
+    //  suffixes and assign part of speech tags
+    //  for the longest matching suffix in
+    //  the suffix lexicon, if any.
+
+    if (suffixLexicon != null) {
+      result = checkSuffixes(word, standardSpellings);
+
+      if (result != null) {
+        if (debug) {
+          logger.logDebug("guessPartsOfSpeech:   from suffix analysis, " + "pos=" + result);
+        }
+      }
+
+      if (result != null) return result;
+    }
+    //  No suffix matched.
+    //  If all uppercase, assume it is
+    //  a noun.
+
+    result = checkAllUpperCase(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   is all uppercase, pos=" + result);
+      }
+    }
+
+    if (result != null) return result;
+
+    //  Nothing matched so far.
+    //  Assume word is a noun.
+
+    result = getNoun(word);
+
+    if (result != null) {
+      if (debug) {
+        logger.logDebug("guessPartsOfSpeech:   assigning noun, pos=" + result);
+      }
+    }
+
+    // Last chance (zz = "unknown") if we still don't have a POS
+    if (result == null) result = posTagToMap("zz");
+
+    return result;
+  }
+
+  /**
+   * Guesses part of speech for a word in a sentence.
+   *
+   * @param sentence Sentence as a list of words.
+   * @param wordIndex The word index in the sentence.
+   * @return Guessed parts of speech.
+   */
+  public Map<String, MutableInteger> guessPartsOfSpeech(List<String> sentence, int wordIndex) {
+    String word = (String) sentence.get(wordIndex);
+
+    //  Check for capitalized word not
+    //  first word in sentence.
+    /*
+            if ( wordIndex > 0 )
+            {
+                                    //  If word starts with a capital
+                                    //  letter, assume it is a proper name.
+
+                if ( ( 'A' <= word.charAt( 0 ) ) && ( word.charAt( 0 ) <= 'Z' ) )
+                {
+                    String[] result =
+                        new String[]{ wordLexicon.getSingularProperNounPOS() };
+
+                    addCachedWord( word , result );
+
+                    return result;
+                }
+            }
+    */
+    return guessPartsOfSpeech(word);
+  }
 }
 
 /*
@@ -472,6 +353,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

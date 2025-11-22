@@ -2,239 +2,191 @@ package edu.northwestern.at.utils.logger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import java.io.*;
-
 import edu.northwestern.at.utils.DebugUtils;
+import java.io.*;
+import java.util.*;
 
-/** Simple logger which outputs log messages to standard error.
- */
+/** Simple logger which outputs log messages to standard error. */
+public class StandardErrorLogger implements Logger {
+  /** PrintStream for output. */
+  protected PrintStream printStream = null;
 
-public class StandardErrorLogger implements Logger
-{
-    /** PrintStream for output. */
+  /** True if logger enabled. */
+  protected boolean loggerEnabled = false;
 
-    protected PrintStream printStream   = null;
+  /** Error level strings for display. */
+  protected static final String[] errorLevelStrings =
+      new String[] {"FATAL", "ERROR", "WARN ", "INFO ", "DEBUG"};
 
-    /** True if logger enabled. */
+  /** Lock for synchronizing output. */
+  protected Object lock = new Object();
 
-    protected  boolean loggerEnabled = false;
+  /** Create a standard error logger. */
+  public StandardErrorLogger() {
+    //  Open UTF-8 output stream.
+    try {
+      printStream = new PrintStream(new BufferedOutputStream(System.err), true, "utf-8");
 
-    /** Error level strings for display. */
+      loggerEnabled = false;
+    } catch (Exception e) {
+      loggerEnabled = false;
+    }
+  }
 
-    protected static final String[] errorLevelStrings   =
-        new String[]{ "FATAL" , "ERROR" , "WARN " , "INFO " , "DEBUG" };
+  /** Terminates the logger. */
+  public void terminate() {
+    synchronized (lock) {
+      try {
+        printStream.close();
 
-    /** Lock for synchronizing output. */
+        loggerEnabled = false;
+      } catch (Exception e) {
+      }
+    }
+  }
 
-    protected Object lock = new Object();
+  /**
+   * Logs a message at the DEBUG level.
+   *
+   * @param str Log message.
+   */
+  public void logDebug(String str) {
+    log(LoggerConstants.DEBUG, str);
+  }
 
-    /** Create a standard error logger.
-     */
+  /**
+   * Logs a message at the INFO level.
+   *
+   * @param str Log message.
+   */
+  public void logInfo(String str) {
+    log(LoggerConstants.INFO, str);
+  }
 
-    public StandardErrorLogger()
-    {
-                                //  Open UTF-8 output stream.
-        try
-        {
-            printStream     =
-                new PrintStream
-                (
-                    new BufferedOutputStream( System.err ) ,
-                    true ,
-                    "utf-8"
-                );
+  /**
+   * Logs a message at the WARN level.
+   *
+   * @param str Log message.
+   */
+  public void logWarning(String str) {
+    log(LoggerConstants.WARN, str);
+  }
 
-            loggerEnabled = false;
-        }
-        catch ( Exception e )
-        {
-            loggerEnabled   = false;
-        }
+  /**
+   * Logs a message at the ERROR level.
+   *
+   * @param str Log message.
+   */
+  public void logError(String str) {
+    log(LoggerConstants.ERROR, str);
+  }
+
+  /**
+   * Logs a error message with a stack trace.
+   *
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void logError(String str, Throwable t) {
+    log(LoggerConstants.ERROR, str, t);
+  }
+
+  /**
+   * Logs a message at the FATAL level.
+   *
+   * @param str Log message.
+   */
+  public void logFatal(String str) {
+    log(LoggerConstants.FATAL, str);
+  }
+
+  /**
+   * Logs a fatal message with a stack trace.
+   *
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void logFatal(String str, Throwable t) {
+    log(LoggerConstants.FATAL, str, t);
+  }
+
+  /**
+   * Get string representation of error level.
+   *
+   * @param level The error level.
+   * @return String representation of level.
+   */
+  protected static String getErrorLevelString(int level) {
+    String result = "?    ";
+
+    if ((level >= LoggerConstants.FATAL) && (level <= LoggerConstants.DEBUG)) {
+      result = errorLevelStrings[level];
     }
 
-    /** Terminates the logger.
-     */
+    return result;
+  }
 
-    public void terminate()
-    {
-        synchronized( lock )
-        {
-            try
-            {
-                printStream.close();
-
-                loggerEnabled = false;
-            }
-            catch ( Exception e )
-            {
-            }
-        }
+  /**
+   * Logs a message.
+   *
+   * @param level Log message level.
+   * @param str Log message.
+   */
+  public void log(int level, String str) {
+    synchronized (lock) {
+      printStream.println(
+          LoggerUtils.getFormattedCurrentDateAndTime()
+              + " "
+              + getErrorLevelString(level)
+              + " - "
+              + str);
     }
+  }
 
-    /** Logs a message at the DEBUG level.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Logs a message with a stack trace.
+   *
+   * @param level Log message level.
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void log(int level, String str, Throwable t) {
+    String stackTrace = DebugUtils.getStackTrace(t);
 
-    public void logDebug( String str )
-    {
-        log( LoggerConstants.DEBUG , str );
+    String[] stackTraceLines = stackTrace.split("\\n");
+
+    synchronized (lock) {
+      printStream.println(
+          LoggerUtils.getFormattedCurrentDateAndTime()
+              + " "
+              + getErrorLevelString(level)
+              + " - "
+              + str);
+
+      for (int i = 0; i < stackTraceLines.length; i++) {
+        printStream.println(
+            LoggerUtils.getFormattedCurrentDateAndTime() + " " + "      - " + stackTraceLines[i]);
+      }
     }
+  }
 
-    /** Logs a message at the INFO level.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Returns true if debugging messages are enabled.
+   *
+   * @return True if debugging messages are enabled.
+   */
+  public boolean isDebuggingEnabled() {
+    return true;
+  }
 
-    public void logInfo( String str )
-    {
-        log( LoggerConstants.INFO , str );
-    }
-
-    /** Logs a message at the WARN level.
-     *
-     *  @param  str         Log message.
-     */
-
-    public void logWarning( String str )
-    {
-        log( LoggerConstants.WARN , str );
-    }
-
-    /** Logs a message at the ERROR level.
-     *
-     *  @param  str         Log message.
-     */
-
-    public void logError( String str )
-    {
-        log( LoggerConstants.ERROR , str );
-    }
-
-    /** Logs a error message with a stack trace.
-     *
-     *  @param  str     Log message.
-     *
-     *  @param  t       Throwable.
-     */
-
-    public void logError( String str , Throwable t )
-    {
-        log( LoggerConstants.ERROR , str , t );
-    }
-
-    /** Logs a message at the FATAL level.
-     *
-     *  @param  str         Log message.
-     */
-
-    public void logFatal( String str )
-    {
-        log( LoggerConstants.FATAL , str );
-    }
-
-    /** Logs a fatal message with a stack trace.
-     *
-     *  @param  str     Log message.
-     *
-     *  @param  t       Throwable.
-     */
-
-    public void logFatal( String str , Throwable t )
-    {
-        log( LoggerConstants.FATAL , str , t );
-    }
-
-    /** Get string representation of error level.
-     *
-     *  @param  level   The error level.
-     *
-     *  @return         String representation of level.
-     */
-
-     protected static String getErrorLevelString( int level )
-     {
-        String result   = "?    ";
-
-        if  (   ( level >= LoggerConstants.FATAL ) &&
-                ( level <= LoggerConstants.DEBUG ) )
-        {
-            result  = errorLevelStrings[ level ];
-        }
-
-        return result;
-     }
-
-    /** Logs a message.
-     *
-     *  @param  level       Log message level.
-     *  @param  str         Log message.
-     */
-
-    public void log( int level , String str )
-    {
-        synchronized( lock )
-        {
-            printStream.println
-            (
-                LoggerUtils.getFormattedCurrentDateAndTime() + " " +
-                getErrorLevelString( level ) + " - " + str
-            );
-        }
-    }
-
-    /** Logs a message with a stack trace.
-     *
-     *  @param  level       Log message level.
-     *  @param  str         Log message.
-     *  @param  t           Throwable.
-     */
-
-    public void log( int level, String str, Throwable t )
-    {
-        String stackTrace   = DebugUtils.getStackTrace( t );
-
-        String[] stackTraceLines    = stackTrace.split( "\\n" );
-
-        synchronized( lock )
-        {
-            printStream.println
-            (
-                LoggerUtils.getFormattedCurrentDateAndTime() + " " +
-                getErrorLevelString( level ) + " - " + str
-            );
-
-            for ( int i = 0 ; i < stackTraceLines.length ; i++ )
-            {
-                printStream.println
-                (
-                    LoggerUtils.getFormattedCurrentDateAndTime() + " " +
-                    "      - " + stackTraceLines[ i ]
-                );
-            }
-        }
-    }
-
-    /** Returns true if debugging messages are enabled.
-     *
-     *  @return     True if debugging messages are enabled.
-     */
-
-    public boolean isDebuggingEnabled()
-    {
-        return true;
-    }
-
-    /** Returns true if logger is enabled.
-     *
-     *  @return     True if logger is enabled.
-     */
-
-    public boolean isLoggerEnabled()
-    {
-        return loggerEnabled;
-    }
+  /**
+   * Returns true if logger is enabled.
+   *
+   * @return True if logger is enabled.
+   */
+  public boolean isLoggerEnabled() {
+    return loggerEnabled;
+  }
 }
 
 /*
@@ -277,6 +229,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

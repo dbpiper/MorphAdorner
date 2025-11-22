@@ -6,79 +6,50 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
+public class ResourceUtils {
+  /**
+   * Load text from a resource file.
+   *
+   * @param resourceClass Parent class for resource.
+   * @param resourcePath Resource file path relative to class.
+   * @param encoding Text encoding for resource file contents.
+   * @return The resource text.
+   */
+  public static String loadTextFromResource(
+      Class resourceClass, String resourcePath, String encoding) {
+    StringBuffer result = new StringBuffer();
+    BufferedReader reader = null;
 
-public class ResourceUtils
-{
-    /** Load text from a resource file.
-     *
-     *  @param  resourceClass   Parent class for resource.
-     *  @param  resourcePath    Resource file path relative to class.
-     *  @param  encoding        Text encoding for resource file contents.
-     *
-     *  @return                 The resource text.
-     */
+    try {
+      UnicodeReader inputStreamReader =
+          new UnicodeReader(resourceClass.getResourceAsStream(resourcePath), encoding);
 
-    public static String loadTextFromResource
-    (
-        Class resourceClass ,
-        String resourcePath ,
-        String encoding
-    )
-    {
-        StringBuffer result     = new StringBuffer();
-        BufferedReader reader   = null;
+      reader = new BufferedReader(inputStreamReader);
 
-        try
-        {
-            UnicodeReader inputStreamReader =
-                new UnicodeReader
-                (
-                    resourceClass.getResourceAsStream
-                    (
-                        resourcePath
-                    ) ,
-                    encoding
-                );
+      String inputLine = reader.readLine();
 
-            reader  =
-                new BufferedReader( inputStreamReader );
+      while (inputLine != null) {
+        result.append(inputLine);
+        result.append(Env.LINE_SEPARATOR);
 
-            String inputLine    = reader.readLine();
-
-            while ( inputLine != null )
-            {
-                result.append( inputLine );
-                result.append( Env.LINE_SEPARATOR );
-
-                inputLine   = reader.readLine();
-            }
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
-        finally
-        {
-                                //  Close resource file.
-            try
-            {
-                reader.close();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
-                                //  Return input text.
-
-        return result.toString();
+        inputLine = reader.readLine();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      //  Close resource file.
+      try {
+        reader.close();
+      } catch (Exception e) {
+      }
     }
+    //  Return input text.
 
-    /** Don't allow instantiation, do allow overrides. */
+    return result.toString();
+  }
 
-    protected ResourceUtils()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected ResourceUtils() {}
 }
 
 /*
@@ -121,6 +92,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

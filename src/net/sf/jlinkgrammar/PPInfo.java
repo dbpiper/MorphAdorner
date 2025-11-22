@@ -1,11 +1,7 @@
 package net.sf.jlinkgrammar;
 
-/**
- * TODO add javadoc
- *
- */
+/** TODO add javadoc */
 public class PPInfo {
-    int       num_domains;
-    String    domain_name[];
-
+  int num_domains;
+  String domain_name[];
 }

@@ -5,114 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsummarizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** TextSummarizer factory.
- */
+/** TextSummarizer factory. */
+public class TextSummarizerFactory {
+  /**
+   * Get a summarizer.
+   *
+   * @return The summarizer.
+   */
+  public static TextSummarizer newTextSummarizer() {
+    String className = System.getProperty("summarizer.class");
 
-public class TextSummarizerFactory
-{
-    /** Get a summarizer.
-     *
-     *  @return     The summarizer.
-     */
-
-    public static TextSummarizer newTextSummarizer()
-    {
-        String className    =
-            System.getProperty( "summarizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultTextSummarizer";
-        }
-
-        return newTextSummarizer( className );
+    if (className == null) {
+      className = "DefaultTextSummarizer";
     }
 
-    /** Get a summarizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The summarizer.
-     */
+    return newTextSummarizer(className);
+  }
 
-    public static TextSummarizer newTextSummarizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a summarizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The summarizer.
+   */
+  public static TextSummarizer newTextSummarizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "summarizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultTextSummarizer";
-        }
-
-        return newTextSummarizer( className );
+    if (properties != null) {
+      className = properties.getProperty("summarizer.class");
     }
 
-    /** Get a summarizer of a specified class name.
-     *
-     *  @param  className   Class name for the summarizer.
-     *
-     *  @return             The summarizer.
-     */
-
-    public static TextSummarizer newTextSummarizer( String className )
-    {
-        TextSummarizer summarizer   = null;
-
-        try
-        {
-            summarizer  =
-                (TextSummarizer)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    TextSummarizerFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                summarizer  =
-                    (TextSummarizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create summarizer of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    summarizer  = new DefaultTextSummarizer();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null summarizer.
-/*
-                    System.err.println(
-                        "Unable to create summarizer, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return summarizer;
+    if (className == null) {
+      className = "DefaultTextSummarizer";
     }
+
+    return newTextSummarizer(className);
+  }
+
+  /**
+   * Get a summarizer of a specified class name.
+   *
+   * @param className Class name for the summarizer.
+   * @return The summarizer.
+   */
+  public static TextSummarizer newTextSummarizer(String className) {
+    TextSummarizer summarizer = null;
+
+    try {
+      summarizer = (TextSummarizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(TextSummarizerFactory.class.getName()) + "." + className;
+
+      try {
+        summarizer = (TextSummarizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create summarizer of class " + fixedClassName + ", using default.");
+
+        try {
+          summarizer = new DefaultTextSummarizer();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null summarizer.
+          /*
+                              System.err.println(
+                                  "Unable to create summarizer, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return summarizer;
+  }
 }
 
 /*
@@ -155,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

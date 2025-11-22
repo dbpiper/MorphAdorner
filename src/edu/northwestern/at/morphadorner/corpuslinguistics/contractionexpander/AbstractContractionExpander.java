@@ -2,118 +2,93 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.contractionexpander;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.logger.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.logger.*;
+/** Abstract ContractionExpander. */
+public abstract class AbstractContractionExpander extends IsCloseableObject
+    implements ContractionExpander, UsesLogger {
+  /**
+   * Contracted spelings.
+   *
+   * <p>Contracted spellings are stored as TaggedStrings. The tag is the contracted form. The value
+   * is the uncontracted forn.
+   */
+  protected TaggedStrings contractedSpellings = new TaggedStringsMap();
 
-/** Abstract ContractionExpander.
- */
+  /** Logger used for output. */
+  protected Logger logger = new DummyLogger();
 
-abstract public class AbstractContractionExpander
-    extends IsCloseableObject
-    implements ContractionExpander, UsesLogger
-{
-    /** Contracted spelings.
-     *
-     *  <p>
-     *  Contracted spellings are stored as TaggedStrings.
-     *  The tag is the contracted form.
-     *  The value is the uncontracted forn.
-     *  </p>
-     */
+  /** Create abstract contraction expander. */
+  public AbstractContractionExpander() {}
 
-    protected TaggedStrings contractedSpellings =
-        new TaggedStringsMap();
+  /**
+   * Load map from contracted to expanded spellings.
+   *
+   * @param reader Reader from which to read contractions.
+   * @throws IOException When contracted spellings cannot be read.
+   */
+  protected void loadContractedSpellings(Reader reader) throws IOException {
+    String line = null;
 
-    /** Logger used for output. */
+    String contraction = "";
+    String expanded = "";
+    String[] tokens = new String[2];
 
-    protected Logger logger = new DummyLogger();
+    BufferedReader bufferedReader = new BufferedReader(reader);
 
-    /** Create abstract contraction expander.
-     */
+    while ((line = bufferedReader.readLine()) != null) {
+      line = line.trim();
 
-    public AbstractContractionExpander()
-    {
+      if (line.length() == 0) continue;
+
+      if (line.charAt(0) == '#') continue;
+
+      tokens = line.split("\t");
+
+      if (tokens.length >= 2) {
+        contractedSpellings.putTag(tokens[0], tokens[1]);
+      }
     }
 
-    /** Load map from contracted to expanded spellings.
-     *
-     *  @param  reader          Reader from which to read contractions.
-     *
-     *  @throws IOException     When contracted spellings cannot be read.
-     */
+    bufferedReader.close();
+  }
 
-    protected void loadContractedSpellings( Reader reader )
-        throws IOException
-    {
-        String line = null;
+  /**
+   * Returns an expanded spelling for a contracted spelling.
+   *
+   * @param spelling The spelling.
+   * @return The expanded form of the contraction.
+   */
+  public String expandContraction(String spelling) {
+    String result = spelling;
 
-        String contraction  = "";
-        String expanded     = "";
-        String[] tokens     = new String[ 2 ];
-
-        BufferedReader bufferedReader   =
-            new BufferedReader( reader );
-
-        while ( ( line = bufferedReader.readLine() ) != null )
-        {
-            line    = line.trim();
-
-            if ( line.length() == 0 ) continue;
-
-            if ( line.charAt( 0 ) == '#' ) continue;
-
-            tokens  = line.split( "\t" );
-
-            if ( tokens.length >= 2 )
-            {
-                contractedSpellings.putTag( tokens[ 0 ] , tokens[ 1 ] );
-            }
-        }
-
-        bufferedReader.close();
+    if (contractedSpellings.containsString(spelling.toLowerCase())) {
+      result = contractedSpellings.getTag(spelling.toLowerCase());
     }
 
-    /** Returns an expanded spelling for a contracted spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The expanded form of the contraction.
-     */
+    return result;
+  }
 
-    public String expandContraction( String spelling )
-    {
-        String result   = spelling;
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-        if ( contractedSpellings.containsString( spelling.toLowerCase() ) )
-        {
-            result  = contractedSpellings.getTag( spelling.toLowerCase() );
-        }
-
-        return result;
-    }
-
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
-
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 }
 
 /*
@@ -156,6 +131,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

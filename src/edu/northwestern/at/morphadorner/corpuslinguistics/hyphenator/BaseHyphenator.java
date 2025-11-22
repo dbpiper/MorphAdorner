@@ -2,89 +2,65 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.hyphenator;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 
-import edu.northwestern.at.utils.*;
-import net.davidashen.text.Hyphenator;
-
-/** BaseHyphenator: Hyphenates words using TeX rule sets.
- */
-
+/** BaseHyphenator: Hyphenates words using TeX rule sets. */
 public class BaseHyphenator
-    implements edu.northwestern.at.morphadorner.corpuslinguistics.hyphenator.Hyphenator
-{
-    /** UK Base hyphenation rules in TeX format. */
+    implements edu.northwestern.at.morphadorner.corpuslinguistics.hyphenator.Hyphenator {
+  /** UK Base hyphenation rules in TeX format. */
+  protected static String ukhyphenPath = "resources/ukhyphen.tex";
 
-    protected static String ukhyphenPath =
-        "resources/ukhyphen.tex";
+  /** US Base hyphenation rules in TeX format. */
+  protected static String ushyphenPath = "resources/hyphen.tex";
 
-    /** US Base hyphenation rules in TeX format. */
+  /** The internal TeX-based hyphenator. */
+  protected net.davidashen.text.Hyphenator texHyphenator;
 
-    protected static String ushyphenPath =
-        "resources/hyphen.tex";
+  /** Create a base hyphenator using UK English rules. */
+  public BaseHyphenator() {
+    try {
+      texHyphenator = new net.davidashen.text.Hyphenator();
 
-    /** The internal TeX-based hyphenator. */
+      //          texHyphenator.setErrorHandler( new MyErrorHandler() );
 
-    protected net.davidashen.text.Hyphenator texHyphenator;
-
-    /** Create a base hyphenator using UK English rules. */
-
-    public BaseHyphenator()
-    {
-        try
-        {
-            texHyphenator   = new net.davidashen.text.Hyphenator();
-
-//          texHyphenator.setErrorHandler( new MyErrorHandler() );
-
-            texHyphenator.loadTable
-            (
-                BaseHyphenator.class.getResourceAsStream( ukhyphenPath )
-            );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+      texHyphenator.loadTable(BaseHyphenator.class.getResourceAsStream(ukhyphenPath));
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
 
-    /** Load TeX format hyphenation rules from a stream.
-     *
-     *  @param  hyphenRulesStream   Stream with TeX format hyphenation rules.
-     */
+  /**
+   * Load TeX format hyphenation rules from a stream.
+   *
+   * @param hyphenRulesStream Stream with TeX format hyphenation rules.
+   */
+  public void loadHyphenationRules(InputStream hyphenRulesStream) throws Exception {
+    texHyphenator.loadTable(hyphenRulesStream);
+  }
 
-    public void loadHyphenationRules( InputStream hyphenRulesStream )
-        throws Exception
-    {
-        texHyphenator.loadTable( hyphenRulesStream );
-    }
+  /**
+   * Load TeX format hyphenation rules from a file.
+   *
+   * @param hyphenRulesFileName File with TeX format hyphenation rules.
+   */
+  public void loadHyphenationRules(String hyphenRulesFileName) throws Exception {
+    FileInputStream fis = new FileInputStream(hyphenRulesFileName);
 
-    /** Load TeX format hyphenation rules from a file.
-     *
-     *  @param  hyphenRulesFileName File with TeX format hyphenation rules.
-     */
+    texHyphenator.loadTable(fis);
 
-    public void loadHyphenationRules( String hyphenRulesFileName )
-        throws Exception
-    {
-        FileInputStream fis = new FileInputStream( hyphenRulesFileName );
+    fis.close();
+  }
 
-        texHyphenator.loadTable( fis );
-
-        fis.close();
-    }
-
-    /** Add hyphenation points to a single Base word.
-     *
-     *  @param  word    The word to hyphenate.
-     *
-     *  @return         The word with hyphenation points added.
-     */
-
-    public String hyphenate( String word )
-    {
-        return texHyphenator.hyphenate( word );
-    }
+  /**
+   * Add hyphenation points to a single Base word.
+   *
+   * @param word The word to hyphenate.
+   * @return The word with hyphenation points added.
+   */
+  public String hyphenate(String word) {
+    return texHyphenator.hyphenate(word);
+  }
 }
 
 /*
@@ -127,6 +103,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

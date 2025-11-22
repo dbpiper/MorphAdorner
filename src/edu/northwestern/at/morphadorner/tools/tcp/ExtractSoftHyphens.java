@@ -2,196 +2,133 @@ package edu.northwestern.at.morphadorner.tools.tcp;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
+/** Filter hyphenated words. */
+public class ExtractSoftHyphens {
+  /** Wrapper for printStream to allow utf-8 output. */
+  protected static PrintStream printStream;
 
-/** Filter hyphenated words.
-  */
+  /** File containing divided words. */
+  protected static String dividedWordsFileName;
 
-public class ExtractSoftHyphens
-{
-    /** Wrapper for printStream to allow utf-8 output. */
+  /** Fixed hyphenated words. */
+  protected static String filteredDividedWordsFileName;
 
-    protected static PrintStream printStream;
+  /** Map from divided word to matching undivided word. */
+  protected static Map<String, String> dividedWords;
 
-    /** File containing divided words. */
+  /** Filtered divided words map. */
+  protected static Map<String, Number> filteredDividedWords;
 
-    protected static String dividedWordsFileName;
+  /**
+   * Main program.
+   *
+   * @param args Program parameters.
+   */
+  public static void main(String[] args) {
+    //  Initialize.
+    try {
+      if (!initialize(args)) {
+        System.exit(1);
+      }
+      //  Process divided words.
 
-    /** Fixed hyphenated words. */
+      long startTime = System.currentTimeMillis();
 
-    protected static String filteredDividedWordsFileName;
+      Map<String, String> filteredDividedWords = processWords();
 
-    /** Map from divided word to matching undivided word. */
+      //  Save filtered words.
+      MapUtils.saveMap(filteredDividedWords, filteredDividedWordsFileName, "\t", "", "utf-8");
 
-    protected static Map<String, String> dividedWords;
+      long processingTime = (System.currentTimeMillis() - startTime + 999) / 1000;
 
-    /** Filtered divided words map. */
+      //  Terminate.
 
-    protected static Map<String, Number> filteredDividedWords;
+      terminate(filteredDividedWords.size(), processingTime);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println(e.getMessage());
+    }
+  }
 
-    /** Main program.
-     *
-     *  @param  args    Program parameters.
-     */
+  /** Initialize. */
+  protected static boolean initialize(String[] args) throws Exception {
+    //  Check if we have enough parameters.
 
-    public static void main( String[] args )
-    {
-                                //  Initialize.
-        try
-        {
-            if ( !initialize( args ) )
-            {
-                System.exit( 1 );
-            }
-                                //  Process divided words.
+    if (args.length < 2) {
+      System.err.println("Not enough parameters.");
+      return false;
+    }
+    //  Allow utf-8 output to printStream .
+    printStream = new PrintStream(new BufferedOutputStream(System.out), true, "utf-8");
+    //  Get arguments.
 
-            long startTime      = System.currentTimeMillis();
+    dividedWordsFileName = args[0];
 
-            Map<String, String> filteredDividedWords    = processWords();
+    //  Get divided words.
+    dividedWords = MapUtils.loadMap(dividedWordsFileName);
 
-                                //  Save filtered words.
-            MapUtils.saveMap
-            (
-                filteredDividedWords ,
-                filteredDividedWordsFileName ,
-                "\t" ,
-                "" ,
-                "utf-8"
-            );
+    System.err.println(
+        "Loaded " + Formatters.formatIntegerWithCommas(dividedWords.size()) + " divided words.");
 
-            long processingTime =
-                ( System.currentTimeMillis() - startTime + 999 ) / 1000;
+    filteredDividedWordsFileName = args[1];
 
-                                //  Terminate.
+    return true;
+  }
 
-            terminate( filteredDividedWords.size() , processingTime );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-            System.out.println( e.getMessage() );
-        }
+  /**
+   * Process words.
+   *
+   * <p>Output the following for each word.
+   *
+   * <ul>
+   *   <li>The divided word.
+   *   <li>Probable corrected spelling.
+   *   <li>Count of hyphenated word appearances.
+   *   <li>Count of unhyphenated word appearances.
+   *   <li>True/false if word appears unhyphenated in standard spellings list.
+   *   <li>True/false if word appears hyphenated in standard spellings list.
+   * </ul>
+   */
+  protected static Map<String, String> processWords() {
+    //  Process each divided word.
+
+    Map<String, String> filteredDividedWords = MapFactory.createNewSortedMap();
+
+    Iterator<String> iterator = dividedWords.keySet().iterator();
+
+    while (iterator.hasNext()) {
+      String dividedWord = iterator.next();
+      String fixedWord = dividedWords.get(dividedWord);
+
+      String fixedDividedWord = StringUtils.replaceAll(dividedWord, "|", "");
+
+      if (!fixedDividedWord.equals(fixedWord)) {
+        filteredDividedWords.put(dividedWord, fixedWord);
+      }
     }
 
-    /** Initialize.
-     */
+    return filteredDividedWords;
+  }
 
-    protected static boolean initialize( String[] args )
-        throws Exception
-    {
-                                //  Check if we have enough parameters.
-
-        if ( args.length < 2 )
-        {
-            System.err.println( "Not enough parameters." );
-            return false;
-        }
-                                //  Allow utf-8 output to printStream .
-        printStream =
-            new PrintStream
-            (
-                new BufferedOutputStream( System.out ) ,
-                true ,
-                "utf-8"
-            );
-                                //  Get arguments.
-
-        dividedWordsFileName        = args[ 0 ];
-
-                                //  Get divided words.
-        dividedWords    =
-            MapUtils.loadMap( dividedWordsFileName );
-
-        System.err.println
-        (
-            "Loaded " +
-            Formatters.formatIntegerWithCommas
-            (
-                dividedWords.size()
-            ) +
-            " divided words."
-        );
-
-        filteredDividedWordsFileName    = args[ 1 ];
-
-        return true;
-    }
-
-    /** Process words.
-     *
-     *  <p>
-     *  Output the following for each word.
-     *  </p>
-     *
-     *  <ul>
-     *      <li>The divided word.</li>
-     *      <li>Probable corrected spelling.</li>
-     *      <li>Count of hyphenated word appearances.</li>
-     *      <li>Count of unhyphenated word appearances.</li>
-     *      <li>True/false if word appears unhyphenated in standard
-     *          spellings list.</li>
-     *      <li>True/false if word appears hyphenated in standard
-     *          spellings list.</li>
-     *  </ul>
-     */
-
-    protected static Map<String, String> processWords()
-    {
-                                //  Process each divided word.
-
-        Map<String, String> filteredDividedWords    =
-            MapFactory.createNewSortedMap();
-
-        Iterator<String> iterator   = dividedWords.keySet().iterator();
-
-        while ( iterator.hasNext() )
-        {
-            String dividedWord  = iterator.next();
-            String fixedWord    = dividedWords.get( dividedWord );
-
-            String fixedDividedWord =
-                StringUtils.replaceAll( dividedWord , "|" , "" );
-
-            if ( !fixedDividedWord.equals( fixedWord ) )
-            {
-                filteredDividedWords.put( dividedWord , fixedWord );
-            }
-        }
-
-        return filteredDividedWords;
-    }
-
-    /** Terminate.
-     *
-     *  @param  wordsProcessed  Number of words processed.
-     *  @param  processingTime  Processing time in seconds.
-     */
-
-    protected static void terminate
-    (
-        int wordsProcessed ,
-        long processingTime
-    )
-    {
-        System.err.println
-        (
-            "Emitted " +
-            Formatters.formatIntegerWithCommas
-            (
-                wordsProcessed
-            ) +
-            " filtered divided words in " +
-            Formatters.formatLongWithCommas
-            (
-                processingTime
-            ) +
-            " seconds."
-        );
-    }
+  /**
+   * Terminate.
+   *
+   * @param wordsProcessed Number of words processed.
+   * @param processingTime Processing time in seconds.
+   */
+  protected static void terminate(int wordsProcessed, long processingTime) {
+    System.err.println(
+        "Emitted "
+            + Formatters.formatIntegerWithCommas(wordsProcessed)
+            + " filtered divided words in "
+            + Formatters.formatLongWithCommas(processingTime)
+            + " seconds.");
+  }
 }
 
 /*
@@ -234,6 +171,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

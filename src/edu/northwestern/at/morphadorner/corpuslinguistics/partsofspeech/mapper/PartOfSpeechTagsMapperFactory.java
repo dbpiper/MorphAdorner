@@ -5,112 +5,79 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.mapper;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** Part of speech tags mapper factory.
- */
+/** Part of speech tags mapper factory. */
+public class PartOfSpeechTagsMapperFactory {
+  /**
+   * Get a part of speech tags mapper.
+   *
+   * @return The part of speech tags mapper.
+   */
+  public static PartOfSpeechTagsMapper newPartOfSpeechTagsMapper() {
+    String className = System.getProperty("partofspeechtagsmapper.class");
 
-public class PartOfSpeechTagsMapperFactory
-{
-    /** Get a part of speech tags mapper.
-     *
-     *  @return     The part of speech tags mapper.
-     */
-
-    public static PartOfSpeechTagsMapper newPartOfSpeechTagsMapper()
-    {
-        String className    =
-            System.getProperty( "partofspeechtagsmapper.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultPartOfSpeechTagsMapper";
-        }
-
-        return newPartOfSpeechTagsMapper( className );
+    if (className == null) {
+      className = "DefaultPartOfSpeechTagsMapper";
     }
 
-    /** Get a part of speech tags mapper.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The part of speech tags mapper.
-     */
+    return newPartOfSpeechTagsMapper(className);
+  }
 
-    public static PartOfSpeechTagsMapper newPartOfSpeechTagsMapper
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a part of speech tags mapper.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The part of speech tags mapper.
+   */
+  public static PartOfSpeechTagsMapper newPartOfSpeechTagsMapper(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   =
-                properties.getProperty( "partofspeechtagsmapper.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultPartOfSpeechTagsMapper";
-        }
-
-        return newPartOfSpeechTagsMapper( className );
+    if (properties != null) {
+      className = properties.getProperty("partofspeechtagsmapper.class");
     }
 
-    /** Get a part of speech tags mapper of a specified class name.
-     *
-     *  @param  className   Class name for the part of speech tags mapper.
-     *
-     *  @return             The part of speech tags mapper.
-     */
-
-    public static PartOfSpeechTagsMapper newPartOfSpeechTagsMapper
-    (
-        String className
-    )
-    {
-        PartOfSpeechTagsMapper partOfSpeechTagsMapper   = null;
-
-        try
-        {
-            partOfSpeechTagsMapper  =
-                (PartOfSpeechTagsMapper)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    PartOfSpeechTagsMapper.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                partOfSpeechTagsMapper  =
-                    (PartOfSpeechTagsMapper)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create adorned part of speech tags " +
-                    "of class " + fixedClassName + ", using default." );
-
-                try
-                {
-                    partOfSpeechTagsMapper  =
-                        new DefaultPartOfSpeechTagsMapper();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null part of speech tags.
-                }
-            }
-        }
-
-        return partOfSpeechTagsMapper;
+    if (className == null) {
+      className = "DefaultPartOfSpeechTagsMapper";
     }
+
+    return newPartOfSpeechTagsMapper(className);
+  }
+
+  /**
+   * Get a part of speech tags mapper of a specified class name.
+   *
+   * @param className Class name for the part of speech tags mapper.
+   * @return The part of speech tags mapper.
+   */
+  public static PartOfSpeechTagsMapper newPartOfSpeechTagsMapper(String className) {
+    PartOfSpeechTagsMapper partOfSpeechTagsMapper = null;
+
+    try {
+      partOfSpeechTagsMapper = (PartOfSpeechTagsMapper) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(PartOfSpeechTagsMapper.class.getName()) + "." + className;
+
+      try {
+        partOfSpeechTagsMapper =
+            (PartOfSpeechTagsMapper) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create adorned part of speech tags "
+                + "of class "
+                + fixedClassName
+                + ", using default.");
+
+        try {
+          partOfSpeechTagsMapper = new DefaultPartOfSpeechTagsMapper();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null part of speech tags.
+        }
+      }
+    }
+
+    return partOfSpeechTagsMapper;
+  }
 }
 
 /*
@@ -153,6 +120,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

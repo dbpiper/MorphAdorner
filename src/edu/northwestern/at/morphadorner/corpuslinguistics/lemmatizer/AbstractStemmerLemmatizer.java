@@ -2,87 +2,60 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.stemmer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** Use a stemmer as a pseudo-lemmatizer.
- */
+/** Use a stemmer as a pseudo-lemmatizer. */
+public abstract class AbstractStemmerLemmatizer extends AbstractLemmatizer
+    implements IsCloseable, Lemmatizer {
+  /** The stemmer. */
+  protected Stemmer stemmer = null;
 
-abstract public class AbstractStemmerLemmatizer
-    extends AbstractLemmatizer
-    implements IsCloseable, Lemmatizer
-{
-    /** The stemmer.
-     */
+  /** Map with spellings as keys and stems as values. */
+  protected Map<String, String> stemMap = MapFactory.createNewMap();
 
-    protected Stemmer stemmer   = null;
+  /**
+   * Set the lexicon containing the lemmata.
+   *
+   * @param lexicon The lexicon. Not used here.
+   *     <p>A no-op since the stemmer doesn't need a lexicon.
+   */
+  public void setLexicon(Lexicon lexicon) {}
 
-    /** Map with spellings as keys and stems as values.
-     */
+  /**
+   * Returns a lemma given a word and a part of speech.
+   *
+   * @param spelling The spelling.
+   * @param wordClass The word class.
+   * @return The lemma.
+   *     <p>This actually returns the stemmed form of the spelling, not the lemma.
+   */
+  public String lemmatize(String spelling, String wordClass) {
+    String result = "*";
 
-    protected Map<String, String> stemMap   =
-        MapFactory.createNewMap();
+    if (stemMap.containsKey(spelling)) {
+      result = (String) stemMap.get(spelling);
+    } else {
+      result = stemmer.stem(spelling);
 
-    /** Set the lexicon containing the lemmata.
-     *
-     *  @param  lexicon     The lexicon.  Not used here.
-     *
-     *  <p>
-     *  A no-op since the stemmer doesn't need a lexicon.
-     *  </p>
-     */
-
-    public void setLexicon( Lexicon lexicon )
-    {
+      stemMap.put(spelling, result);
     }
 
-    /** Returns a lemma given a word and a part of speech.
-     *
-     *  @param  spelling    The spelling.
-     *  @param  wordClass   The word class.
-     *
-     *  @return             The lemma.
-     *
-     *  <p>
-     *  This actually returns the stemmed form of the spelling,
-     *  not the lemma.
-     *  </p>
-     */
+    return result;
+  }
 
-     public String lemmatize( String spelling , String wordClass )
-     {
-        String result   = "*";
-
-        if ( stemMap.containsKey( spelling ) )
-        {
-            result  = (String)stemMap.get( spelling );
-        }
-        else
-        {
-            result  = stemmer.stem( spelling );
-
-            stemMap.put( spelling , result );
-        }
-
-        return result;
-     }
-
-    /** Returns a lemma given a spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The lemma.  "*" is returned if the lemma
-     *                      cannot be found.
-     */
-
-     public String lemmatize( String spelling )
-     {
-        return lemmatize( spelling , "" );
-     }
+  /**
+   * Returns a lemma given a spelling.
+   *
+   * @param spelling The spelling.
+   * @return The lemma. "*" is returned if the lemma cannot be found.
+   */
+  public String lemmatize(String spelling) {
+    return lemmatize(spelling, "");
+  }
 }
 
 /*
@@ -125,6 +98,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

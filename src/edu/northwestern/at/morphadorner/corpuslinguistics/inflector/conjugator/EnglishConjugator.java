@@ -2,234 +2,146 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector.conjugator;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.inflector.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** English language conjugator.
- */
+/** English language conjugator. */
+public class EnglishConjugator implements Conjugator {
+  /** Set of verbs whose final consonant is doubled in inflected forms. */
+  protected static Set<String> doublingVerbs = null;
 
-public class EnglishConjugator implements Conjugator
-{
-    /** Set of verbs whose final consonant is doubled in inflected forms. */
+  /** Resource path to list of doubled consonant verbs. */
+  protected static final String doublingVerbsPath = "resources/doublingverbs.txt";
 
-    protected static Set<String> doublingVerbs  = null;
+  /** Present participle replacement patterns. */
+  protected static final PatternReplacer presentParticiplePattern1 =
+      new PatternReplacer("(.[bcdfghjklmnpqrstvwxyz])eing$", "$1ing");
 
-    /** Resource path to list of doubled consonant verbs. */
+  protected static final PatternReplacer presentParticiplePattern2 =
+      new PatternReplacer("ieing$", "ying");
 
-    protected static final String doublingVerbsPath =
-        "resources/doublingverbs.txt";
+  /**
+   * Map3D of irregular verbs.
+   *
+   * <p>First key is the infinitive.<br>
+   * Second key is the person.<br>
+   * Third key is the verb tense.<br>
+   * Value is the conjugated verb form.
+   */
+  protected Map3D<String, String, String, String> irregularVerbs = null;
 
-    /** Present participle replacement patterns. */
+  /** Resource path to map of irregular verbs. */
+  protected static final String irregularVerbsPath = "resources/irregularverbs.txt";
 
-    protected static final PatternReplacer presentParticiplePattern1    =
-        new PatternReplacer( "(.[bcdfghjklmnpqrstvwxyz])eing$" , "$1ing" );
+  /** Create an English conjugator. */
+  public EnglishConjugator() {
+    //  Load consonant doubling verbs.
 
-    protected static final PatternReplacer presentParticiplePattern2    =
-        new PatternReplacer( "ieing$" , "ying" );
+    if (doublingVerbs == null) {
+      try {
+        doublingVerbs =
+            SetUtils.loadSet(EnglishConjugator.class.getResource(doublingVerbsPath), "utf-8");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    //  Load irregular verb forms.
 
-    /** Map3D of irregular verbs.
-     *
-     *  <p>
-     *  First key is the infinitive.<br />
-     *  Second key is the person.<br />
-     *  Third key is the verb tense.<br />
-     *  Value is the conjugated verb form.
-     *  </p>
-     */
+    if (irregularVerbs == null) {
+      try {
+        irregularVerbs =
+            Map3DUtils.loadMap3D(
+                EnglishConjugator.class.getResource(irregularVerbsPath), "\t", "", "utf-8");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
 
-    protected Map3D<String, String, String, String> irregularVerbs  =
-        null;
+  /**
+   * Conjugate a verb from its lemma (infinitive), tense, and person.
+   *
+   * @param infinitive The infinitive of the verb to inflect.
+   * @param tense The verb tense to generate.
+   * @param person The person (1st, 2nd, 3rd) to generate.
+   * @return The English inflected form of the verb in all lower case.
+   */
+  public String conjugate(String infinitive, VerbTense tense, Person person) {
+    //  We only work with lower case verbs.
 
-    /** Resource path to map of irregular verbs. */
+    String verb = infinitive.toLowerCase();
 
-    protected static final String irregularVerbsPath    =
-        "resources/irregularverbs.txt";
+    //  Check for irregular verb.
+    String result = irregularVerbs.get(verb, person.toString(), tense.toString());
 
-    /** Create an English conjugator. */
+    if (result == null) {
+      result = irregularVerbs.get(verb, "*", tense.toString());
+    }
+    //  If we found an irregular verb form,
+    //  we're done.
 
-    public EnglishConjugator()
-    {
-                                //  Load consonant doubling verbs.
+    if (result != null) return result;
 
-        if ( doublingVerbs == null )
-        {
-            try
-            {
-                doublingVerbs   =
-                    SetUtils.loadSet
-                    (
-                        EnglishConjugator.class.getResource
-                        (
-                            doublingVerbsPath
-                        ) ,
-                        "utf-8"
-                    );
-            }
-            catch ( Exception e )
-            {
-                e.printStackTrace();
-            }
+    result = verb;
+    //  If we didn't find an irregular
+    //  verb form, proceeed assuming we
+    //  have a regular verb.
+    switch (tense) {
+      case PRESENT:
+        if (person == Person.THIRD_PERSON_SINGULAR) {
+          if (result.matches(".*(ch|s|sh|x|z)$")) {
+            result += "es";
+          }
+          /*
+                              else if ( result.matches( ".*(ay|ey|oy|uy)$" ) )
+                              {
+                                  result  += "s";
+                              }
+          */
+          else if (result.matches(".*[^aeiou]y")) {
+            result = result.substring(0, result.length() - 1) + "ies";
+          } else {
+            result += "s";
+          }
         }
-                                //  Load irregular verb forms.
+        break;
 
-        if ( irregularVerbs == null )
-        {
-            try
-            {
-                irregularVerbs  =
-                    Map3DUtils.loadMap3D
-                    (
-                        EnglishConjugator.class.getResource
-                        (
-                            irregularVerbsPath
-                        ) ,
-                        "\t" ,
-                        "" ,
-                        "utf-8"
-                    );
-            }
-            catch ( Exception e )
-            {
-                e.printStackTrace();
-            }
+      case PRESENT_PARTICIPLE:
+        if (result.matches(".*[^aeiou]e")) {
+          result = result.substring(0, result.length() - 1);
+        } else if (result.endsWith("ie")) {
+          result = result.substring(0, result.length() - 2) + "y";
+        } else if (result.matches(".*[aou]e")) {
+          result = result.substring(0, result.length() - 1);
+        } else if (doublingVerbs.contains(verb)) {
+          result += result.substring(result.length() - 1, result.length());
         }
+
+        result += "ing";
+        //              result  = presentParticiplePattern1.replace( result );
+        //              result  = presentParticiplePattern2.replace( result );
+
+        break;
+
+      case PAST:
+      case PAST_PARTICIPLE:
+        if (result.endsWith("e")) {
+          result += "d";
+        } else if (result.matches(".*[^aeiou]y")) {
+          result = result.substring(0, result.length() - 1) + "ied";
+        } else {
+          if (doublingVerbs.contains(verb)) {
+            result += result.substring(result.length() - 1, result.length());
+          }
+          result += "ed";
+        }
+
+        break;
     }
 
-    /** Conjugate a verb from its lemma (infinitive), tense, and person.
-     *
-     *  @param  infinitive  The infinitive of the verb to inflect.
-     *  @param  tense       The verb tense to generate.
-     *  @param  person      The person (1st, 2nd, 3rd) to generate.
-     *
-     *  @return             The English inflected form of the verb
-     *                      in all lower case.
-     */
-
-    public String conjugate
-    (
-        String infinitive ,
-        VerbTense tense ,
-        Person person
-    )
-    {
-                                //  We only work with lower case verbs.
-
-        String verb = infinitive.toLowerCase();
-
-                                //  Check for irregular verb.
-        String result   =
-            irregularVerbs.get
-            (
-                verb ,
-                person.toString() ,
-                tense.toString()
-            );
-
-        if ( result == null )
-        {
-            result  =
-                irregularVerbs.get
-                (
-                    verb ,
-                    "*" ,
-                    tense.toString()
-                );
-        }
-                                //  If we found an irregular verb form,
-                                //  we're done.
-
-        if ( result != null ) return result;
-
-        result  = verb;
-                                //  If we didn't find an irregular
-                                //  verb form, proceeed assuming we
-                                //  have a regular verb.
-        switch ( tense )
-        {
-            case PRESENT:
-                if ( person == Person.THIRD_PERSON_SINGULAR )
-                {
-                    if ( result.matches( ".*(ch|s|sh|x|z)$" ) )
-                    {
-                        result  += "es";
-                    }
-/*
-                    else if ( result.matches( ".*(ay|ey|oy|uy)$" ) )
-                    {
-                        result  += "s";
-                    }
-*/
-                    else if ( result.matches( ".*[^aeiou]y" ) )
-                    {
-                        result  =
-                            result.substring( 0 , result.length() - 1 ) +
-                            "ies";
-                    }
-                    else
-                    {
-                        result  += "s";
-                    }
-                }
-                break;
-
-            case PRESENT_PARTICIPLE:
-                if ( result.matches( ".*[^aeiou]e" ) )
-                {
-                    result  =
-                        result.substring( 0 , result.length() - 1 );
-                }
-                else if ( result.endsWith( "ie" ) )
-                {
-                    result  =
-                        result.substring( 0 , result.length() - 2 ) + "y";
-                }
-                else if ( result.matches( ".*[aou]e" ) )
-                {
-                    result  =
-                        result.substring( 0 , result.length() - 1 );
-                }
-                else if ( doublingVerbs.contains( verb ) )
-                {
-                    result  +=
-                        result.substring(
-                            result.length() - 1 , result.length() );
-                }
-
-                result  += "ing";
-//              result  = presentParticiplePattern1.replace( result );
-//              result  = presentParticiplePattern2.replace( result );
-
-                break;
-
-            case PAST:
-            case PAST_PARTICIPLE:
-                if ( result.endsWith( "e" ) )
-                {
-                    result  += "d";
-                }
-                else if ( result.matches( ".*[^aeiou]y" ) )
-                {
-                    result  =
-                        result.substring( 0 , result.length() - 1 ) +
-                        "ied";
-                }
-                else
-                {
-                    if ( doublingVerbs.contains( verb ) )
-                    {
-                        result  +=
-                            result.substring(
-                                result.length() - 1 , result.length() );
-                    }
-                        result  += "ed";
-                }
-
-                break;
-        }
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -272,6 +184,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

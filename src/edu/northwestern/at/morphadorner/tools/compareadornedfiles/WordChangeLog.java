@@ -2,18 +2,16 @@ package edu.northwestern.at.morphadorner.tools.compareadornedfiles;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.ListFactory;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.ListFactory;
-
-/** Records modifications to a tokenized or adorned TEI XML file.
+/**
+ * Records modifications to a tokenized or adorned TEI XML file.
  *
- *  <p>
- *  The changes are recorded on a token basis in the following format.
- *  </p>
+ * <p>The changes are recorded on a token basis in the following format.
  *
- *  <pre>
+ * <pre>
  *  &lt;ChangeLog&gt;
  *   &lt;changeTime&gt;The time the change file was created.&lt;/changeTime&gt;
  *   &lt;changeDescription&gt;A description of the changes.&lt;/changeDescription&gt;
@@ -35,103 +33,86 @@ import edu.northwestern.at.utils.ListFactory;
  *  &lt;/ChangeLog&gt;
  *  </pre>
  */
+public class WordChangeLog {
+  /** Time/date of change. */
+  protected java.util.Date changeTime = new Date();
 
-public class WordChangeLog
-{
-    /** Time/date of change. */
+  /** Description of change. */
+  protected String changeDescription = null;
 
-    protected java.util.Date changeTime = new Date();
+  /** List of changes. */
+  protected List<WordChange> changes = ListFactory.createNewList();
 
-    /** Description of change. */
+  /** Create empty change log. */
+  public WordChangeLog() {}
 
-    protected String changeDescription  = null;
+  /** Create change log with a description. */
+  public WordChangeLog(String changeDescription) {
+    this.changeDescription = changeDescription;
+  }
 
-    /** List of changes. */
+  /**
+   * Get time of change.
+   *
+   * @return Time of change.
+   */
+  public Date getChangeTime() {
+    return changeTime;
+  }
 
-    protected List<WordChange> changes  = ListFactory.createNewList();
+  /**
+   * Set time of change.
+   *
+   * @param changeTime Time of change.
+   */
+  public void SetChangeTime(Date changeTime) {
+    this.changeTime = changeTime;
+  }
 
-    /** Create empty change log. */
+  /**
+   * Get description of change.
+   *
+   * @return Description of change.
+   */
+  public String getChangeDescription() {
+    return changeDescription;
+  }
 
-    public WordChangeLog()
-    {
-    }
+  /**
+   * Set description of change.
+   *
+   * @param changeDescription Description of change.
+   */
+  public void SetChangeDescription(String changeDescription) {
+    this.changeDescription = changeDescription;
+  }
 
-    /** Create change log with a description. */
+  /**
+   * Add entry to change log.
+   *
+   * @param wordChange The change to add.
+   */
+  public void addChange(WordChange wordChange) {
+    changes.add(wordChange);
+  }
 
-    public WordChangeLog( String changeDescription )
-    {
-        this.changeDescription  = changeDescription;
-    }
+  /**
+   * Get list of changes.
+   *
+   * @return List of changes.
+   */
+  public List<WordChange> getChanges() {
+    return changes;
+  }
 
-    /** Get time of change.
-     *
-     *  @return     Time of change.
-     */
-
-    public Date getChangeTime()
-    {
-        return changeTime;
-    }
-
-    /** Set time of change.
-     *
-     *  @param  changeTime  Time of change.
-     */
-
-    public void SetChangeTime( Date changeTime )
-    {
-        this.changeTime = changeTime;
-    }
-
-    /** Get description of change.
-     *
-     *  @return     Description of change.
-     */
-
-    public String getChangeDescription()
-    {
-        return changeDescription;
-    }
-
-    /** Set description of change.
-     *
-     *  @param  changeDescription   Description of change.
-     */
-
-    public void SetChangeDescription( String changeDescription )
-    {
-        this.changeDescription  = changeDescription;
-    }
-
-    /** Add entry to change log.
-     *
-     *  @param  wordChange  The change to add.
-     */
-
-    public void addChange( WordChange wordChange )
-    {
-        changes.add( wordChange );
-    }
-
-    /** Get list of changes.
-     *
-     *  @return     List of changes.
-     */
-
-    public List<WordChange> getChanges()
-    {
-        return changes;
-    }
-
-    /** Get number of changes.
-     *
-     *  @return     The number of changes.
-     */
-
-    public int getNumberOfChanges()
-    {
-        return changes.size();
-    }
+  /**
+   * Get number of changes.
+   *
+   * @return The number of changes.
+   */
+  public int getNumberOfChanges() {
+    return changes.size();
+  }
 }
 
 /*
@@ -174,6 +155,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

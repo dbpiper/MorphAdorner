@@ -2,66 +2,51 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-
 /** Simple word tokenizer which splits on whitespace only. */
+public class WhitespaceWordTokenizer extends AbstractWordTokenizer implements WordTokenizer {
+  /** Create a word tokenizer than breaks on whitespace only. */
+  public WhitespaceWordTokenizer() {
+    super();
+  }
 
-public class WhitespaceWordTokenizer
-    extends AbstractWordTokenizer
-    implements WordTokenizer
-{
-    /** Create a word tokenizer than breaks on whitespace only.
-     */
+  /**
+   * Break text into word tokens.
+   *
+   * @param text Text to break into word tokens.
+   * @return Input text broken on white space.
+   */
+  public List<String> extractWords(String text) {
+    List<String> result = ListFactory.createNewList();
 
-    public WhitespaceWordTokenizer()
-    {
-        super();
+    StringTokenizer stringTokenizer = new StringTokenizer(preTokenizer.pretokenize(text));
+
+    while (stringTokenizer.hasMoreTokens()) {
+      String token = stringTokenizer.nextToken();
+
+      token = preprocessToken(token, result);
+
+      //  If the token is not empty,
+      //  add it to the sentence.
+
+      if (token.length() > 0) {
+        //  Check if we need to split a token
+        //  containing an internal period.
+
+        String[] tokens = splitToken(token);
+
+        for (int k = 0; k < tokens.length; k++) {
+          if (tokens[k].length() > 0) {
+            addWordToSentence(result, tokens[k]);
+          }
+        }
+      }
     }
 
-    /** Break text into word tokens.
-     *
-     *  @param  text            Text to break into word tokens.
-     *
-     *  @return                 Input text broken on white space.
-     */
-
-     public List<String> extractWords( String text )
-     {
-        List<String> result = ListFactory.createNewList();
-
-        StringTokenizer stringTokenizer =
-            new StringTokenizer( preTokenizer.pretokenize( text ) );
-
-        while ( stringTokenizer.hasMoreTokens() )
-        {
-            String token    = stringTokenizer.nextToken();
-
-            token           = preprocessToken( token , result );
-
-                                //  If the token is not empty,
-                                //  add it to the sentence.
-
-            if ( token.length() > 0 )
-            {
-                                //  Check if we need to split a token
-                                //  containing an internal period.
-
-                String[] tokens = splitToken( token );
-
-                for ( int k = 0 ; k < tokens.length ; k++ )
-                {
-                    if ( tokens[ k ].length() > 0 )
-                    {
-                        addWordToSentence( result ,  tokens[ k ] );
-                    }
-                }
-            }
-        }
-
-        return result;
-     }
+    return result;
+  }
 }
 
 /*
@@ -104,6 +89,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,254 +2,178 @@ package edu.northwestern.at.morphadorner.tools.mergespellingdata;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.outputter.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.outputter.*;
-
-/** Merges multiple files of altenate spellings into one big file.
+/**
+ * Merges multiple files of altenate spellings into one big file.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  java edu.northwestern.at.morphadorner.tools.mergespellingdata.MergeSpellingData output.tab input.tab input2.tab ...<br />
- *  <br />
- *  output.tab -- output merged word spelling data file.<br />
- *  input*.tab -- input tab-delimited files containing spelling maps to be merged.<br />
- *  </p>
+ * <p>java edu.northwestern.at.morphadorner.tools.mergespellingdata.MergeSpellingData output.tab
+ * input.tab input2.tab ...<br>
+ * <br>
+ * output.tab -- output merged word spelling data file.<br>
+ * input*.tab -- input tab-delimited files containing spelling maps to be merged.<br>
  *
- *  <p>
- *  Each input spelling map is a utf-8 file containing two fields
- *  separated by a tab character.  The first field is a variant
- *  spelling.  The second field is the standardized spelling
- *  for the variant.
- *  </p>
+ * <p>Each input spelling map is a utf-8 file containing two fields separated by a tab character.
+ * The first field is a variant spelling. The second field is the standardized spelling for the
+ * variant.
  *
- *  <p>
- *  The output file is a utf-8 text file containing the merged spelling
- *  maps from the input files.  When a given variant appears more
- *  than once with different standardized spellings in the input
- *  files, the last mapping encountered is the one written to the
- *  output file.
- *  </p>
+ * <p>The output file is a utf-8 text file containing the merged spelling maps from the input files.
+ * When a given variant appears more than once with different standardized spellings in the input
+ * files, the last mapping encountered is the one written to the output file.
  */
+public class MergeSpellingData {
+  /** Main program for merge spelling data. */
+  public static void main(String[] args) {
+    try {
+      mergeSpellingData(args);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-public class MergeSpellingData
-{
-    /** Main program for merge spelling data. */
+  /**
+   * Check if a string represents a database null value.
+   *
+   * @param s String to check for null value.
+   * @return true if string is null.
+   */
+  protected static boolean isDBNull(String s) {
+    return (s == null) || s.equals("\\N") || s.equals("NULL");
+  }
 
-    public static void main( String[] args )
-    {
-        try
-        {
-            mergeSpellingData( args );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+  /** Merge the spelling data. */
+  protected static void mergeSpellingData(String[] args) throws IOException {
+    //  Get the file to check for non-standard
+    //  spellings.
+
+    if (args.length == 0) {
+      System.out.println(
+          "Usage: MergeSpellingData " + "combinedoutput spellinginput1 spellinginput2 ...");
+      System.out.println("");
+
+      System.out.println(
+          "       -- combinedoutput is name of "
+              + "file to received combined "
+              + "alternate/standard spellings");
+
+      System.out.println(
+          "       -- spellinginput1 ... are names of "
+              + " files containing alternative spellings "
+              + "mapped to standard spellings.");
+      System.exit(1);
+    }
+    //  Get output file name.
+
+    String spellingDataOutputFileName = args[0];
+
+    //  Create combined map of alternate
+    //  spellings to standard spellings from
+    //  each input file.
+
+    Map<String, String> alternateSpellings = new TreeMap<String, String>();
+
+    Set<String> standardSpellings = SetFactory.createNewSet();
+
+    for (int i = 1; i < args.length; i++) {
+      String altSpellingsFileName = args[i];
+
+      try {
+        getAlternateSpellings(
+            new BufferedReader(
+                new UnicodeReader(new FileInputStream(altSpellingsFileName), "utf-8")),
+            alternateSpellings,
+            standardSpellings);
+
+        System.out.println("Merged alternate spellings from " + altSpellingsFileName);
+      } catch (Exception e) {
+        e.printStackTrace();
+
+        System.out.println("Unable to load alternate spellings from " + altSpellingsFileName + ".");
+
+        System.exit(1);
+      }
     }
 
-    /** Check if a string represents a database null value.
-     *
-     *  @param  s   String to check for null value.
-     *
-     *  @return     true if string is null.
-     */
+    System.out.println("There are " + alternateSpellings.size() + " alternate spellings.");
 
-    protected static boolean isDBNull( String s )
-    {
-        return ( s == null ) || s.equals( "\\N" ) || s.equals( "NULL" );
+    System.out.println("There are " + standardSpellings.size() + " standard spellings.");
+
+    //  Output the map of alternate to
+    //  standard spellings.
+
+    AdornedWordOutputter outputter = null;
+
+    try {
+      outputter = new PrintStreamAdornedWordOutputter();
+
+      outputter.createOutputFile(spellingDataOutputFileName, "utf-8", '\t');
+    } catch (Exception e) {
+      e.printStackTrace();
+
+      System.out.println("Unable to open output file " + spellingDataOutputFileName + " .");
+
+      System.exit(1);
     }
 
-    /** Merge the spelling data.
-     */
+    for (String alternateSpelling : alternateSpellings.keySet()) {
+      String standardSpelling = alternateSpellings.get(alternateSpelling);
 
-    protected static void mergeSpellingData( String[] args )
-        throws IOException
-    {
-                                //  Get the file to check for non-standard
-                                //  spellings.
+      outputter.outputWordAndAdornments(new String[] {alternateSpelling, standardSpelling});
+    }
+    //  Close output file.
+    outputter.close();
+  }
 
-        if ( args.length == 0 )
-        {
-            System.out.println( "Usage: MergeSpellingData " +
-                "combinedoutput spellinginput1 spellinginput2 ..." );
-            System.out.println( "" );
+  /**
+   * Get map of alternative : canonical spelling pairs from a reader.
+   *
+   * @param reader The reader.
+   */
+  public static void getAlternateSpellings(Reader reader, Map<String, String> map, Set<String> set)
+      throws IOException {
+    String[] tokens;
 
-            System.out.println( "       -- combinedoutput is name of " +
-                                "file to received combined " +
-                                "alternate/standard spellings" );
+    BufferedReader bufferedReader = new BufferedReader(reader);
 
-            System.out.println( "       -- spellinginput1 ... are names of " +
-                                " files containing alternative spellings " +
-                                "mapped to standard spellings." );
-            System.exit( 1 );
-        }
-                                //  Get output file name.
+    String inputLine = bufferedReader.readLine();
+    String alternateSpelling;
+    String standardSpelling;
 
-        String spellingDataOutputFileName   = args[ 0 ];
+    while (inputLine != null) {
+      tokens = inputLine.split("\t");
 
-                                //  Create combined map of alternate
-                                //  spellings to standard spellings from
-                                //  each input file.
+      if (tokens.length > 1) {
+        alternateSpelling = tokens[0];
+        standardSpelling = tokens[1];
 
-        Map<String, String> alternateSpellings  =
-            new TreeMap<String, String>();
+        if (!isDBNull(standardSpelling)) {
+          alternateSpelling = alternateSpelling.trim();
+          standardSpelling = standardSpelling.trim();
 
-        Set<String> standardSpellings   = SetFactory.createNewSet();
-
-        for ( int i = 1 ; i < args.length ; i++ )
-        {
-            String altSpellingsFileName = args[ i ];
-
-            try
-            {
-                getAlternateSpellings
-                (
-                    new BufferedReader
-                    (
-                        new UnicodeReader
-                        (
-                            new FileInputStream( altSpellingsFileName ) ,
-                            "utf-8"
-                        )
-                    ) ,
-                    alternateSpellings ,
-                    standardSpellings
-                );
-
-                System.out.println(
-                    "Merged alternate spellings from " +
-                    altSpellingsFileName );
+          if (map.get(alternateSpelling) == null) {
+            if (!alternateSpelling.endsWith("-")) {
+              map.put(alternateSpelling, standardSpelling);
+              set.add(standardSpelling);
             }
-            catch ( Exception e )
-            {
-                e.printStackTrace();
-
-                System.out.println(
-                    "Unable to load alternate spellings from " +
-                    altSpellingsFileName + "." );
-
-                System.exit( 1 );
-            }
+          }
         }
+      } else {
+        System.out.println("Skipping line = <" + inputLine + ">");
+      }
 
-        System.out.println(
-            "There are " + alternateSpellings.size() +
-            " alternate spellings." );
-
-        System.out.println(
-            "There are " + standardSpellings.size() +
-            " standard spellings." );
-
-                                //  Output the map of alternate to
-                                //  standard spellings.
-
-        AdornedWordOutputter outputter  =   null;
-
-        try
-        {
-            outputter   =
-                new PrintStreamAdornedWordOutputter();
-
-            outputter.createOutputFile
-            (
-                spellingDataOutputFileName , "utf-8" , '\t'
-            );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-
-            System.out.println(
-                "Unable to open output file " +
-                spellingDataOutputFileName + " ." );
-
-            System.exit( 1 );
-        }
-
-        for ( String alternateSpelling : alternateSpellings.keySet() )
-        {
-            String standardSpelling     =
-                alternateSpellings.get( alternateSpelling );
-
-            outputter.outputWordAndAdornments
-            (
-                new String[]{ alternateSpelling , standardSpelling }
-            );
-        }
-                                //  Close output file.
-        outputter.close();
+      inputLine = bufferedReader.readLine();
     }
 
-    /** Get map of alternative : canonical spelling pairs from a reader.
-     *
-     *  @param  reader  The reader.
-     */
+    bufferedReader.close();
+  }
 
-    public static void getAlternateSpellings
-    (
-        Reader reader ,
-        Map<String, String> map ,
-        Set<String> set
-    )
-        throws IOException
-    {
-        String[] tokens;
-
-        BufferedReader bufferedReader   =
-            new BufferedReader( reader );
-
-        String inputLine                = bufferedReader.readLine();
-        String alternateSpelling;
-        String standardSpelling;
-
-        while ( inputLine != null )
-        {
-            tokens      = inputLine.split( "\t" );
-
-            if ( tokens.length > 1 )
-            {
-                alternateSpelling   = tokens[ 0 ];
-                standardSpelling    = tokens[ 1 ];
-
-                if ( !isDBNull( standardSpelling ) )
-                {
-                    alternateSpelling   = alternateSpelling.trim();
-                    standardSpelling    = standardSpelling.trim();
-
-                    if ( map.get( alternateSpelling ) == null )
-                    {
-                        if ( !alternateSpelling.endsWith( "-" ) )
-                        {
-                            map.put( alternateSpelling , standardSpelling );
-                            set.add( standardSpelling );
-                        }
-                    }
-                }
-            }
-            else
-            {
-                System.out.println(
-                    "Skipping line = <" + inputLine + ">" );
-            }
-
-            inputLine   = bufferedReader.readLine();
-        }
-
-        bufferedReader.close();
-    }
-
-    /** Allow overrides but not instantiation.
-     */
-
-    protected MergeSpellingData()
-    {
-    }
+  /** Allow overrides but not instantiation. */
+  protected MergeSpellingData() {}
 }
 
 /*
@@ -292,7 +216,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-
-

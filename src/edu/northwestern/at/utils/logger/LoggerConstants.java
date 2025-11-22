@@ -3,34 +3,24 @@ package edu.northwestern.at.utils.logger;
 /*  Please see the license information at the end of this file. */
 
 /** Logger constants. */
+public class LoggerConstants {
+  /** Fatal logging level. */
+  public static final int FATAL = 0;
 
-public class LoggerConstants
-{
-    /** Fatal logging level. */
+  /** Error logging level. */
+  public static final int ERROR = 1;
 
-    public static final int FATAL = 0;
+  /** Warn logging level. */
+  public static final int WARN = 2;
 
-    /** Error logging level. */
+  /** Info logging level. */
+  public static final int INFO = 3;
 
-    public static final int ERROR = 1;
+  /** Debug logging level. */
+  public static final int DEBUG = 4;
 
-    /** Warn logging level. */
-
-    public static final int WARN = 2;
-
-    /** Info logging level. */
-
-    public static final int INFO = 3;
-
-    /** Debug logging level. */
-
-    public static final int DEBUG = 4;
-
-    /** Allow overrides but not instantiation. */
-
-    protected LoggerConstants()
-    {
-    }
+  /** Allow overrides but not instantiation. */
+  protected LoggerConstants() {}
 }
 
 /*
@@ -73,5 +63,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

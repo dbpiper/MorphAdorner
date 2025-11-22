@@ -2,756 +2,544 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.logger.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.zip.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
-import edu.northwestern.at.utils.logger.*;
+/** Abstract Spelling Standardizer. */
+public abstract class AbstractSpellingStandardizer extends IsCloseableObject
+    implements SpellingStandardizer, UsesLogger {
+  /** The map with alternate spellings as keys and standard spellings as values. */
+  protected TaggedStrings mappedSpellings = null;
 
-/** Abstract Spelling Standardizer.
- */
+  /** The set of standard spellings. */
+  protected Set<String> standardSpellingSet = SetFactory.createNewSet();
 
-abstract public class AbstractSpellingStandardizer
-    extends IsCloseableObject
-    implements SpellingStandardizer, UsesLogger
-{
-    /** The map with alternate spellings as keys and standard spellings
-     *  as values.
-     */
+  /**
+   * Irregular forms.
+   *
+   * <p>Spellings disambiguated by word class are stored in a HashMap2D. The compound key consists
+   * of the word class and alternate spelling, and the value is the standardized spelling.
+   */
+  protected Map2D<String, String, String> spellingsByWordClass;
 
-    protected TaggedStrings mappedSpellings = null;
+  /** Word classes of alternate spellings. */
+  protected Set<String> alternateSpellingsWordClasses;
 
-    /** The set of standard spellings. */
+  /** Path to list of irregular word forms. */
+  protected static String defaultSpellingsByWordClassFileName =
+      "resources/spellingsbywordclass.txt";
 
-    protected Set<String> standardSpellingSet   =
-        SetFactory.createNewSet();
+  /** Logger used for output. */
+  protected Logger logger = new DummyLogger();
 
-    /** Irregular forms.
-     *
-     *  <p>
-     *  Spellings disambiguated by word class are stored in a HashMap2D.
-     *  The compound key consists of the word class and alternate spelling,
-     *  and the value is the standardized spelling.
-     *  </p>
-     */
+  /** Lexicon associated with this standardizer. May be null. */
+  protected Lexicon lexicon;
 
-    protected Map2D<String, String, String> spellingsByWordClass;
+  /** Create abstract spelling standardizer. */
+  public AbstractSpellingStandardizer() {
+    //  Load default spellings by word class.
+    try {
+      loadAlternativeSpellingsByWordClass(
+          this.getClass().getResource(defaultSpellingsByWordClassFileName), "utf-8");
+    } catch (Exception e) {
+    }
+  }
 
-    /** Word classes of alternate spellings.
-     */
+  /**
+   * Load alternate to standard spellings by word class.
+   *
+   * @param spellingsURL URL of alternative spellings by word class.
+   */
+  public void loadAlternativeSpellingsByWordClass(URL spellingsURL, String encoding)
+      throws IOException {
+    String line = null;
+    //  Load irregular forms.
 
-    protected Set<String> alternateSpellingsWordClasses;
+    BufferedReader buffer =
+        new BufferedReader(new UnicodeReader(spellingsURL.openStream(), encoding));
 
-    /** Path to list of irregular word forms. */
+    String wordClass = "";
+    String spelling = "";
 
-    protected static String defaultSpellingsByWordClassFileName =
-        "resources/spellingsbywordclass.txt";
+    String[] tokens = new String[2];
 
-    /** Logger used for output. */
+    spellingsByWordClass = Map2DFactory.createNewMap2D();
+    alternateSpellingsWordClasses = new TreeSet<String>();
 
-    protected Logger logger = new DummyLogger();
+    while ((line = buffer.readLine()) != null) {
+      tokens = StringUtils.makeTokenArray(line);
 
-    /** Lexicon associated with this standardizer.  May be null. */
+      if (tokens.length > 0) {
+        int l = tokens[0].length();
 
-    protected Lexicon lexicon;
+        if (tokens[0].charAt(l - 1) == ':') {
+          wordClass = tokens[0].substring(0, l - 1);
 
-    /** Create abstract spelling standardizer. */
+          alternateSpellingsWordClasses.add(wordClass);
+        } else {
+          if (tokens.length > 1) {
+            spelling = tokens[1];
+          } else {
+            spelling = tokens[0];
+          }
 
-    public AbstractSpellingStandardizer()
-    {
-                                //  Load default spellings by word class.
-        try
-        {
-            loadAlternativeSpellingsByWordClass
-            (
-                this.getClass().getResource
-                (
-                    defaultSpellingsByWordClassFileName
-                ) ,
-                "utf-8"
-            );
+          spellingsByWordClass.put(wordClass, tokens[0], spelling);
+
+          if (tokens[0].indexOf("^") >= 0) {
+            addMappedSpelling(
+                StringUtils.replaceAll(tokens[0], "^", CharUtils.CHAR_SUP_TEXT_MARKER_STRING),
+                spelling);
+          }
         }
-        catch ( Exception e )
-        {
+      }
+    }
+
+    buffer.close();
+  }
+
+  /**
+   * Loads alternate spellings from a URL.
+   *
+   * @param url URL containing alternate spellings to standard spellings mappings.
+   * @param compressed true if gzip compressed
+   * @param encoding Text encoding (utf-8, 8859_1, etc.).
+   * @param delimChars Delimiter characters separating spelling pairs.
+   */
+  public void loadAlternativeSpellings(
+      URL url, boolean compressed, String encoding, String delimChars) throws IOException {
+    if (url != null) {
+      InputStream inputStream = url.openStream();
+      GZIPInputStream gzipInputStream = null;
+
+      if (compressed) {
+        gzipInputStream = new GZIPInputStream(inputStream);
+      }
+
+      loadAlternativeSpellings(
+          new UnicodeReader(compressed ? gzipInputStream : inputStream, encoding), delimChars);
+    }
+  }
+
+  /**
+   * Loads alternate spellings from a URL.
+   *
+   * @param url URL containing alternate spellings to standard spellings mappings.
+   * @param encoding Text encoding (utf-8, 8859_1, etc.).
+   * @param delimChars Delimiter characters separating spelling pairs.
+   */
+  public void loadAlternativeSpellings(URL url, String encoding, String delimChars)
+      throws IOException {
+    loadAlternativeSpellings(url, false, encoding, delimChars);
+  }
+
+  /**
+   * Loads alternative spellings from a reader.
+   *
+   * @param reader The reader.
+   * @param delimChars Delimiter characters separating spelling pairs.
+   */
+  public void loadAlternativeSpellings(Reader reader, String delimChars) throws IOException {
+    String[] tokens;
+
+    BufferedReader bufferedReader = new BufferedReader(reader);
+
+    if (mappedSpellings == null) {
+      mappedSpellings = new TernaryTrie();
+    }
+
+    String inputLine = bufferedReader.readLine();
+
+    while (inputLine != null) {
+      tokens = inputLine.split(delimChars);
+
+      if (tokens.length > 1) {
+        tokens[0] = tokens[0].trim();
+        tokens[1] = tokens[1].trim();
+
+        addMappedSpelling(tokens[0], tokens[1]);
+
+        if (tokens[0].indexOf("^") >= 0) {
+          addMappedSpelling(
+              StringUtils.replaceAll(tokens[0], "^", CharUtils.CHAR_SUP_TEXT_MARKER_STRING),
+              tokens[1]);
         }
+      }
+
+      inputLine = bufferedReader.readLine();
     }
 
-    /** Load alternate to standard spellings by word class.
-     *
-     *  @param  spellingsURL    URL of alternative spellings by word class.
-     */
+    bufferedReader.close();
+  }
 
-    public void loadAlternativeSpellingsByWordClass
-    (
-        URL spellingsURL ,
-        String encoding
-    )
-        throws IOException
-    {
-        String line = null;
-                                //  Load irregular forms.
+  /**
+   * Loads standard spellings from a URL.
+   *
+   * @param url URL containing standard spellings
+   * @param compressed true if gzip compressed
+   * @param encoding Character set encoding for spellings
+   */
+  public void loadStandardSpellings(URL url, boolean compressed, String encoding)
+      throws IOException {
+    if (url != null) {
+      InputStream inputStream = url.openStream();
+      GZIPInputStream gzipInputStream = null;
 
-        BufferedReader buffer =
-            new BufferedReader
-            (
-                new UnicodeReader
-                (
-                    spellingsURL.openStream() ,
-                    encoding
-                )
-            );
+      if (compressed) {
+        gzipInputStream = new GZIPInputStream(inputStream);
+      }
 
-        String wordClass    = "";
-        String spelling     = "";
+      loadStandardSpellings(
+          new UnicodeReader(compressed ? gzipInputStream : inputStream, encoding));
+    }
+  }
 
-        String[] tokens     = new String[ 2 ];
+  /**
+   * Loads standard spellings from a URL.
+   *
+   * @param url URL containing standard spellings
+   * @param encoding Character set encoding for spellings
+   */
+  public void loadStandardSpellings(URL url, String encoding) throws IOException {
+    loadStandardSpellings(url, false, encoding);
+  }
 
-        spellingsByWordClass            = Map2DFactory.createNewMap2D();
-        alternateSpellingsWordClasses   = new TreeSet<String>();
+  /**
+   * Loads standard spellings from a reader.
+   *
+   * @param reader The reader.
+   */
+  public void loadStandardSpellings(Reader reader) throws IOException {
+    BufferedReader bufferedReader = new BufferedReader(reader);
 
-        while ( ( line = buffer.readLine() ) != null )
-        {
-            tokens  = StringUtils.makeTokenArray( line );
+    String spelling = bufferedReader.readLine();
 
-            if ( tokens.length > 0 )
-            {
-                int l   = tokens[ 0 ].length();
+    while (spelling != null) {
+      addStandardSpelling(spelling.trim());
 
-                if ( tokens[ 0 ].charAt( l - 1 ) == ':' )
-                {
-                    wordClass   = tokens[ 0 ].substring( 0 , l - 1 );
+      spelling = bufferedReader.readLine();
+    }
 
-                    alternateSpellingsWordClasses.add( wordClass );
-                }
-                else
-                {
-                    if ( tokens.length > 1 )
-                    {
-                        spelling    = tokens[ 1 ];
-                    }
-                    else
-                    {
-                        spelling    = tokens[ 0 ];
-                    }
+    bufferedReader.close();
+  }
 
-                    spellingsByWordClass.put(
-                        wordClass , tokens[ 0 ] , spelling );
+  /**
+   * Add a mapped spelling.
+   *
+   * @param alternateSpelling The alternate spelling.
+   * @param standardSpelling The corresponding standard spelling.
+   */
+  public void addMappedSpelling(String alternateSpelling, String standardSpelling) {
+    if ((mappedSpellings != null)
+        && (standardSpelling != null)
+        && (standardSpelling.length() > 0)
+        && (alternateSpelling != null)
+        && (alternateSpelling.length() > 0)) {
+      mappedSpellings.putTag(alternateSpelling, standardSpelling);
 
-                    if ( tokens[ 0 ].indexOf( "^" ) >= 0 )
-                    {
-                        addMappedSpelling
-                        (
-                            StringUtils.replaceAll
-                            (
-                                tokens[ 0 ] ,
-                                "^" ,
-                                CharUtils.CHAR_SUP_TEXT_MARKER_STRING
-                            ) ,
-                            spelling
-                        );
-                    }
-                }
-            }
+      mappedSpellings.putTag(alternateSpelling.toLowerCase(), standardSpelling);
+
+      addStandardSpelling(standardSpelling);
+    }
+  }
+
+  /**
+   * Add a standard spelling.
+   *
+   * @param standardSpelling A standard spelling.
+   */
+  public void addStandardSpelling(String standardSpelling) {
+    if ((standardSpelling != null) && (standardSpelling.length() > 0)) {
+      standardSpellingSet.add(standardSpelling);
+
+      standardSpellingSet.add(standardSpelling.toLowerCase());
+    }
+  }
+
+  /**
+   * Add standard spellings from a collection.
+   *
+   * @param standardSpellings A collection of standard spellings.
+   */
+  public void addStandardSpellings(Collection<String> standardSpellings) {
+    Iterator<String> iterator = standardSpellings.iterator();
+
+    while (iterator.hasNext()) {
+      String spelling = iterator.next();
+
+      addStandardSpelling(spelling);
+    }
+  }
+
+  /**
+   * Cached a generated mapped spelling.
+   *
+   * @param alternateSpelling The alternate spelling.
+   * @param standardSpelling The corresponding standard spelling.
+   */
+  public void addCachedSpelling(String alternateSpelling, String standardSpelling) {
+    if ((mappedSpellings != null)
+        && (standardSpelling != null)
+        && (standardSpelling.length() > 0)
+        && (alternateSpelling != null)
+        && (alternateSpelling.length() > 0)) {
+      mappedSpellings.putTag(alternateSpelling, standardSpelling);
+
+      mappedSpellings.putTag(alternateSpelling.toLowerCase(), standardSpelling);
+    }
+  }
+
+  /**
+   * Sets map which maps alternate spellings to standard spellings.
+   *
+   * @param mappedSpellings Map with alternate spellings as keys and standard spellings as values.
+   */
+  public void setMappedSpellings(TaggedStrings mappedSpellings) {
+    this.mappedSpellings = mappedSpellings;
+  }
+
+  /**
+   * Sets standard spellings.
+   *
+   * @param standardSpellings Set of standard spellings.
+   */
+  public void setStandardSpellings(Set<String> standardSpellings) {
+    this.standardSpellingSet = standardSpellings;
+  }
+
+  /**
+   * Returns standard spellings given a spelling.
+   *
+   * @param spelling The spelling.
+   * @return The standard spellings as an array of String.
+   *     <p>If not spelling map is defined, the spelling is returned unchanged.
+   */
+  public String[] standardizeSpelling(String spelling) {
+    String result = spelling;
+    String lowerCaseSpelling = spelling.toLowerCase();
+
+    if (mappedSpellings != null) {
+      //  Check if given spelling exists
+      //  in spelling map.  If so, return
+      //  associated standard spelling.
+
+      if (mappedSpellings.containsString(spelling)) {
+        result = mappedSpellings.getTag(spelling);
+      }
+      //  Check if lower case form of given
+      //  spelling exists in spelling map.
+      //  If so, return associated standard
+      //  spelling.
+
+      else if (mappedSpellings.containsString(lowerCaseSpelling)) {
+        result = mappedSpellings.getTag(lowerCaseSpelling);
+      }
+      //  If spelling contains dashes,
+      //  evict them and try looking up
+      //  the resulting spelling in regular
+      //  and lower case form.
+
+      else if (CharUtils.hasDash(spelling)) {
+        String spellingNoDashes = CharUtils.evictDashes(spelling);
+
+        //  Check if no-dashes spelling exists
+        //  in spelling map.  If so, return
+        //  associated standard spelling.
+
+        if (mappedSpellings.containsString(spellingNoDashes)) {
+          result = mappedSpellings.getTag(spellingNoDashes);
         }
+        //  Check if lower case form of no-dashes
+        //  spelling exists in spelling map.
+        //  If so, return associated standard
+        //  spelling.
 
-        buffer.close();
-    }
-
-    /** Loads alternate spellings from a URL.
-     *
-     *  @param  url         URL containing alternate spellings to
-     *                      standard spellings mappings.
-     *  @param  compressed  true if gzip compressed
-     *  @param  encoding    Text encoding (utf-8, 8859_1, etc.).
-     *  @param  delimChars  Delimiter characters separating spelling pairs.
-     */
-
-    public void loadAlternativeSpellings
-    (
-        URL url ,
-        boolean compressed ,
-        String encoding ,
-        String delimChars
-    )
-        throws IOException
-    {
-        if ( url != null )
-        {
-            InputStream inputStream         = url.openStream();
-            GZIPInputStream gzipInputStream = null;
-
-            if ( compressed )
-            {
-                gzipInputStream = new GZIPInputStream( inputStream );
-            }
-
-            loadAlternativeSpellings
-            (
-                new UnicodeReader
-                (
-                    compressed ? gzipInputStream : inputStream ,
-                    encoding
-                ) ,
-                delimChars
-            );
+        else if (mappedSpellings.containsString(spellingNoDashes.toLowerCase())) {
+          result = mappedSpellings.getTag(spellingNoDashes.toLowerCase());
         }
+      }
     }
 
-    /** Loads alternate spellings from a URL.
-     *
-     *  @param  url         URL containing alternate spellings to
-     *                      standard spellings mappings.
-     *  @param  encoding    Text encoding (utf-8, 8859_1, etc.).
-     *  @param  delimChars  Delimiter characters separating spelling pairs.
-     */
+    result = fixCapitalization(spelling, result);
 
-    public void loadAlternativeSpellings
-    (
-        URL url ,
-        String encoding ,
-        String delimChars
-    )
-        throws IOException
-    {
-        loadAlternativeSpellings( url , false, encoding , delimChars );
+    return new String[] {result};
+  }
+
+  /**
+   * Returns a standard spelling given a standard or alternate spelling.
+   *
+   * @param spelling The spelling.
+   * @param wordClass The major word class.
+   * @return The standard spelling.
+   */
+  public String standardizeSpelling(String spelling, String wordClass) {
+    //  Get lowercase form of spelling.
+
+    String lcSpelling = spelling.toLowerCase();
+
+    //  See if we have a standard spelling
+    //  defined for this word class.  Try
+    //  original case first, then lower case.
+    String result = (String) spellingsByWordClass.get(wordClass, spelling);
+
+    if (result == null) {
+      result = (String) spellingsByWordClass.get(wordClass, lcSpelling);
+    }
+    //  If not, get a list of suggested
+    //  standard spellings without regard
+    //  to word class.
+    if (result == null) {
+      String[] suggestions = standardizeSpelling(spelling);
+
+      //  If we got any suggested spellings,
+      //  choose the last (e.g., best).
+
+      if (suggestions.length > 0) {
+        result = suggestions[suggestions.length - 1];
+      }
+    }
+    //  No standard spelling found so far?
+    //  Return the original spelling.
+    if (result == null) {
+      result = spelling;
     }
 
-    /** Loads alternative spellings from a reader.
-     *
-     *  @param  reader      The reader.
-     *  @param  delimChars  Delimiter characters separating spelling pairs.
-     */
+    return result;
+  }
 
-    public void loadAlternativeSpellings
-    (
-        Reader reader ,
-        String delimChars
-    )
-        throws IOException
-    {
-        String[] tokens;
+  /**
+   * Returns number of alternate spellings.
+   *
+   * @return The number of alternate spellings.
+   */
+  public int getNumberOfAlternateSpellings() {
+    int result = 0;
 
-        BufferedReader bufferedReader   = new BufferedReader( reader );
-
-        if ( mappedSpellings == null )
-        {
-            mappedSpellings     = new TernaryTrie();
-        }
-
-        String inputLine    = bufferedReader.readLine();
-
-        while ( inputLine != null )
-        {
-            tokens      = inputLine.split( delimChars );
-
-            if ( tokens.length > 1 )
-            {
-                tokens[ 0 ] = tokens[ 0 ].trim();
-                tokens[ 1 ] = tokens[ 1 ].trim();
-
-                addMappedSpelling( tokens[ 0 ] , tokens[ 1 ] );
-
-                if ( tokens[ 0 ].indexOf( "^" ) >= 0 )
-                {
-                    addMappedSpelling
-                    (
-                        StringUtils.replaceAll
-                        (
-                            tokens[ 0 ] ,
-                            "^" ,
-                            CharUtils.CHAR_SUP_TEXT_MARKER_STRING
-                        ) ,
-                        tokens[ 1 ]
-                    );
-                }
-            }
-
-            inputLine   = bufferedReader.readLine();
-        }
-
-        bufferedReader.close();
+    if (mappedSpellings != null) {
+      result = mappedSpellings.getStringCount();
     }
 
-    /** Loads standard spellings from a URL.
-     *
-     *  @param  url         URL containing standard spellings
-     *  @param  compressed  true if gzip compressed
-     *  @param  encoding    Character set encoding for spellings
-     */
+    return result;
+  }
 
-    public void loadStandardSpellings
-    (
-        URL url ,
-        boolean compressed ,
-        String encoding
-    )
-        throws IOException
-    {
-        if ( url != null )
-        {
-            InputStream inputStream         = url.openStream();
-            GZIPInputStream gzipInputStream = null;
+  /**
+   * Returns number of alternate spellings by word class.
+   *
+   * @return int array with two entries. [0] = The number of alternate spellings word classes. [1] =
+   *     The number of alternate spellings in the word classes.
+   */
+  public int[] getNumberOfAlternateSpellingsByWordClass() {
+    int[] result = new int[2];
 
-            if ( compressed )
-            {
-                gzipInputStream = new GZIPInputStream( inputStream );
-            }
+    result[0] = 0;
+    result[1] = 0;
 
-            loadStandardSpellings
-            (
-                new UnicodeReader
-                (
-                    compressed ? gzipInputStream : inputStream ,
-                    encoding
-                )
-            );
-        }
+    if (alternateSpellingsWordClasses != null) {
+      result[0] = alternateSpellingsWordClasses.size();
     }
 
-    /** Loads standard spellings from a URL.
-     *
-     *  @param  url         URL containing standard spellings
-     *  @param  encoding    Character set encoding for spellings
-     */
-
-    public void loadStandardSpellings
-    (
-        URL url ,
-        String encoding
-    )
-        throws IOException
-    {
-        loadStandardSpellings( url , false , encoding );
+    if (spellingsByWordClass != null) {
+      result[1] = spellingsByWordClass.size();
     }
 
-    /** Loads standard spellings from a reader.
-     *
-     *  @param  reader      The reader.
-     */
+    return result;
+  }
 
-    public void loadStandardSpellings
-    (
-        Reader reader
-    )
-        throws IOException
-    {
-        BufferedReader bufferedReader   = new BufferedReader( reader );
+  /**
+   * Returns number of standard spellings.
+   *
+   * @return The number of standard spellings.
+   */
+  public int getNumberOfStandardSpellings() {
+    int result = 0;
 
-        String spelling = bufferedReader.readLine();
-
-        while ( spelling != null )
-        {
-            addStandardSpelling( spelling.trim() );
-
-            spelling    = bufferedReader.readLine();
-        }
-
-        bufferedReader.close();
+    if (standardSpellingSet != null) {
+      result = standardSpellingSet.size();
     }
 
-    /** Add a mapped spelling.
-     *
-     *  @param  alternateSpelling   The alternate spelling.
-     *  @param  standardSpelling    The corresponding standard spelling.
-     */
-
-    public void addMappedSpelling
-    (
-        String alternateSpelling ,
-        String standardSpelling
-    )
-    {
-        if  (   ( mappedSpellings != null ) &&
-                ( standardSpelling != null ) &&
-                ( standardSpelling.length() > 0 ) &&
-                ( alternateSpelling != null ) &&
-                ( alternateSpelling.length() > 0 )
-            )
-        {
-            mappedSpellings.putTag(
-                alternateSpelling , standardSpelling );
-
-            mappedSpellings.putTag(
-                alternateSpelling.toLowerCase() , standardSpelling );
-
-            addStandardSpelling( standardSpelling );
-        }
-    }
-
-    /** Add a standard spelling.
-     *
-     *  @param  standardSpelling    A standard spelling.
-     */
-
-    public void addStandardSpelling
-    (
-        String standardSpelling
-    )
-    {
-        if  (   ( standardSpelling != null ) &&
-                ( standardSpelling.length() > 0 )
-            )
-        {
-            standardSpellingSet.add( standardSpelling );
-
-            standardSpellingSet.add( standardSpelling.toLowerCase() );
-        }
-    }
-
-    /** Add standard spellings from a collection.
-     *
-     *  @param  standardSpellings   A collection of standard spellings.
-     */
-
-    public void addStandardSpellings
-    (
-        Collection<String> standardSpellings
-    )
-    {
-        Iterator<String> iterator   = standardSpellings.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            String spelling = iterator.next();
-
-            addStandardSpelling( spelling );
-        }
-    }
-
-    /** Cached a generated mapped spelling.
-     *
-     *  @param  alternateSpelling   The alternate spelling.
-     *  @param  standardSpelling    The corresponding standard spelling.
-     */
-
-    public void addCachedSpelling
-    (
-        String alternateSpelling ,
-        String standardSpelling
-    )
-    {
-        if  (   ( mappedSpellings != null ) &&
-                ( standardSpelling != null ) &&
-                ( standardSpelling.length() > 0 ) &&
-                ( alternateSpelling != null ) &&
-                ( alternateSpelling.length() > 0 )
-            )
-        {
-            mappedSpellings.putTag(
-                alternateSpelling , standardSpelling );
-
-            mappedSpellings.putTag(
-                alternateSpelling.toLowerCase() , standardSpelling );
-        }
-    }
-
-    /** Sets map which maps alternate spellings to standard spellings.
-     *
-     *  @param  mappedSpellings     Map with alternate spellings as keys
-     *                          and standard spellings as values.
-     */
-
-    public void setMappedSpellings( TaggedStrings mappedSpellings )
-    {
-        this.mappedSpellings    = mappedSpellings;
-    }
-
-    /** Sets standard spellings.
-     *
-     *  @param  standardSpellings       Set of standard spellings.
-     */
-
-    public void setStandardSpellings( Set<String> standardSpellings )
-    {
-        this.standardSpellingSet    = standardSpellings;
-    }
-
-    /** Returns standard spellings given a spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The standard spellings as an array of String.
-     *
-     *  <p>
-     *  If not spelling map is defined, the spelling is returned
-     *  unchanged.
-     *  </p>
-     */
-
-     public String[] standardizeSpelling( String spelling )
-     {
-        String result               = spelling;
-        String lowerCaseSpelling    = spelling.toLowerCase();
-
-        if ( mappedSpellings != null )
-        {
-                                //  Check if given spelling exists
-                                //  in spelling map.  If so, return
-                                //  associated standard spelling.
-
-            if ( mappedSpellings.containsString( spelling ) )
-            {
-                result  = mappedSpellings.getTag( spelling );
-            }
-                                //  Check if lower case form of given
-                                //  spelling exists in spelling map.
-                                //  If so, return associated standard
-                                //  spelling.
-
-            else if ( mappedSpellings.containsString( lowerCaseSpelling ) )
-            {
-                result  = mappedSpellings.getTag( lowerCaseSpelling );
-            }
-                                //  If spelling contains dashes,
-                                //  evict them and try looking up
-                                //  the resulting spelling in regular
-                                //  and lower case form.
-
-            else if ( CharUtils.hasDash( spelling ) )
-            {
-                String spellingNoDashes = CharUtils.evictDashes( spelling );
-
-                                //  Check if no-dashes spelling exists
-                                //  in spelling map.  If so, return
-                                //  associated standard spelling.
-
-                if ( mappedSpellings.containsString( spellingNoDashes ) )
-                {
-                    result  = mappedSpellings.getTag( spellingNoDashes );
-                }
-                                //  Check if lower case form of no-dashes
-                                //  spelling exists in spelling map.
-                                //  If so, return associated standard
-                                //  spelling.
-
-                else if ( mappedSpellings.containsString(
-                    spellingNoDashes.toLowerCase() ) )
-                {
-                    result  =
-                        mappedSpellings.getTag(
-                            spellingNoDashes.toLowerCase() );
-                }
-            }
-        }
-
-        result  = fixCapitalization( spelling , result );
-
-        return new String[]{ result };
-     }
-
-    /** Returns a standard spelling given a standard or alternate spelling.
-     *
-     *  @param  spelling    The spelling.
-     *  @param  wordClass   The major word class.
-     *
-     *  @return             The standard spelling.
-     */
-
-     public String standardizeSpelling( String spelling , String wordClass )
-     {
-                                //  Get lowercase form of spelling.
-
-        String lcSpelling   = spelling.toLowerCase();
-
-                                //  See if we have a standard spelling
-                                //  defined for this word class.  Try
-                                //  original case first, then lower case.
-        String result       =
-            (String)spellingsByWordClass.get( wordClass , spelling );
-
-        if ( result == null )
-        {
-            result      =
-                (String)spellingsByWordClass.get( wordClass , lcSpelling );
-        }
-                                //  If not, get a list of suggested
-                                //  standard spellings without regard
-                                //  to word class.
-        if ( result == null )
-        {
-            String[] suggestions    = standardizeSpelling( spelling );
-
-                                //  If we got any suggested spellings,
-                                //  choose the last (e.g., best).
-
-            if ( suggestions.length > 0 )
-            {
-                result  = suggestions[ suggestions.length - 1 ];
-            }
-        }
-                                //  No standard spelling found so far?
-                                //  Return the original spelling.
-        if ( result == null )
-        {
-            result  = spelling;
-        }
-
-        return result;
-    }
-
-     /** Returns number of alternate spellings.
-      *
-      * @return     The number of alternate spellings.
-      */
-
-    public int getNumberOfAlternateSpellings()
-    {
-        int result  = 0;
-
-        if ( mappedSpellings != null )
-        {
-            result  = mappedSpellings.getStringCount();
-        }
-
-        return result;
-    }
-
-     /** Returns number of alternate spellings by word class.
-      *
-      * @return     int array with two entries.
-      *             [0] =   The number of alternate spellings word classes.
-      *             [1] =   The number of alternate spellings in the
-      *                     word classes.
-      */
-
-    public int[] getNumberOfAlternateSpellingsByWordClass()
-    {
-        int[] result    = new int[ 2 ];
-
-        result[ 0 ]     = 0;
-        result[ 1 ]     = 0;
-
-        if ( alternateSpellingsWordClasses != null )
-        {
-            result[ 0 ] = alternateSpellingsWordClasses.size();
-        }
-
-        if ( spellingsByWordClass != null )
-        {
-            result[ 1 ] = spellingsByWordClass.size();
-        }
-
-        return result;
-    }
-
-     /** Returns number of standard spellings.
-      *
-      * @return     The number of standard spellings.
-      */
-
-    public int getNumberOfStandardSpellings()
-    {
-        int result  = 0;
-
-        if ( standardSpellingSet != null )
-        {
-            result  = standardSpellingSet.size();
-        }
-
-        return result;
-    }
-
-    /** Return the mapped spellings.
-     *
-     *  @return     The spelling tagged strings with (alternate spelling,
-     *              standard spelling) pairs.  May be null if
-     *              this standardizer does not use such a map.
-     */
-
-    public TaggedStrings getMappedSpellings()
-    {
-        return mappedSpellings;
-    }
-
-    /** Return the standard spellings.
-     *
-     *  @return     The standard spellings as a Set.
-     *              May be null.
-     */
-
-    public Set<String> getStandardSpellings()
-    {
-        return standardSpellingSet;
-    }
-
-    /** Preprocess spelling.
-     *
-     *  @param  spelling    Spelling to preprocess.
-     *
-     *  @return             Preprocessed spelling.
-     *
-     *  <p>
-     *  By default, no preprocessing is applied; the original spelling
-     *  is returned unchanged.
-     *  </p>
-     */
-
-    public String preprocessSpelling( String spelling )
-    {
-        return spelling;
-    }
-
-    /** Fix capitalization of standardized spelling.
-     *
-     *  @param  spelling            The original spelling.
-     *  @param  standardSpelling    The candidate standard spelling.
-     *
-     *  @return                     Standard spelling with initial
-     *                              capitalization matching original
-     *                              spelling.
-     */
-
-    public String fixCapitalization
-    (
-        String spelling ,
-        String standardSpelling
-    )
-    {
-        return CharUtils.makeCaseMatch( standardSpelling , spelling );
-    }
-
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
-
-    public Logger getLogger()
-    {
-        return logger;
-    }
-
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
-
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
-
-    /** Get the word lexicon.
-     *
-     *  @return     The static word lexicon.
-     */
-
-    public Lexicon getLexicon()
-    {
-        return lexicon;
-    }
-
-    /** Set the lexicon.
-     *
-     *  @param  lexicon     Lexicon used for tagging.
-     */
-
-    public void setLexicon( Lexicon lexicon )
-    {
-        this.lexicon    = lexicon;
-    }
+    return result;
+  }
+
+  /**
+   * Return the mapped spellings.
+   *
+   * @return The spelling tagged strings with (alternate spelling, standard spelling) pairs. May be
+   *     null if this standardizer does not use such a map.
+   */
+  public TaggedStrings getMappedSpellings() {
+    return mappedSpellings;
+  }
+
+  /**
+   * Return the standard spellings.
+   *
+   * @return The standard spellings as a Set. May be null.
+   */
+  public Set<String> getStandardSpellings() {
+    return standardSpellingSet;
+  }
+
+  /**
+   * Preprocess spelling.
+   *
+   * @param spelling Spelling to preprocess.
+   * @return Preprocessed spelling.
+   *     <p>By default, no preprocessing is applied; the original spelling is returned unchanged.
+   */
+  public String preprocessSpelling(String spelling) {
+    return spelling;
+  }
+
+  /**
+   * Fix capitalization of standardized spelling.
+   *
+   * @param spelling The original spelling.
+   * @param standardSpelling The candidate standard spelling.
+   * @return Standard spelling with initial capitalization matching original spelling.
+   */
+  public String fixCapitalization(String spelling, String standardSpelling) {
+    return CharUtils.makeCaseMatch(standardSpelling, spelling);
+  }
+
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
+
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
+
+  /**
+   * Get the word lexicon.
+   *
+   * @return The static word lexicon.
+   */
+  public Lexicon getLexicon() {
+    return lexicon;
+  }
+
+  /**
+   * Set the lexicon.
+   *
+   * @param lexicon Lexicon used for tagging.
+   */
+  public void setLexicon(Lexicon lexicon) {
+    this.lexicon = lexicon;
+  }
 }
 
 /*
@@ -794,6 +582,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

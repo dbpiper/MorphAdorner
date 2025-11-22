@@ -2,20 +2,13 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter;
 
 /*  Please see the license information at the end of this file. */
 
-/** Default sentence splitter iterator.
- */
-
-public class DefaultSentenceSplitterIterator
-    extends ICU4JBreakIteratorSentenceSplitterIterator
-    implements SentenceSplitterIterator
-{
-    /** Create default sentence extractor.
-     */
-
-    public DefaultSentenceSplitterIterator()
-    {
-        super();
-    }
+/** Default sentence splitter iterator. */
+public class DefaultSentenceSplitterIterator extends ICU4JBreakIteratorSentenceSplitterIterator
+    implements SentenceSplitterIterator {
+  /** Create default sentence extractor. */
+  public DefaultSentenceSplitterIterator() {
+    super();
+  }
 }
 
 /*
@@ -58,6 +51,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

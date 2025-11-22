@@ -2,258 +2,195 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.util.*;
 import java.util.regex.*;
 
-import edu.northwestern.at.utils.*;
-
-/** A Lemmatizer Rule which uses regular expressions.
+/**
+ * A Lemmatizer Rule which uses regular expressions.
  *
- *  <p>
- *  A lemmarizer rule specifies a string substitution pattern
- *  used as part of the process of reducing an elaborated
- *  morphological form to its base form (lemma).
- *  </p>
+ * <p>A lemmarizer rule specifies a string substitution pattern used as part of the process of
+ * reducing an elaborated morphological form to its base form (lemma).
  */
+public class DefaultLemmatizerRule implements LemmatizerRule {
+  /** Original rule text. */
+  protected String ruleText;
 
-public class DefaultLemmatizerRule implements LemmatizerRule
-{
-    /** Original rule text. */
+  /** Source pattern string to match. */
+  protected String source;
 
-    protected String ruleText;
+  /** Compiled source pattern matcher. */
+  protected Pattern compiledSource;
 
-    /** Source pattern string to match. */
+  /** Replacement string. */
+  protected String replacement;
 
-    protected String source;
+  /** Compiled VCR string matcher. */
+  protected static final Pattern VCRMatcher = Pattern.compile("([VCRA]+)");
 
-    /** Compiled source pattern matcher. */
+  /** Match direction (LEFT or RIGHT). */
+  public static final int LEFT = 0;
 
-    protected Pattern compiledSource;
+  public static final int RIGHT = 1;
 
-    /** Replacement string. */
+  protected int direction;
 
-    protected String replacement;
+  /** Minimum match length. */
+  protected int matchLength;
 
-    /** Compiled VCR string matcher. */
+  /** Must match dictionary entry. */
+  protected boolean mustMatchDictionaryEntry;
 
-    protected static final Pattern VCRMatcher   =
-        Pattern.compile( "([VCRA]+)" );
+  /**
+   * Create a lemmatizer rule.
+   *
+   * @param ruleText The rule text.
+   */
+  public DefaultLemmatizerRule(String ruleText) {
+    this.ruleText = ruleText;
+    direction = RIGHT;
+    source = "";
+    replacement = "";
+    mustMatchDictionaryEntry = false;
 
-    /** Match direction (LEFT or RIGHT). */
+    StringTokenizer tokenizer = new StringTokenizer(ruleText, " \t");
 
-    public static final int LEFT    = 0;
-    public static final int RIGHT   = 1;
+    int nTokens = tokenizer.countTokens();
 
-    protected int direction;
+    if (nTokens > 0) {
+      String[] tokens = new String[nTokens];
 
-    /** Minimum match length. */
+      for (int i = 0; i < nTokens; i++) {
+        tokens[i] = tokenizer.nextToken();
+      }
 
-    protected int matchLength;
+      int i = 0;
 
-    /** Must match dictionary entry. */
+      char ch = tokens[0].charAt(0);
 
-    protected boolean mustMatchDictionaryEntry;
+      switch (ch) {
+        case '<':
+        case '>':
+          direction = (ch == '<' ? LEFT : RIGHT);
 
-    /** Create a lemmatizer rule.
-     *
-     *  @param  ruleText    The rule text.
-     */
+          matchLength = StringUtils.stringToInt(tokens[0].substring(1), 0);
 
-    public DefaultLemmatizerRule( String ruleText )
-    {
-        this.ruleText               = ruleText;
-        direction                   = RIGHT;
-        source                      = "";
-        replacement                 = "";
-        mustMatchDictionaryEntry    = false;
+          i++;
+          break;
 
-        StringTokenizer tokenizer   =
-            new StringTokenizer( ruleText , " \t" );
+        case '+':
+          mustMatchDictionaryEntry = true;
+          i++;
+          break;
 
-        int nTokens     = tokenizer.countTokens();
+        default:
+          ;
+      }
 
-        if ( nTokens > 0 )
-        {
-            String[] tokens = new String[ nTokens ];
+      source = tokens[i++];
 
-            for ( int i = 0 ; i < nTokens ; i++ )
-            {
-                tokens[ i ] = tokenizer.nextToken();
-            }
+      if (i < nTokens) {
+        replacement = tokens[i];
+      }
 
-            int i   = 0;
+      int replacementCount = 1;
 
-            char ch = tokens[ 0 ].charAt( 0 );
+      if (matchLength > 0) {
+        if (direction == RIGHT) {
+          source = "(..)" + source;
+          replacement = "$" + replacementCount + replacement;
 
-            switch( ch )
-            {
-                case '<'    :
-                case '>'    :
-                    direction   = ( ch == '<' ? LEFT : RIGHT );
+          replacementCount++;
+        } else {
+          matchLength--;
 
-                    matchLength =
-                        StringUtils.stringToInt
-                        (
-                            tokens[ 0 ].substring( 1 ) ,
-                            0
-                        );
+          source = "^(.{1," + matchLength + "})" + source;
+          replacement = "$" + replacementCount + replacement;
 
-                    i++;
-                    break;
-
-                case '+'    :
-                    mustMatchDictionaryEntry    = true;
-                    i++;
-                    break;
-
-                default     : ;
-            }
-
-            source  = tokens[ i++ ];
-
-            if ( i < nTokens )
-            {
-                replacement = tokens[ i ];
-            }
-
-            int replacementCount    = 1;
-
-            if ( matchLength > 0 )
-            {
-                if ( direction == RIGHT )
-                {
-                    source      = "(..)" + source;
-                    replacement = "$" + replacementCount + replacement;
-
-                    replacementCount++;
-                }
-                else
-                {
-                    matchLength--;
-
-                    source      = "^(.{1," + matchLength + "})" + source;
-                    replacement = "$" + replacementCount + replacement;
-
-                    replacementCount++;
-                }
-            }
-
-            Matcher m   = VCRMatcher.matcher( source );
-
-            if ( source.indexOf( "CC" ) >= 0 )
-            {
-                source  =
-                    StringUtils.replaceAll
-                    (
-                        source ,
-                        "CC" ,
-                        "([^aeiouy])\\1"
-                    );
-
-                replacement =
-                    StringUtils.replaceFirst
-                    (
-                        replacement ,
-                        "C" ,
-                        "$" + replacementCount
-                    );
-            }
-            else if ( m.find() )
-            {
-                String phonolog = m.group( 1 );
-
-                int start   = m.start();
-                int end     = m.end();
-
-                source      =
-                    source.substring( 0 , start ) + "(" +
-                    phonolog + ")" +
-                    source.substring( end );
-
-                source  =
-//                  StringUtils.replaceAll( source , "V" , "[aeiouyr]" );
-                    StringUtils.replaceAll( source , "V" , "[aeiouy]" );
-
-                source  =
-                    StringUtils.replaceAll( source , "C" , "[^aeiouy]" );
-
-                source  =
-                    StringUtils.replaceAll( source , "R" , "r" );
-
-                source  =
-                    StringUtils.replaceAll( source , "A" , ".*" );
-
-                replacement =
-                    StringUtils.replaceFirst
-                    (
-                        replacement ,
-                        phonolog ,
-                        "$" + replacementCount
-                    );
-
-                replacementCount++;
-            }
-
-            source  = source + "$";
-
-            compiledSource  = Pattern.compile( source );
+          replacementCount++;
         }
+      }
+
+      Matcher m = VCRMatcher.matcher(source);
+
+      if (source.indexOf("CC") >= 0) {
+        source = StringUtils.replaceAll(source, "CC", "([^aeiouy])\\1");
+
+        replacement = StringUtils.replaceFirst(replacement, "C", "$" + replacementCount);
+      } else if (m.find()) {
+        String phonolog = m.group(1);
+
+        int start = m.start();
+        int end = m.end();
+
+        source = source.substring(0, start) + "(" + phonolog + ")" + source.substring(end);
+
+        source =
+            //                  StringUtils.replaceAll( source , "V" , "[aeiouyr]" );
+            StringUtils.replaceAll(source, "V", "[aeiouy]");
+
+        source = StringUtils.replaceAll(source, "C", "[^aeiouy]");
+
+        source = StringUtils.replaceAll(source, "R", "r");
+
+        source = StringUtils.replaceAll(source, "A", ".*");
+
+        replacement = StringUtils.replaceFirst(replacement, phonolog, "$" + replacementCount);
+
+        replacementCount++;
+      }
+
+      source = source + "$";
+
+      compiledSource = Pattern.compile(source);
     }
+  }
 
-    /** Apply a lemmatization rule to a string.
-     *
-     *  @param  s           String to which to apply rule.
-     *  @param  dictionary  List of known words.
-     *
-     *  @return             String after rule applied.
-     */
+  /**
+   * Apply a lemmatization rule to a string.
+   *
+   * @param s String to which to apply rule.
+   * @param dictionary List of known words.
+   * @return String after rule applied.
+   */
+  public String apply(String s, Set<String> dictionary) {
+    String result = s;
 
-    public String apply( String s , Set<String> dictionary )
-    {
-        String result   = s;
+    if (compiledSource != null) {
+      Matcher m = compiledSource.matcher(s);
 
-        if ( compiledSource != null )
-        {
-            Matcher m   = compiledSource.matcher( s );
+      if (m.find()) {
+        result = m.replaceAll(replacement);
 
-            if ( m.find() )
-            {
-                result  = m.replaceAll( replacement );
-
-                if ( mustMatchDictionaryEntry && ( dictionary != null ) )
-                {
-                    if ( !dictionary.contains( result.toLowerCase() ) )
-                    {
-                        result  = s;
-                    }
-                }
-            }
+        if (mustMatchDictionaryEntry && (dictionary != null)) {
+          if (!dictionary.contains(result.toLowerCase())) {
+            result = s;
+          }
         }
-
-        return result;
+      }
     }
 
-    /** Apply a lemmatization rule to a string.
-     *
-     *  @param  s   String to which to apply rule.
-     *
-     *  @return     String after rule applied.
-     */
+    return result;
+  }
 
-    public String apply( String s )
-    {
-        return apply( s , null );
-    }
+  /**
+   * Apply a lemmatization rule to a string.
+   *
+   * @param s String to which to apply rule.
+   * @return String after rule applied.
+   */
+  public String apply(String s) {
+    return apply(s, null);
+  }
 
-    /** Return string version of rule.
-     *
-     *  @return     String version of rule.  Dictionary lookup not marked.
-     */
-
-    public String toString()
-    {
-        return "s/" + source + "/" + replacement + "/";
-    }
+  /**
+   * Return string version of rule.
+   *
+   * @return String version of rule. Dictionary lookup not marked.
+   */
+  public String toString() {
+    return "s/" + source + "/" + replacement + "/";
+  }
 }
 
 /*
@@ -296,6 +233,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

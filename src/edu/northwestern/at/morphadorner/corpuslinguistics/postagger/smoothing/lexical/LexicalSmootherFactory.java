@@ -5,99 +5,70 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.l
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** LexicalSmoother factory.
- */
+/** LexicalSmoother factory. */
+public class LexicalSmootherFactory {
+  /**
+   * Get a lexical smoother.
+   *
+   * @return The lexicalSmoother.
+   */
+  public static LexicalSmoother newLexicalSmoother() {
+    String className = System.getProperty("lexicalsmoother.class");
 
-public class LexicalSmootherFactory
-{
-    /** Get a lexical smoother.
-     *
-     *  @return     The lexicalSmoother.
-     */
-
-    public static LexicalSmoother newLexicalSmoother()
-    {
-        String className    =
-            System.getProperty( "lexicalsmoother.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultLexicalSmoother";
-        }
-
-        return newLexicalSmoother( className );
+    if (className == null) {
+      className = "DefaultLexicalSmoother";
     }
 
-    /** Get a lexical smoother.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The lexicalSmoother.
-     */
+    return newLexicalSmoother(className);
+  }
 
-    public static LexicalSmoother newLexicalSmoother
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a lexical smoother.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The lexicalSmoother.
+   */
+  public static LexicalSmoother newLexicalSmoother(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "lexicalsmoother.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultLexicalSmoother";
-        }
-
-        return newLexicalSmoother( className );
+    if (properties != null) {
+      className = properties.getProperty("lexicalsmoother.class");
     }
 
-    /** Get a lexicalSmoother of a specified class name.
-     *
-     *  @param  className   Class name for the lexicalSmoother.
-     *
-     *  @return             The lexicalSmoother.
-     */
-
-    public static LexicalSmoother newLexicalSmoother( String className )
-    {
-        LexicalSmoother lexicalSmoother = null;
-
-        try
-        {
-            lexicalSmoother =
-                (LexicalSmoother)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    LexicalSmootherFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                lexicalSmoother =
-                    (LexicalSmoother)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create lexical smoother of class " +
-                    fixedClassName + ", using default." );
-
-                lexicalSmoother = new DefaultLexicalSmoother();
-            }
-        }
-
-        return lexicalSmoother;
+    if (className == null) {
+      className = "DefaultLexicalSmoother";
     }
+
+    return newLexicalSmoother(className);
+  }
+
+  /**
+   * Get a lexicalSmoother of a specified class name.
+   *
+   * @param className Class name for the lexicalSmoother.
+   * @return The lexicalSmoother.
+   */
+  public static LexicalSmoother newLexicalSmoother(String className) {
+    LexicalSmoother lexicalSmoother = null;
+
+    try {
+      lexicalSmoother = (LexicalSmoother) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(LexicalSmootherFactory.class.getName()) + "." + className;
+
+      try {
+        lexicalSmoother = (LexicalSmoother) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create lexical smoother of class " + fixedClassName + ", using default.");
+
+        lexicalSmoother = new DefaultLexicalSmoother();
+      }
+    }
+
+    return lexicalSmoother;
+  }
 }
 
 /*
@@ -140,6 +111,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -1,9 +1,8 @@
 package com.rmtheis.langdetect.profile;
 
-import java.util.HashMap;
-
 import com.cybozu.labs.langdetect.util.LangProfile;
 import com.cybozu.labs.langdetect.util.NGram;
+import java.util.HashMap;
 
 public class TR extends CLangProfile {
   private static final String name = "tr";
@@ -11,13 +10,13 @@ public class TR extends CLangProfile {
   private static final int[] n_words = new int[NGram.N_GRAM];
 
   public TR() {
-    init();  
+    init();
   }
 
-  public  LangProfile getLangProfile() {
+  public LangProfile getLangProfile() {
     return new LangProfile(name, freq, n_words);
   }
-  
+
   private void init() {
     n_words[0] = 9192208;
     n_words[1] = 10449574;
@@ -2608,6 +2607,4 @@ public class TR extends CLangProfile {
     freq.put("rs\u0327\u0131", 2081);
     freq.put("u\u0308zo\u0308", 2079);
   }
-  
 }
-

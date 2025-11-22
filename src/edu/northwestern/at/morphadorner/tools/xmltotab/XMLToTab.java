@@ -2,430 +2,352 @@ package edu.northwestern.at.morphadorner.tools.xmltotab;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.csv.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.morphadorner.tools.*;
-
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-import edu.northwestern.at.utils.csv.*;
-import edu.northwestern.at.utils.xml.*;
-
-/** Convert MorphAdorner XML output to tab-separated tabular form.
+/**
+ * Convert MorphAdorner XML output to tab-separated tabular form.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  java edu.northwestern.at.morphadorner.tools.xmltotab.XMLToTab input.xml output.tab<br />
- *  <br />
- *  input.xml -- input XML file.<br />
- *  output.tab -- output tab-separated values file.<br />
- *  </p>
+ * <p>java edu.northwestern.at.morphadorner.tools.xmltotab.XMLToTab input.xml output.tab<br>
+ * <br>
+ * input.xml -- input XML file.<br>
+ * output.tab -- output tab-separated values file.<br>
  *
- *  <p>
- *  The attribute values for each "&lt;w&gt;" and "&lt;pc&gt;" element
- *  in the input XML file
- *  are extracted and output to a tab-separated values text file.
- *  An output line contains the following information corresponding
- *  to a single word "&lt;w&gt;" or "&lt;pc&gt;" element.
- *  </p>
+ * <p>The attribute values for each "&lt;w&gt;" and "&lt;pc&gt;" element in the input XML file are
+ * extracted and output to a tab-separated values text file. An output line contains the following
+ * information corresponding to a single word "&lt;w&gt;" or "&lt;pc&gt;" element.
  *
- *  <ol>
- *  <li>The work ID.</li>
- *  <li>The permanent word ID.</li>
- *  <li>The uncorrected original spelling.</li>
- *  <li>The uncorrected original spelling reversed.</li>
- *  <li>The standard spelling.</li>
- *  <li>The lemma.</li>
- *  <li>The part of speech.</li>
- *  <li>The XPath-like path to this word.
- *      The leading work ID and trailing word number are removed from
- *      the path.
- *      </li>
- *  <li>The end of sentence flag.  1 if this word ends a sentence,
- *      0 otherwise.
- *      </li>
- *  <li>The previous word's original spelling.</li>
- *  <li>The next word's original spelling.</li>
- *  <li>The previous word's parts of speech.</li>
- *  <li>The next word's parts of speech.</li>
- *  <li>Up to 80 characters of text preceding the word in the text.</li>
- *  <li>Up to 80 characters of text following the word in the text.</li>
- *  <li>The word label.  May be empty.</li>
- *  <li>The div type of the nearest ancestor div element.  May be empty.</li>
- *  <li>The word ordinal.</li>
- *  </ol>
+ * <ol>
+ *   <li>The work ID.
+ *   <li>The permanent word ID.
+ *   <li>The uncorrected original spelling.
+ *   <li>The uncorrected original spelling reversed.
+ *   <li>The standard spelling.
+ *   <li>The lemma.
+ *   <li>The part of speech.
+ *   <li>The XPath-like path to this word. The leading work ID and trailing word number are removed
+ *       from the path.
+ *   <li>The end of sentence flag. 1 if this word ends a sentence, 0 otherwise.
+ *   <li>The previous word's original spelling.
+ *   <li>The next word's original spelling.
+ *   <li>The previous word's parts of speech.
+ *   <li>The next word's parts of speech.
+ *   <li>Up to 80 characters of text preceding the word in the text.
+ *   <li>Up to 80 characters of text following the word in the text.
+ *   <li>The word label. May be empty.
+ *   <li>The div type of the nearest ancestor div element. May be empty.
+ *   <li>The word ordinal.
+ * </ol>
  *
- *  <p>
- *  This tabular representation of an adorned XML text is useful for
- *  data checking purposes. The morphological attribute values for
- *  each word element appear as columns. The 80 characters (or
- *  so) of text on either side of the word allows you to focus on
- *  particular part of speech tags and pinpoint errors from the
- *  automatic adornment process. The tab separated values may also be
- *  used to construct spreadsheets or databases of the individual
- *  word information.
- *  </p>
+ * <p>This tabular representation of an adorned XML text is useful for data checking purposes. The
+ * morphological attribute values for each word element appear as columns. The 80 characters (or so)
+ * of text on either side of the word allows you to focus on particular part of speech tags and
+ * pinpoint errors from the automatic adornment process. The tab separated values may also be used
+ * to construct spreadsheets or databases of the individual word information.
  */
+public class XMLToTab {
+  /** Main program. */
+  public static void main(String[] args) {
+    //  Must have input file name and
+    //  output file name to perform conversion.
+    //  Display program usage if two
+    //  arguments are not provided.
 
-public class XMLToTab
-{
-    /** Main program. */
+    if (args.length >= 2) {
+      new XMLToTab(args);
+    } else {
+      displayUsage();
+      System.exit(1);
+    }
+  }
 
-    public static void main( String[] args )
-    {
-                                //  Must have input file name and
-                                //  output file name to perform conversion.
-                                //  Display program usage if two
-                                //  arguments are not provided.
+  /** Display brief program usage. */
+  public static void displayUsage() {
+    System.out.println("Usage: ");
+    System.out.println("");
+    System.out.println(
+        "   java edu.northwestern.at.morphadorner.tool.xmltotab."
+            + "XMLToTab input.xml output.tab");
+    System.out.println("");
+    System.out.println("      input.xml -- input XML file");
+    System.out.println("      output.tab -- output tab-separated " + "values file.");
+  }
 
-        if ( args.length >= 2 )
-        {
-            new XMLToTab( args );
+  /**
+   * Supervises conversion of XML word elements to tabular form.
+   *
+   * @param args Command line arguments.
+   */
+  public XMLToTab(String[] args) {
+    //  Get input XML file name.
+
+    String xmlInputFileName = args[0];
+
+    //  Get output XML file name.
+
+    String tabOutputFileName = args[1];
+
+    //  Perform conversion.
+    try {
+      //  Get tab-separated file writer.
+
+      CSVFileWriter writer = new CSVFileWriter(tabOutputFileName, "utf-8", '\t', (char) 0);
+
+      //  Get work ID.
+
+      String workID = FileNameUtils.stripPathName(xmlInputFileName);
+
+      workID = FileNameUtils.changeFileExtension(workID, "");
+
+      //  Load adorned XML.
+
+      AdornedXMLReader xmlReader = new AdornedXMLReader(xmlInputFileName);
+
+      //  We have collected information
+      //  about each "<w>" element in
+      //  the XML input.  For each of these,
+      //  we write a corresponding
+      //  tab-separated list of the
+      //  attribute values to the output file.
+
+      List<String> idList = xmlReader.getAdornedWordIDs();
+
+      for (int wordOrd = 0; wordOrd < idList.size(); wordOrd++) {
+        //  Get next word's information.
+
+        String id = idList.get(wordOrd);
+
+        ExtendedAdornedWord w = xmlReader.getExtendedAdornedWord(id);
+
+        //  Only need information from
+        //  last part of a multipart word.
+
+        if (!w.isFirstPart()) continue;
+
+        //  Create the tabular output line
+        //  from the word information.
+
+        //  Write work ID.
+
+        writer.writeValue(workID);
+        writer.writeSeparator();
+
+        //  Write word ID.
+
+        writer.writeValue(w.getID());
+        writer.writeSeparator();
+
+        //  Write original spelling.
+
+        writer.writeValue(w.getToken());
+        writer.writeSeparator();
+
+        //  Write reversed original spelling.
+
+        writer.writeValue(StringUtils.reverseString(w.getToken()));
+
+        writer.writeSeparator();
+
+        //  Write standard spelling.
+
+        writer.writeValue(w.getStandardSpelling());
+        writer.writeSeparator();
+
+        //  Write lemmata.
+
+        writer.writeValue(w.getLemmata());
+        writer.writeSeparator();
+
+        //  Write parts of speech.
+
+        writer.writeValue(w.getPartsOfSpeech());
+        writer.writeSeparator();
+
+        //  Write path to tag.
+
+        writer.writeValue(fixPath(w.getPath()));
+        writer.writeSeparator();
+
+        //  Write end of sentence flag.
+
+        writer.writeValue(w.getEOS() ? "1" : "0");
+        writer.writeSeparator();
+
+        //  Previous word's spelling.
+
+        if (w.getPreviousWord() != null) {
+          writer.writeValue(w.getPreviousWord().getToken());
+        } else {
+          writer.writeValue("");
         }
-        else
-        {
-            displayUsage();
-            System.exit( 1 );
+
+        writer.writeSeparator();
+
+        //  Next word's spelling.
+
+        if (w.getNextWord() != null) {
+          writer.writeValue(w.getNextWord().getToken());
+        } else {
+          writer.writeValue("");
         }
+
+        writer.writeSeparator();
+
+        //  Previous word's parts of speech.
+
+        if (w.getPreviousWord() != null) {
+          writer.writeValue(w.getPreviousWord().getPartsOfSpeech());
+        } else {
+          writer.writeValue("");
+        }
+
+        writer.writeSeparator();
+
+        //  Next word's parts of speech.
+
+        if (w.getNextWord() != null) {
+          writer.writeValue(w.getNextWord().getPartsOfSpeech());
+        } else {
+          writer.writeValue("");
+        }
+
+        writer.writeSeparator();
+
+        //  Generate 80 characters of
+        //  KWIC content to each side of
+        //  word.
+
+        String[] kwic = getKWIC(w.getID(), 80, idList, xmlReader);
+
+        writer.writeValue(kwic[0]);
+        writer.writeSeparator();
+
+        writer.writeValue(kwic[2]);
+        writer.writeSeparator();
+
+        //  Write word label.
+
+        writer.writeValue(w.getLabel());
+        writer.writeSeparator();
+
+        //  Write nearest ancestral div type.
+
+        writer.writeValue(w.getDivType());
+        writer.writeSeparator();
+
+        //  Write word ordinal.
+
+        writer.writeValue(w.getOrd() + "");
+        //              writer.writeSeparator();
+
+        //  Write rend= attribute.
+
+        //              writer.writeValue( w.getRend() );
+
+        //  Write end of line.
+
+        writer.writeEOL();
+      }
+      //  Close output file after all
+      //  tabular lines written.
+      writer.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Trim work ID and word number from word path.
+   *
+   * @param path Full path containing work ID and word number.
+   * @return Path trimmed of leading work ID and trailing word number.
+   */
+  protected static String fixPath(String path) {
+    String[] tags = path.split("\\\\");
+    StringBuilder result = new StringBuilder();
+
+    for (int i = 2; i < tags.length - 1; i++) {
+      result.append("\\");
+      result.append(tags[i]);
     }
 
-    /** Display brief program usage.
-     */
+    return result.toString();
+  }
 
-    public static void displayUsage()
-    {
-        System.out.println( "Usage: " );
-        System.out.println( "" );
-        System.out.println(
-            "   java edu.northwestern.at.morphadorner.tool.xmltotab." +
-            "XMLToTab input.xml output.tab" );
-        System.out.println( "" );
-        System.out.println( "      input.xml -- input XML file" );
-        System.out.println( "      output.tab -- output tab-separated " +
-            "values file." );
+  /**
+   * Generate a KWIC line for a spelling.
+   *
+   * @param id Word ID the word for which to generate a KWIC.
+   * @param KWICWidth Maximum width (in characters) of KWIC text.
+   * @param idList List of word IDs
+   * @param xmlReader The XML Reader.
+   * @return The KWIC sections as a String array. [0] = left KWIC text [1] = word [2] = right KWIC
+   *     text
+   */
+  public static String[] getKWIC(
+      String id, int KWICWidth, List<String> idList, AdornedXMLReader xmlReader) {
+    String[] results = new String[3];
+    StringBuffer KWICBuffer = new StringBuffer();
+
+    //  Get word info for this word.
+
+    ExtendedAdornedWord wordInfo = xmlReader.getExtendedAdornedWord(id);
+
+    //  Get token for this word.
+
+    String token = wordInfo.getToken();
+    results[1] = token;
+
+    //  Figure maximum width for the
+    //  left and right kwic text.
+
+    int maxWidth = KWICWidth / 2;
+
+    //  Accumulate the left kwic text.
+
+    while ((KWICBuffer.length() < maxWidth) && (wordInfo.getPreviousWord() != null)) {
+      wordInfo = wordInfo.getPreviousWord();
+      token = wordInfo.getToken();
+
+      if (KWICBuffer.length() > 0) {
+        KWICBuffer.insert(0, " ");
+      }
+
+      KWICBuffer.insert(0, token);
     }
 
-    /** Supervises conversion of XML word elements to tabular form.
-     *
-     *  @param  args    Command line arguments.
-     */
+    results[0] = KWICBuffer.toString();
 
-    public XMLToTab( String[] args )
-    {
-                                //  Get input XML file name.
+    KWICBuffer.setLength(0);
 
-        String xmlInputFileName     = args[ 0 ];
+    //  Get word info again for this word.
 
-                                //  Get output XML file name.
+    wordInfo = xmlReader.getExtendedAdornedWord(id);
 
-        String tabOutputFileName    = args[ 1 ];
+    //  Accumulate the right kwic text.
 
-                                //  Perform conversion.
-        try
-        {
-                                //  Get tab-separated file writer.
+    while ((KWICBuffer.length() < maxWidth) && (wordInfo.getNextWord() != null)) {
+      wordInfo = wordInfo.getNextWord();
+      token = wordInfo.getToken();
 
-            CSVFileWriter writer    =
-                new CSVFileWriter(
-                    tabOutputFileName , "utf-8" , '\t' , (char)0 );
-
-                                //  Get work ID.
-
-            String workID   =
-                FileNameUtils.stripPathName( xmlInputFileName );
-
-            workID          =
-                FileNameUtils.changeFileExtension( workID , "" );
-
-                                //  Load adorned XML.
-
-            AdornedXMLReader xmlReader  =
-                new AdornedXMLReader( xmlInputFileName );
-
-                                //  We have collected information
-                                //  about each "<w>" element in
-                                //  the XML input.  For each of these,
-                                //  we write a corresponding
-                                //  tab-separated list of the
-                                //  attribute values to the output file.
-
-            List<String> idList = xmlReader.getAdornedWordIDs();
-
-            for ( int wordOrd = 0 ; wordOrd < idList.size() ; wordOrd++ )
-            {
-                                //  Get next word's information.
-
-                String id       = idList.get( wordOrd );
-
-                ExtendedAdornedWord w       =
-                    xmlReader.getExtendedAdornedWord( id );
-
-                                //  Only need information from
-                                //  last part of a multipart word.
-
-                if ( !w.isFirstPart() ) continue;
-
-                                //  Create the tabular output line
-                                //  from the word information.
-
-                                //  Write work ID.
-
-                writer.writeValue( workID );
-                writer.writeSeparator();
-
-                                //  Write word ID.
-
-                writer.writeValue( w.getID() );
-                writer.writeSeparator();
-
-                                //  Write original spelling.
-
-                writer.writeValue( w.getToken() );
-                writer.writeSeparator();
-
-                                //  Write reversed original spelling.
-
-                writer.writeValue(
-                    StringUtils.reverseString( w.getToken() ) );
-
-                writer.writeSeparator();
-
-                                //  Write standard spelling.
-
-                writer.writeValue( w.getStandardSpelling() );
-                writer.writeSeparator();
-
-                                //  Write lemmata.
-
-                writer.writeValue( w.getLemmata() );
-                writer.writeSeparator();
-
-                                //  Write parts of speech.
-
-                writer.writeValue( w.getPartsOfSpeech() );
-                writer.writeSeparator();
-
-                                //  Write path to tag.
-
-                writer.writeValue( fixPath( w.getPath() ) );
-                writer.writeSeparator();
-
-                                //  Write end of sentence flag.
-
-                writer.writeValue( w.getEOS() ? "1" : "0" );
-                writer.writeSeparator();
-
-                                //  Previous word's spelling.
-
-                if ( w.getPreviousWord() != null )
-                {
-                    writer.writeValue( w.getPreviousWord().getToken() );
-                }
-                else
-                {
-                    writer.writeValue( "" );
-                }
-
-                writer.writeSeparator();
-
-                                //  Next word's spelling.
-
-                if ( w.getNextWord() != null )
-                {
-                    writer.writeValue( w.getNextWord().getToken() );
-                }
-                else
-                {
-                    writer.writeValue( "" );
-                }
-
-                writer.writeSeparator();
-
-                                //  Previous word's parts of speech.
-
-                if ( w.getPreviousWord() != null )
-                {
-                    writer.writeValue( w.getPreviousWord().getPartsOfSpeech() );
-                }
-                else
-                {
-                    writer.writeValue( "" );
-                }
-
-                writer.writeSeparator();
-
-                                //  Next word's parts of speech.
-
-                if ( w.getNextWord() != null )
-                {
-                    writer.writeValue( w.getNextWord().getPartsOfSpeech() );
-                }
-                else
-                {
-                    writer.writeValue( "" );
-                }
-
-                writer.writeSeparator();
-
-                                //  Generate 80 characters of
-                                //  KWIC content to each side of
-                                //  word.
-
-                String[] kwic   =
-                    getKWIC( w.getID() , 80 , idList , xmlReader );
-
-                writer.writeValue( kwic[ 0 ] );
-                writer.writeSeparator();
-
-                writer.writeValue( kwic[ 2 ] );
-                writer.writeSeparator();
-
-                                //  Write word label.
-
-                writer.writeValue( w.getLabel() );
-                writer.writeSeparator();
-
-                                //  Write nearest ancestral div type.
-
-                writer.writeValue( w.getDivType() );
-                writer.writeSeparator();
-
-                                //  Write word ordinal.
-
-                writer.writeValue( w.getOrd() + "" );
-//              writer.writeSeparator();
-
-                                //  Write rend= attribute.
-
-//              writer.writeValue( w.getRend() );
-
-                                //  Write end of line.
-
-                writer.writeEOL();
-            }
-                                //  Close output file after all
-                                //  tabular lines written.
-            writer.close();
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+      KWICBuffer.append(token);
+      KWICBuffer.append(" ");
     }
 
-    /** Trim work ID and word number from word path.
-     *
-     *  @param  path    Full path containing work ID and word number.
-     *
-     *  @return         Path trimmed of leading work ID and trailing
-     *                  word number.
-     */
+    results[2] = KWICBuffer.toString();
 
-    protected static String fixPath( String path )
-    {
-        String[] tags           = path.split( "\\\\" );
-        StringBuilder result    = new StringBuilder();
-
-        for ( int i = 2 ; i < tags.length - 1 ; i++ )
-        {
-            result.append( "\\" );
-            result.append( tags[ i ] );
-        }
-
-        return result.toString();
-    }
-
-    /** Generate a KWIC line for a spelling.
-     *
-     *  @param  id              Word ID the word for which to generate
-     *                          a KWIC.
-     *  @param  KWICWidth       Maximum width (in characters) of
-     *                          KWIC text.
-     *  @param  idList          List of word IDs
-     *  @param  xmlReader       The XML Reader.
-     *
-     *  @return             The KWIC sections as a String array.
-     *                          [0] = left KWIC text
-     *                          [1] = word
-     *                          [2] = right KWIC text
-     */
-
-    public static String[] getKWIC
-    (
-        String id ,
-        int KWICWidth ,
-        List<String> idList ,
-        AdornedXMLReader xmlReader
-    )
-    {
-        String[] results        = new String[ 3 ];
-        StringBuffer KWICBuffer = new StringBuffer();
-
-                                //  Get word info for this word.
-
-        ExtendedAdornedWord wordInfo    =
-            xmlReader.getExtendedAdornedWord( id );
-
-                                //  Get token for this word.
-
-        String token    = wordInfo.getToken();
-        results[ 1 ]    = token;
-
-                                //  Figure maximum width for the
-                                //  left and right kwic text.
-
-        int maxWidth    = KWICWidth / 2;
-
-                                //  Accumulate the left kwic text.
-
-        while   (   ( KWICBuffer.length() < maxWidth ) &&
-                    ( wordInfo.getPreviousWord() != null )
-                )
-        {
-            wordInfo    = wordInfo.getPreviousWord();
-            token       = wordInfo.getToken();
-
-            if ( KWICBuffer.length() > 0 )
-            {
-                KWICBuffer.insert( 0 , " " );
-            }
-
-            KWICBuffer.insert( 0 , token );
-        }
-
-        results[ 0 ]    = KWICBuffer.toString();
-
-        KWICBuffer.setLength( 0 );
-
-                                //  Get word info again for this word.
-
-        wordInfo    = xmlReader.getExtendedAdornedWord( id );
-
-                                //  Accumulate the right kwic text.
-
-        while   (   ( KWICBuffer.length() < maxWidth ) &&
-                    ( wordInfo.getNextWord() != null )
-                )
-        {
-            wordInfo    = wordInfo.getNextWord();
-            token       = wordInfo.getToken();
-
-            KWICBuffer.append( token );
-            KWICBuffer.append( " " );
-        }
-
-        results[ 2 ]    = KWICBuffer.toString();
-
-        return results;
-    }
+    return results;
+  }
 }
 
 /*
@@ -468,6 +390,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

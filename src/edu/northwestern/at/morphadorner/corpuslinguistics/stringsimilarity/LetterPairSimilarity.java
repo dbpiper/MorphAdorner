@@ -2,113 +2,99 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.ListFactory;
 import java.math.*;
 import java.util.*;
-import edu.northwestern.at.utils.ListFactory;
 
-public class LetterPairSimilarity implements StringSimilarity
-{
-    protected static String[] letterPairs( String s )
-    {
-        int numPairs = Math.max( s.length() - 1 , 0 );
+public class LetterPairSimilarity implements StringSimilarity {
+  protected static String[] letterPairs(String s) {
+    int numPairs = Math.max(s.length() - 1, 0);
 
-        String[] pairs = new String[ numPairs ];
+    String[] pairs = new String[numPairs];
 
-        if ( numPairs > 0 )
-        {
-            for (int i = 0 ; i < numPairs ; i++ )
-            {
-                pairs[ i ] = s.substring( i , i + 2 );
-            }
-        }
-
-        return pairs;
+    if (numPairs > 0) {
+      for (int i = 0; i < numPairs; i++) {
+        pairs[i] = s.substring(i, i + 2);
+      }
     }
 
-    /** @return an ArrayList of 2-character Strings. */
+    return pairs;
+  }
 
-    protected static List<String> wordLetterPairs( String s )
-    {
-        List<String> allPairs   = ListFactory.createNewList();
+  /**
+   * @return an ArrayList of 2-character Strings.
+   */
+  protected static List<String> wordLetterPairs(String s) {
+    List<String> allPairs = ListFactory.createNewList();
 
-                                // Tokenize the string and put
-                                // the tokens into an array.
+    // Tokenize the string and put
+    // the tokens into an array.
 
-        String[] words  = s.split( "\\s" );
+    String[] words = s.split("\\s");
 
-                                // For each word ...
+    // For each word ...
 
-        for ( int w = 0 ; w < words.length ; w++ )
-        {
-                                // Find pairs of characters
+    for (int w = 0; w < words.length; w++) {
+      // Find pairs of characters
 
-            String[] pairsInWord = letterPairs( words[ w ] );
+      String[] pairsInWord = letterPairs(words[w]);
 
-            for ( int p = 0 ; p < pairsInWord.length ; p++ )
-            {
-                allPairs.add( pairsInWord[ p ] );
-            }
-        }
-
-        return allPairs;
+      for (int p = 0; p < pairsInWord.length; p++) {
+        allPairs.add(pairsInWord[p]);
+      }
     }
 
-    /** Compute letter pair similarity of two strings.
-     *
-     *  @param  s1  First string.
-     *  @param  s2  Second string.
-     *
-     *  @return     Similarity measure in the range [0,1] .
-     */
+    return allPairs;
+  }
 
-    public static double letterPairSimilarity( String s1 , String s2 )
-    {
-        List pairs1 = wordLetterPairs( s1.toUpperCase() );
-        List pairs2 = wordLetterPairs( s2.toUpperCase() );
+  /**
+   * Compute letter pair similarity of two strings.
+   *
+   * @param s1 First string.
+   * @param s2 Second string.
+   * @return Similarity measure in the range [0,1] .
+   */
+  public static double letterPairSimilarity(String s1, String s2) {
+    List pairs1 = wordLetterPairs(s1.toUpperCase());
+    List pairs2 = wordLetterPairs(s2.toUpperCase());
 
-        int intersection    = 0;
+    int intersection = 0;
 
-        int union           = pairs1.size() + pairs2.size();
+    int union = pairs1.size() + pairs2.size();
 
-        for ( int i = 0; i < pairs1.size(); i++ )
-        {
-            Object pair1 = pairs1.get( i );
+    for (int i = 0; i < pairs1.size(); i++) {
+      Object pair1 = pairs1.get(i);
 
-            for ( int j = 0 ; j < pairs2.size() ; j++ )
-            {
-                Object pair2    = pairs2.get(j);
+      for (int j = 0; j < pairs2.size(); j++) {
+        Object pair2 = pairs2.get(j);
 
-                if ( pair1.equals( pair2 ) )
-                {
-                    intersection++;
-                    pairs2.remove( j );
-                    break;
-                }
-            }
+        if (pair1.equals(pair2)) {
+          intersection++;
+          pairs2.remove(j);
+          break;
         }
-
-        double result   = 0.0D;
-
-        if ( union >= 0.0D )
-        {
-            result = ( 2.0D * intersection ) / union;
-        }
-
-        return result;
+      }
     }
 
-    /** Compute letter pair similarity of two strings.
-     *
-     *  @param  s1  First string.
-     *  @param  s2  Second string.
-     *
-     *  @return     Similarity measure in the range [0,1] .
-     */
+    double result = 0.0D;
 
-    public double similarity( String s1 , String s2 )
-    {
-        return letterPairSimilarity( s1 , s2 );
+    if (union >= 0.0D) {
+      result = (2.0D * intersection) / union;
     }
+
+    return result;
+  }
+
+  /**
+   * Compute letter pair similarity of two strings.
+   *
+   * @param s1 First string.
+   * @param s2 Second string.
+   * @return Similarity measure in the range [0,1] .
+   */
+  public double similarity(String s1, String s2) {
+    return letterPairSimilarity(s1, s2);
+  }
 }
 
 /*
@@ -151,6 +137,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

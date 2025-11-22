@@ -2,47 +2,36 @@ package edu.northwestern.at.utils.math;
 
 /*  Please see the license information at the end of this file. */
 
-/** Splits a double into a normalized base two mantissa and exponent..
+/**
+ * Splits a double into a normalized base two mantissa and exponent..
  *
- *  <p>
- *  A double value is split into a normalized mantissa in
- *  the range 0.5 to 1.0, and a corresponding base 2 exponent.
- *  </p>
+ * <p>A double value is split into a normalized mantissa in the range 0.5 to 1.0, and a
+ * corresponding base 2 exponent.
  */
+public class SplitDouble {
+  /** The normalized mantissa. */
+  public double mantissa;
 
-public class SplitDouble
-{
-    /** The normalized mantissa.*/
+  /** The base two exponent. */
+  public int exponent;
 
-    public double mantissa;
+  /**
+   * Create SplitDouble object.
+   *
+   * @param d The double to split.
+   */
+  public SplitDouble(double d) {
+    if (d == 0.0D) {
+      mantissa = 0.0D;
+      exponent = 0;
+    } else {
+      long bits = Double.doubleToLongBits(d);
 
-    /** The base two exponent. */
+      mantissa = Double.longBitsToDouble((0X800FFFFFFFFFFFFFL & bits) | 0x3FE0000000000000L);
 
-    public int exponent;
-
-    /** Create SplitDouble object.
-     *
-     *  @param  d   The double to split.
-     */
-
-    public SplitDouble( double d )
-    {
-        if ( d == 0.0D )
-        {
-            mantissa    = 0.0D;
-            exponent    = 0;
-        }
-        else
-        {
-            long bits   = Double.doubleToLongBits( d );
-
-            mantissa    =
-                Double.longBitsToDouble( ( 0X800FFFFFFFFFFFFFL & bits ) |
-                0x3FE0000000000000L );
-
-            exponent    = (int)( ( bits >> 52 ) & 0x7ff ) - 1022;
-        }
+      exponent = (int) ((bits >> 52) & 0x7ff) - 1022;
     }
+  }
 }
 
 /*
@@ -85,6 +74,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

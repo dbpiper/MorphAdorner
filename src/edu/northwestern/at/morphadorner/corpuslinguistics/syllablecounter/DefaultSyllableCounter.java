@@ -2,23 +2,16 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.syllablecounter;
 
 /*  Please see the license information at the end of this file. */
 
-/** DefaultSyllableCounter: The default MorphAdorner syllablecounter.
+/**
+ * DefaultSyllableCounter: The default MorphAdorner syllablecounter.
  *
- *  <p>
- *  This English syllable counter is the default syllablecounter.
- *  </p>
+ * <p>This English syllable counter is the default syllablecounter.
  */
-
-public class DefaultSyllableCounter extends EnglishSyllableCounter
-    implements SyllableCounter
-{
-    /** Create the default syllablecounter.
-     */
-
-    public DefaultSyllableCounter()
-    {
-        super();
-    }
+public class DefaultSyllableCounter extends EnglishSyllableCounter implements SyllableCounter {
+  /** Create the default syllablecounter. */
+  public DefaultSyllableCounter() {
+    super();
+  }
 }
 
 /*
@@ -61,6 +54,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

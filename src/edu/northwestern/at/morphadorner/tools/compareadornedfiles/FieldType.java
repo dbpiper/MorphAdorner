@@ -3,23 +3,19 @@ package edu.northwestern.at.morphadorner.tools.compareadornedfiles;
 /*  Please see the license information at the end of this file. */
 
 /** Type of field being changed. */
+public enum FieldType {
+  text("text"),
+  attribute("attribute");
 
-public enum FieldType
-{
-    text ( "text" ) ,
-    attribute ( "attribute" ) ;
+  protected final String toStringValue;
 
-    protected final String toStringValue;
+  FieldType(String toStringValue) {
+    this.toStringValue = toStringValue;
+  }
 
-    FieldType( String toStringValue )
-    {
-        this.toStringValue  = toStringValue;
-    }
-
-    public String toString()
-    {
-        return toStringValue;
-    }
+  public String toString() {
+    return toStringValue;
+  }
 }
 
 /*
@@ -62,6 +58,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

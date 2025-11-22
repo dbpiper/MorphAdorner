@@ -2,348 +2,249 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inputter;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.text.*;
-
 import edu.northwestern.at.utils.*;
 import edu.northwestern.at.utils.html.*;
+import java.io.*;
+import java.net.URL;
+import java.text.*;
+import java.util.*;
 
-/** Text inputter which reads text from a URL.
+/**
+ * Text inputter which reads text from a URL.
  *
- *  <p>
- *  Strips tags naively from files which appear to contain HTML text.
- *  </p>
+ * <p>Strips tags naively from files which appear to contain HTML text.
  */
+public class URLTextInputter extends IsCloseableObject implements TextInputter {
+  /** The loaded text. */
+  protected String loadedText = null;
 
-public class URLTextInputter
-    extends IsCloseableObject
-    implements TextInputter
-{
-    /** The loaded text. */
+  /** Create URL text inputter. */
+  public URLTextInputter() {
+    super();
+  }
 
-    protected String loadedText = null;
+  /**
+   * Loads text from a URL.
+   *
+   * @param url URL from which to read text.
+   * @param encoding Text encoding.
+   * @throws IOException If an output error occurs.
+   */
+  public void loadText(URL url, String encoding) throws IOException {
+    BufferedReader reader = new BufferedReader(new UnicodeReader(url.openStream(), encoding));
 
-    /** Create URL text inputter. */
+    StringBuffer loadedTextBuffer = new StringBuffer();
 
-    public URLTextInputter()
-    {
-        super();
+    String line = reader.readLine();
+
+    while (line != null) {
+      loadedTextBuffer.append(line);
+      loadedTextBuffer.append(" ");
+      line = reader.readLine();
     }
 
-    /** Loads text from a URL.
-     *
-     *  @param  url             URL from which to read text.
-     *  @param  encoding        Text encoding.
-     *
-     *  @throws IOException     If an output error occurs.
-     */
+    reader.close();
 
-    public void loadText( URL url , String encoding )
-        throws IOException
-    {
-        BufferedReader reader   =
-            new BufferedReader
-            (
-                new UnicodeReader
-                (
-                    url.openStream() ,
-                    encoding
-                )
-            );
+    loadedText = loadedTextBuffer.toString();
 
-        StringBuffer loadedTextBuffer   = new StringBuffer();
+    //  Remove HTML/XML tags.
 
-        String line = reader.readLine();
+    if (HTMLUtils.isHTMLTaggedText(loadedText)) {
+      loadedText = HTMLUtils.stripHTMLTags(loadedText);
+    }
+  }
 
-        while ( line != null )
-        {
-            loadedTextBuffer.append( line );
-            loadedTextBuffer.append( " " );
-            line = reader.readLine();
-        }
+  /**
+   * Loads text from a URL.
+   *
+   * @param url URL from which to read text.
+   * @param encoding Text encoding.
+   * @param xmlSchemaURI XML schema (ignored).
+   * @throws IOException If an output error occurs.
+   */
+  public void loadText(URL url, String encoding, String xmlSchemaURI) throws IOException {
+    loadText(url, encoding);
+  }
 
-        reader.close();
+  /**
+   * Reads text from a String.
+   *
+   * @param str String from which to read text.
+   * @throws IOException If an error occurs.
+   */
+  public void loadText(String str) throws Exception {
+    //  Remove end of line characters.
 
-        loadedText  = loadedTextBuffer.toString();
+    loadedText = str.replaceAll("[\r\n]", " ");
 
-                                //  Remove HTML/XML tags.
+    //  Remove HTML/XML tags.
 
-        if ( HTMLUtils.isHTMLTaggedText( loadedText ) )
-        {
-            loadedText  = HTMLUtils.stripHTMLTags( loadedText );
-        }
+    if (HTMLUtils.isHTMLTaggedText(loadedText)) {
+      loadedText = HTMLUtils.stripHTMLTags(loadedText);
+    }
+  }
+
+  /**
+   * Reads text from a string using a specified XML schema.
+   *
+   * @param str String from which to read text.
+   * @param xmlSchemaURI String URI specifying Xml schema.
+   * @throws Exception If an error occurs.
+   *     <p>The schema and schema type should be ignored when the input is not an XML file.
+   */
+  public void loadText(String str, String xmlSchemaURI) throws Exception {
+    loadText(str);
+  }
+
+  /**
+   * Returns number of text segments.
+   *
+   * @return Number of text segments.
+   */
+  public int getSegmentCount() {
+    return 1;
+  }
+
+  /**
+   * Returns name of specified segment.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @return The name for the specified segment number, or null if the segment number is invalid.
+   */
+  public String getSegmentName(int segmentNumber) {
+    String result = null;
+
+    if (segmentNumber == 0) {
+      result = "text";
     }
 
-    /** Loads text from a URL.
-     *
-     *  @param  url                 URL from which to read text.
-     *  @param  encoding            Text encoding.
-     *  @param  xmlSchemaURI        XML schema (ignored).
-     *
-     *  @throws IOException         If an output error occurs.
-     */
+    return result;
+  }
 
-    public void loadText
-    (
-        URL url ,
-        String encoding ,
-        String xmlSchemaURI
-    )
-        throws IOException
-    {
-        loadText( url , encoding );
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @return The text for for the specified segment number, or null if the segment number is
+   *     invalid. The returned text may be an empty string if the segment number is valid but the
+   *     segment contains no text.
+   */
+  public String getSegmentText(int segmentNumber) {
+    String result = null;
+
+    if (segmentNumber == 0) {
+      result = loadedText;
     }
 
-    /** Reads text from a String.
-     *
-     *  @param  str         String from which to read text.
-     *
-     *  @throws IOException     If an error occurs.
-     */
+    return result;
+  }
 
-    public void loadText( String str )
-        throws Exception
-    {
-                                //  Remove end of line characters.
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentName The segment name.
+   * @return The text for for the specified segment name, or null if the segment name is invalid.
+   *     The returned text may be an empty string if the segment name is valid but the segment
+   *     contains no text.
+   */
+  public String getSegmentText(String segmentName) {
+    String result = null;
 
-        loadedText  = str.replaceAll( "[\r\n]" , " " );
-
-                                //  Remove HTML/XML tags.
-
-        if ( HTMLUtils.isHTMLTaggedText( loadedText ) )
-        {
-            loadedText  = HTMLUtils.stripHTMLTags( loadedText );
-        }
+    if ((segmentName != null) && (segmentName.equals("text"))) {
+      result = loadedText;
     }
 
-    /** Reads text from a string using a specified XML schema.
-     *
-     *  @param  str             String from which to read text.
-     *  @param  xmlSchemaURI    String URI specifying Xml schema.
-     *
-     *  @throws Exception       If an error occurs.
-     *
-     *  <p>
-     *  The schema and schema type should be ignored when the input
-     *  is not an XML file.
-     *  </p>
-     */
+    return result;
+  }
 
-    public void loadText
-    (
-        String str ,
-        String xmlSchemaURI
-    )
-        throws Exception
-    {
-        loadText( str );
+  /**
+   * Updates specified segment of loaded text.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @param segmentText The updated segment text.
+   */
+  public void setSegmentText(int segmentNumber, String segmentText) {
+    if (segmentNumber == 0) {
+      this.loadedText = segmentText;
     }
+  }
 
-    /** Returns number of text segments.
-     *
-     *  @return     Number of text segments.
-     */
-
-    public int getSegmentCount()
-    {
-        return 1;
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentName The segment name.
+   * @param segmentText The updated segment text.
+   */
+  public void setSegmentText(String segmentName, String segmentText) {
+    if ((segmentName != null) && (segmentName.equals("text"))) {
+      this.loadedText = segmentText;
     }
+  }
 
-    /** Returns name of specified segment.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *
-     *  @return                 The name for the specified
-     *                          segment number, or null if the
-     *                          segment number is invalid.
-     */
-
-    public String getSegmentName( int segmentNumber )
-    {
-        String result   = null;
-
-        if ( segmentNumber == 0 )
-        {
-            result  = "text";
-        }
-
-        return result;
+  /**
+   * Updates specified segment of loaded text from file.
+   *
+   * @param segmentNumber The segment number (starts at 0).
+   * @param segmentTextFile The file containing the updated segment text.
+   */
+  public void setSegmentText(int segmentNumber, File segmentTextFile) {
+    if (segmentNumber == 0) {
+      try {
+        this.loadedText = FileUtils.readTextFile(segmentTextFile, "utf-8");
+      } catch (Exception e) {
+      }
     }
+  }
 
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *
-     *  @return                 The text for for the specified
-     *                          segment number, or null if the
-     *                          segment number is invalid.  The
-     *                          returned text may be an empty string
-     *                          if the segment number is valid but
-     *                          the segment contains no text.
-     */
-
-    public String getSegmentText( int segmentNumber )
-    {
-        String result   = null;
-
-        if ( segmentNumber == 0 )
-        {
-            result  = loadedText;
-        }
-
-        return result;
+  /**
+   * Returns specified segment of loaded text.
+   *
+   * @param segmentName The segment name.
+   * @param segmentTextFile The file containing the updated segment text.
+   */
+  public void setSegmentText(String segmentName, File segmentTextFile) {
+    if ((segmentName != null) && (segmentName.equals("text"))) {
+      try {
+        this.loadedText = FileUtils.readTextFile(segmentTextFile, "utf-8");
+      } catch (Exception e) {
+      }
     }
+  }
 
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentName     The segment name.
-     *
-     *  @return                 The text for for the specified
-     *                          segment name, or null if the
-     *                          segment name is invalid.  The
-     *                          returned text may be an empty string
-     *                          if the segment name is valid but
-     *                          the segment contains no text.
-     */
+  /**
+   * Enable gap element fixer.
+   *
+   * @param fixGaps true to fix gap tags.
+   *     <p>No-op here.
+   */
+  public void enableGapFixer(boolean fixGaps) {}
 
-    public String getSegmentText( String segmentName )
-    {
-        String result   = null;
+  /**
+   * Enable orig element fixer.
+   *
+   * @param fixOrig true to fix orig tags.
+   *     <p>No-op here.
+   */
+  public void enableOrigFixer(boolean fixOrig) {}
 
-        if ( ( segmentName != null ) && ( segmentName.equals( "text" ) ) )
-        {
-            result  = loadedText;
-        }
+  /**
+   * Enable split words fixer.
+   *
+   * @param fixSplitWords true to fix selected split words.
+   * @param patternReplacers Patterns for fixing split words.
+   *     <p>No-op here.
+   */
+  public void enableSplitWordsFixer(
+      boolean fixSplitWords, List<PatternReplacer> patternReplacers) {}
 
-        return result;
-    }
-
-    /** Updates specified segment of loaded text.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *  @param  segmentText     The updated segment text.
-     */
-
-    public void setSegmentText( int segmentNumber , String segmentText )
-    {
-        if ( segmentNumber == 0 )
-        {
-            this.loadedText = segmentText;
-        }
-    }
-
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentName     The segment name.
-     *  @param  segmentText     The updated segment text.
-     */
-
-    public void setSegmentText( String segmentName , String segmentText )
-    {
-        if ( ( segmentName != null ) && ( segmentName.equals( "text" ) ) )
-        {
-            this.loadedText = segmentText;
-        }
-    }
-
-    /** Updates specified segment of loaded text from file.
-     *
-     *  @param  segmentNumber   The segment number (starts at 0).
-     *  @param  segmentTextFile The file containing the updated segment text.
-     */
-
-    public void setSegmentText( int segmentNumber , File segmentTextFile )
-    {
-        if ( segmentNumber == 0 )
-        {
-            try
-            {
-                this.loadedText =
-                    FileUtils.readTextFile( segmentTextFile , "utf-8" );
-            }
-            catch ( Exception e )
-            {
-            }
-        }
-    }
-
-    /** Returns specified segment of loaded text.
-     *
-     *  @param  segmentName     The segment name.
-     *  @param  segmentTextFile The file containing the updated segment text.
-     */
-
-    public void setSegmentText( String segmentName , File segmentTextFile )
-    {
-        if ( ( segmentName != null ) && ( segmentName.equals( "text" ) ) )
-        {
-            try
-            {
-                this.loadedText =
-                    FileUtils.readTextFile( segmentTextFile , "utf-8" );
-            }
-            catch ( Exception e )
-            {
-            }
-        }
-    }
-
-    /** Enable gap element fixer.
-     *
-     *  @param  fixGaps     true to fix gap tags.
-     *
-     *  <p>
-     *  No-op here.
-     *  </p>
-     */
-
-    public void enableGapFixer( boolean fixGaps )
-    {
-    }
-
-    /** Enable orig element fixer.
-     *
-     *  @param  fixOrig     true to fix orig tags.
-     *
-     *  <p>
-     *  No-op here.
-     *  </p>
-     */
-
-    public void enableOrigFixer( boolean fixOrig )
-    {
-    }
-
-    /** Enable split words fixer.
-     *
-     *  @param  fixSplitWords       true to fix selected split words.
-     *  @param  patternReplacers    Patterns for fixing split words.
-     *
-     *  <p>
-     *  No-op here.
-     *  </p>
-     */
-
-    public void enableSplitWordsFixer
-    (
-        boolean fixSplitWords ,
-        List<PatternReplacer> patternReplacers
-    )
-    {
-    }
-
-    /** Does inputter use segment files?
-     *
-     *  @return     true if inputter uses segment files.
-     */
-
-    public boolean usesSegmentFiles()
-    {
-        return false;
-    }
+  /**
+   * Does inputter use segment files?
+   *
+   * @return true if inputter uses segment files.
+   */
+  public boolean usesSegmentFiles() {
+    return false;
+  }
 }
 
 /*
@@ -386,6 +287,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -4,48 +4,41 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.thesaurus;
 
 import java.util.List;
 
-/** Defines a thesaurus interface for finding words related to a word.
- */
+/** Defines a thesaurus interface for finding words related to a word. */
+public interface Thesaurus {
+  /**
+   * Get synonyms.
+   *
+   * @param word Word for which to find synonyms.
+   * @return String list containing synonyms.
+   */
+  public List<String> getSynonyms(String word);
 
-public interface Thesaurus
-{
-    /** Get synonyms.
-     *
-     *  @param  word        Word for which to find synonyms.
-     *
-     *  @return             String list containing synonyms.
-     */
+  /**
+   * Get synonyms.
+   *
+   * @param word Word for which to find synonyms.
+   * @param wordClass Major word class.
+   * @return String list containing synonyms.
+   */
+  public List<String> getSynonyms(String word, String wordClass);
 
-    public List<String> getSynonyms( String word );
+  /**
+   * Get antonyms.
+   *
+   * @param word Word for which to find antonyms.
+   * @return String list containing antonyms.
+   */
+  public List<String> getAntonyms(String word);
 
-    /** Get synonyms.
-     *
-     *  @param  word        Word for which to find synonyms.
-     *  @param  wordClass   Major word class.
-     *
-     *  @return             String list containing synonyms.
-     */
-
-    public List<String> getSynonyms( String word , String wordClass );
-
-    /** Get antonyms.
-     *
-     *  @param  word        Word for which to find antonyms.
-     *
-     *  @return             String list containing antonyms.
-     */
-
-    public List<String> getAntonyms( String word );
-
-    /** Get antonyms.
-     *
-     *  @param  word        Word for which to find antonyms.
-     *  @param  wordClass   Major word class.
-     *
-     *  @return             String list containing antonyms.
-     */
-
-    public List<String> getAntonyms( String word , String wordClass );
+  /**
+   * Get antonyms.
+   *
+   * @param word Word for which to find antonyms.
+   * @param wordClass Major word class.
+   * @return String list containing antonyms.
+   */
+  public List<String> getAntonyms(String word, String wordClass);
 }
 
 /*
@@ -88,6 +81,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

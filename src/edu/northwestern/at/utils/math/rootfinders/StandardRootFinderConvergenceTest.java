@@ -4,48 +4,31 @@ package edu.northwestern.at.utils.math.rootfinders;
 
 import edu.northwestern.at.utils.math.*;
 
-/** Standard test for convergence in root finders.
- */
+/** Standard test for convergence in root finders. */
+public class StandardRootFinderConvergenceTest implements RootFinderConvergenceTest {
+  /** Create StandardRootFinderConvergenceTest. */
+  public StandardRootFinderConvergenceTest() {}
 
-public class StandardRootFinderConvergenceTest
-    implements RootFinderConvergenceTest
-{
-    /** Create StandardRootFinderConvergenceTest.
-     */
+  /*  Test for convergence in root finder.
+   *
+   *  @param  xNow            Current root estimate.
+   *  @param  xPrev           Previous root estimate.
+   *  @param  dfxNow          Function value at xNow.
+   *  @param  xTolerance      Convergence tolerance for estimates.
+   *  @param  fxTolerance     Convergence tolerance for function values.
+   *
+   *  @return                 true if convergence achieved.
+   *
+   *  <p>
+   *  This standard convergence test indicates convergence when
+   *  |xNow-xPrev| <= xTolerance, or |fxNow| <= fxTolerance.
+   *  </p>
+   */
 
-    public StandardRootFinderConvergenceTest()
-    {
-    }
-
-    /*  Test for convergence in root finder.
-     *
-     *  @param  xNow            Current root estimate.
-     *  @param  xPrev           Previous root estimate.
-     *  @param  dfxNow          Function value at xNow.
-     *  @param  xTolerance      Convergence tolerance for estimates.
-     *  @param  fxTolerance     Convergence tolerance for function values.
-     *
-     *  @return                 true if convergence achieved.
-     *
-     *  <p>
-     *  This standard convergence test indicates convergence when
-     *  |xNow-xPrev| <= xTolerance, or |fxNow| <= fxTolerance.
-     *  </p>
-     */
-
-    public boolean converged
-    (
-        double xNow ,
-        double xPrev ,
-        double fxNow ,
-        double xTolerance ,
-        double fxTolerance
-    )
-    {
-        return
-            ( Math.abs( xNow - xPrev ) <= xTolerance ) ||
-            ( Math.abs( fxNow ) <= fxTolerance );
-    }
+  public boolean converged(
+      double xNow, double xPrev, double fxNow, double xTolerance, double fxTolerance) {
+    return (Math.abs(xNow - xPrev) <= xTolerance) || (Math.abs(fxNow) <= fxTolerance);
+  }
 }
 
 /*
@@ -88,5 +71,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

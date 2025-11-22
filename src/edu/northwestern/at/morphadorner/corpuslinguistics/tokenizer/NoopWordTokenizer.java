@@ -2,39 +2,27 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-
 /** Word tokenizer which leaves original text untokenized. */
+public class NoopWordTokenizer extends AbstractWordTokenizer implements WordTokenizer {
+  /** Create a word tokenizer that leaves the text untokenized. */
+  public NoopWordTokenizer() {}
 
-public class NoopWordTokenizer
-    extends AbstractWordTokenizer
-    implements WordTokenizer
-{
-    /** Create a word tokenizer that leaves the text untokenized.
-     */
+  /**
+   * Break text into word tokens.
+   *
+   * @param text Text to break into word tokens.
+   * @return Input text unchanged as a single list item.
+   */
+  public List<String> extractWords(String text) {
+    List<String> result = ListFactory.createNewList();
 
-    public NoopWordTokenizer()
-    {
-    }
+    result.add(text);
 
-    /** Break text into word tokens.
-     *
-     *  @param  text            Text to break into word tokens.
-     *
-     *  @return                 Input text unchanged as a single list item.
-     */
-
-     public List<String> extractWords( String text )
-     {
-        List<String> result = ListFactory.createNewList();
-
-        result.add( text );
-
-        return result;
-     }
+    return result;
+  }
 }
 
 /*
@@ -77,6 +65,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,157 +2,119 @@ package edu.northwestern.at.morphadorner.tools;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
-
 import java.text.*;
 import java.util.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
+/** Filter to add XML tag path (p=) attributes to an adorned file. */
+public class AddXMLPathFilter extends ExtendedXMLFilterImpl {
+  /** Tag stack. */
+  protected List<String> tagStack = ListFactory.createNewList();
 
-/** Filter to add XML tag path (p=) attributes to an adorned file.
-  */
+  /** Tag count stack. */
+  protected List<Map<String, Integer>> tagCounts = ListFactory.createNewList();
 
-public class AddXMLPathFilter extends ExtendedXMLFilterImpl
-{
-    /** Tag stack. */
+  /** Path root. Prepended to all XML paths. */
+  protected String pathRoot = "\\";
 
-    protected List<String> tagStack = ListFactory.createNewList();
+  /**
+   * Create filter.
+   *
+   * @param reader XML input reader to which this filter applies.
+   * @param pathRoot Root string prepended to all tag paths.
+   */
+  public AddXMLPathFilter(XMLReader reader, String pathRoot) {
+    super(reader);
 
-    /** Tag count stack. */
+    if (pathRoot != null) {
+      this.pathRoot = "\\" + pathRoot;
+    }
+  }
 
-    protected List<Map<String,Integer>> tagCounts   =
-        ListFactory.createNewList();
+  /** Handle start of document. */
+  public void startDocument() {
+    Map<String, Integer> counts = MapFactory.createNewMap();
 
-    /** Path root.  Prepended to all XML paths. */
+    tagCounts.add(counts);
+  }
 
-    protected String pathRoot   = "\\";
+  /**
+   * Handle start of an XML element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   * @param atts The XML element's attributes.
+   */
+  public void startElement(String uri, String localName, String qName, Attributes atts)
+      throws SAXException {
+    Map<String, Integer> oldCounts = tagCounts.get(tagCounts.size() - 1);
 
-    /** Create filter.
-      *
-      * @param  reader      XML input reader to which this filter applies.
-      * @param  pathRoot    Root string prepended to all tag paths.
-      */
+    Integer oldCount = oldCounts.get(qName);
 
-    public AddXMLPathFilter( XMLReader reader , String pathRoot )
-    {
-        super( reader );
-
-        if ( pathRoot != null )
-        {
-            this.pathRoot   = "\\" + pathRoot;
-        }
+    if (oldCount == null) {
+      oldCount = 1;
+    } else {
+      oldCount++;
     }
 
-    /** Handle start of document. */
+    oldCounts.put(qName, oldCount);
 
-    public void startDocument()
-    {
-        Map<String, Integer> counts = MapFactory.createNewMap();
+    tagStack.add(qName);
 
-        tagCounts.add( counts );
+    Map<String, Integer> counts = MapFactory.createNewMap();
+
+    tagCounts.add(counts);
+
+    AttributesImpl newAttributes = new AttributesImpl(atts);
+
+    setAttributeValue(newAttributes, "p", createXMLPath());
+
+    super.startElement(uri, localName, qName, newAttributes);
+  }
+
+  /**
+   * Handle end of an element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   */
+  public void endElement(String uri, String localName, String qName) throws SAXException {
+    tagStack.remove(tagStack.size() - 1);
+    tagCounts.remove(tagCounts.size() - 1);
+
+    super.endElement(uri, localName, qName);
+  }
+
+  /**
+   * Create XML Path from current tag stack state.
+   *
+   * @return XML path from current tag stack state.
+   */
+  protected String createXMLPath() {
+    String result = pathRoot;
+
+    for (int i = 0; i < tagStack.size(); i++) {
+      String tag = tagStack.get(i);
+
+      if ((i == 0) && tag.equals("TEI")) {
+        continue;
+      } else if ((i == 1) && tag.equals("text")) {
+        continue;
+      }
+
+      Map<String, Integer> counts = tagCounts.get(i);
+
+      result = result + "\\" + tag + "[" + counts.get(tag) + "]";
     }
 
-    /** Handle start of an XML element.
-      *
-      * @param  uri         The XML element's URI.
-      * @param  localName   The XML element's local name.
-      * @param  qName       The XML element's qname.
-      * @param  atts            The XML element's attributes.
-      */
-
-    public void startElement
-    (
-        String uri ,
-        String localName ,
-        String qName ,
-        Attributes atts
-    )
-        throws SAXException
-    {
-        Map<String, Integer> oldCounts  =
-            tagCounts.get( tagCounts.size() - 1 );
-
-        Integer oldCount    = oldCounts.get( qName );
-
-        if ( oldCount == null )
-        {
-            oldCount    = 1;
-        }
-        else
-        {
-            oldCount++;
-        }
-
-        oldCounts.put( qName , oldCount );
-
-        tagStack.add( qName );
-
-        Map<String, Integer> counts = MapFactory.createNewMap();
-
-        tagCounts.add( counts );
-
-        AttributesImpl newAttributes    = new AttributesImpl( atts );
-
-        setAttributeValue( newAttributes , "p" , createXMLPath() );
-
-        super.startElement( uri , localName , qName , newAttributes );
-    }
-
-    /** Handle end of an element.
-     *
-     *  @param  uri         The XML element's URI.
-     *  @param  localName   The XML element's local name.
-     *  @param  qName       The XML element's qname.
-     */
-
-    public void endElement
-    (
-        String uri ,
-        String localName ,
-        String qName
-    )
-        throws SAXException
-    {
-        tagStack.remove( tagStack.size() - 1 );
-        tagCounts.remove( tagCounts.size() - 1 );
-
-        super.endElement( uri , localName , qName );
-    }
-
-    /** Create XML Path from current tag stack state.
-     *
-     *  @return XML path from current tag stack state.
-     */
-
-    protected String createXMLPath()
-    {
-        String result   = pathRoot;
-
-        for ( int i = 0 ; i < tagStack.size() ; i++ )
-        {
-            String tag  = tagStack.get( i );
-
-            if ( ( i == 0 ) && tag.equals( "TEI" ) )
-            {
-                continue;
-            }
-            else if ( ( i == 1 ) && tag.equals( "text" ) )
-            {
-                continue;
-            }
-
-            Map<String, Integer> counts = tagCounts.get( i );
-
-            result  =
-                result + "\\" + tag + "[" + counts.get( tag ) + "]";
-        }
-
-        return result;
-    }
+    return result;
+  }
 }
 
 /*
@@ -195,6 +157,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

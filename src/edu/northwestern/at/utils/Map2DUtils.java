@@ -6,199 +6,141 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-/** Map utilities.
- */
+/** Map utilities. */
+public class Map2DUtils {
+  /**
+   * Load string map2D from a URL.
+   *
+   * @param map2DURL URL for map2Dfile.
+   * @param separator Field separator.
+   * @param qualifier Quote character.
+   * @param encoding Character encoding for the file.
+   * @throws FileNotFoundException If input file does not exist.
+   * @throws IOException If input file cannot be opened.
+   * @return Map2D with values read from file.
+   */
+  public static Map2D<String, String, String> loadMap2D(
+      URL map2DURL, String separator, String qualifier, String encoding)
+      throws IOException, FileNotFoundException {
+    Map2D<String, String, String> map2D = Map2DFactory.createNewMap2D();
 
-public class Map2DUtils
-{
-    /** Load string map2D from a URL.
-     *
-     *  @param  map2DURL    URL for map2Dfile.
-     *  @param  separator   Field separator.
-     *  @param  qualifier   Quote character.
-     *  @param  encoding    Character encoding for the file.
-     *
-     *  @throws FileNotFoundException   If input file does not exist.
-     *  @throws IOException             If input file cannot be opened.
-     *
-     *  @return             Map2D with values read from file.
-     */
+    if (map2DURL != null) {
+      BufferedReader bufferedReader =
+          new BufferedReader(new UnicodeReader(map2DURL.openStream(), encoding));
 
-    public static Map2D<String, String, String> loadMap2D
-    (
-        URL map2DURL ,
-        String separator ,
-        String qualifier ,
-        String encoding
-    )
-        throws IOException , FileNotFoundException
-    {
-        Map2D<String, String, String> map2D = Map2DFactory.createNewMap2D();
+      String inputLine = bufferedReader.readLine();
+      String[] tokens;
 
-        if ( map2DURL != null )
-        {
-            BufferedReader bufferedReader   =
-                new BufferedReader
-                (
-                    new UnicodeReader
-                    (
-                        map2DURL.openStream() ,
-                        encoding
-                    )
-                );
+      while (inputLine != null) {
+        tokens = inputLine.split(separator);
 
-            String inputLine    = bufferedReader.readLine();
-            String[] tokens;
-
-            while ( inputLine != null )
-            {
-                tokens      = inputLine.split( separator );
-
-                if ( tokens.length > 2 )
-                {
-                    map2D.put( tokens[ 0 ] , tokens[ 1 ] , tokens[ 2 ] );
-                }
-
-                inputLine   = bufferedReader.readLine();
-            }
-
-            bufferedReader.close();
+        if (tokens.length > 2) {
+          map2D.put(tokens[0], tokens[1], tokens[2]);
         }
 
-        return map2D;
+        inputLine = bufferedReader.readLine();
+      }
+
+      bufferedReader.close();
     }
 
-    /** Load string map2Dfrom a file.
-     *
-     *  @param  mapFile     Map file.
-     *  @param  separator   Field separator.
-     *  @param  qualifier   Quote character.
-     *  @param  encoding    Character encoding for the file.
-     *
-     *  @throws FileNotFoundException   If input file does not exist.
-     *  @throws IOException             If input file cannot be opened.
-     *
-     *  @return             Map2D with values read from file.
-     */
+    return map2D;
+  }
 
-    public static Map2D<String, String, String> loadMap2D
-    (
-        File mapFile ,
-        String separator ,
-        String qualifier ,
-        String encoding
-    )
-        throws IOException , FileNotFoundException
-    {
-        return loadMap2D(
-            mapFile.toURI().toURL() , separator , qualifier , encoding );
+  /**
+   * Load string map2Dfrom a file.
+   *
+   * @param mapFile Map file.
+   * @param separator Field separator.
+   * @param qualifier Quote character.
+   * @param encoding Character encoding for the file.
+   * @throws FileNotFoundException If input file does not exist.
+   * @throws IOException If input file cannot be opened.
+   * @return Map2D with values read from file.
+   */
+  public static Map2D<String, String, String> loadMap2D(
+      File mapFile, String separator, String qualifier, String encoding)
+      throws IOException, FileNotFoundException {
+    return loadMap2D(mapFile.toURI().toURL(), separator, qualifier, encoding);
+  }
+
+  /**
+   * Load string set from a file name.
+   *
+   * @param mapFileName Map file name.
+   * @param separator Field separator.
+   * @param qualifier Quote character.
+   * @param encoding Character encoding for the file.
+   * @throws FileNotFoundException If input file does not exist.
+   * @throws IOException If input file cannot be opened.
+   * @return Map2D with values read from file name.
+   */
+  public static Map2D<String, String, String> loadMap2D(
+      String mapFileName, String separator, String qualifier, String encoding)
+      throws IOException, FileNotFoundException {
+    return loadMap2D(new File(mapFileName), separator, qualifier, encoding);
+  }
+
+  /**
+   * Save map2D as string to a file.
+   *
+   * @param map2D Map2D to save.
+   * @param mapFile Output file name.
+   * @param separator Field separator.
+   * @param qualifier Quote character.
+   * @param encoding Character encoding for the file.
+   * @throws IOException If output file has error.
+   */
+  public static void saveMap2D(
+      Map2D<?, ?, ?> map2D, File mapFile, String separator, String qualifier, String encoding)
+      throws IOException, FileNotFoundException {
+    if (map2D != null) {
+      PrintWriter printWriter = new PrintWriter(mapFile, "utf-8");
+
+      Iterator<CompoundKey> iterator = map2D.keySet().iterator();
+
+      while (iterator.hasNext()) {
+        CompoundKey key = iterator.next();
+        String value = map2D.get(key).toString();
+        Comparable[] keyValues = key.getKeyValues();
+
+        printWriter.println(
+            qualifier
+                + keyValues[0]
+                + qualifier
+                + separator
+                + qualifier
+                + keyValues[1]
+                + qualifier
+                + separator
+                + qualifier
+                + value
+                + qualifier);
+      }
+
+      printWriter.flush();
+      printWriter.close();
     }
+  }
 
-    /** Load string set from a file name.
-     *
-     *  @param  mapFileName     Map file name.
-     *  @param  separator       Field separator.
-     *  @param  qualifier       Quote character.
-     *  @param  encoding        Character encoding for the file.
-     *
-     *  @throws FileNotFoundException   If input file does not exist.
-     *  @throws IOException             If input file cannot be opened.
-     *
-     *  @return                 Map2D with values read from file name.
-     */
+  /**
+   * Save map2D as string to a file name.
+   *
+   * @param map2D Map2D to save.
+   * @param mapFileName Output file name.
+   * @param separator Field separator.
+   * @param qualifier Quote character.
+   * @param encoding Character encoding for the file.
+   * @throws IOException If output file has error.
+   */
+  public static void saveMap2D(
+      Map2D<?, ?, ?> map2D, String mapFileName, String separator, String qualifier, String encoding)
+      throws IOException, FileNotFoundException {
+    saveMap2D(map2D, new File(mapFileName), separator, qualifier, encoding);
+  }
 
-    public static Map2D<String, String, String> loadMap2D
-    (
-        String mapFileName ,
-        String separator ,
-        String qualifier ,
-        String encoding
-    )
-        throws IOException , FileNotFoundException
-    {
-        return loadMap2D(
-            new File( mapFileName ) , separator , qualifier , encoding );
-    }
-
-    /** Save map2D as string to a file.
-     *
-     *  @param  map2D           Map2D to save.
-     *  @param  mapFile         Output file name.
-     *  @param  separator       Field separator.
-     *  @param  qualifier       Quote character.
-     *  @param  encoding        Character encoding for the file.
-     *
-     *  @throws IOException     If output file has error.
-     */
-
-    public static void saveMap2D
-    (
-        Map2D<?,?,?> map2D ,
-        File mapFile ,
-        String separator ,
-        String qualifier ,
-        String encoding
-    )
-        throws IOException , FileNotFoundException
-    {
-        if ( map2D!= null )
-        {
-            PrintWriter printWriter = new PrintWriter( mapFile , "utf-8" );
-
-            Iterator<CompoundKey> iterator  = map2D.keySet().iterator();
-
-            while ( iterator.hasNext() )
-            {
-                CompoundKey key         = iterator.next();
-                String value            = map2D.get( key ).toString();
-                Comparable[] keyValues  = key.getKeyValues();
-
-                printWriter.println
-                (
-                    qualifier + keyValues[ 0 ] + qualifier +
-                    separator +
-                    qualifier + keyValues[ 1 ] + qualifier +
-                    separator +
-                    qualifier + value + qualifier
-                );
-            }
-
-            printWriter.flush();
-            printWriter.close();
-        }
-    }
-
-    /** Save map2D as string to a file name.
-     *
-     *  @param  map2D           Map2D to save.
-     *  @param  mapFileName     Output file name.
-     *  @param  separator       Field separator.
-     *  @param  qualifier       Quote character.
-     *  @param  encoding        Character encoding for the file.
-     *
-     *  @throws IOException     If output file has error.
-     */
-
-    public static void saveMap2D
-    (
-        Map2D<?,?,?> map2D,
-        String mapFileName ,
-        String separator ,
-        String qualifier ,
-        String encoding
-    )
-        throws IOException , FileNotFoundException
-    {
-        saveMap2D(
-            map2D , new File( mapFileName ) , separator , qualifier ,
-            encoding );
-    }
-
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected Map2DUtils()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected Map2DUtils() {}
 }
 
 /*
@@ -241,6 +183,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

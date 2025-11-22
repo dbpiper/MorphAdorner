@@ -2,44 +2,30 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
 import java.util.regex.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-
-/** Splits text into sentences using regular expressions.
+/**
+ * Splits text into sentences using regular expressions.
  *
- *  <p>
- *  Uses a the ICU4J BreakIterator to identify candidate sentences.
- *  Several heuristics are used to correct the initial sentence
- *  identification.
- *  </p>
+ * <p>Uses a the ICU4J BreakIterator to identify candidate sentences. Several heuristics are used to
+ * correct the initial sentence identification.
  */
+public class ICU4JBreakIteratorSentenceSplitter extends AbstractSentenceSplitter
+    implements SentenceSplitter {
+  /** Create regular expression sentence extractor. */
+  public ICU4JBreakIteratorSentenceSplitter() {
+    sentenceSplitterIterator = new ICU4JBreakIteratorSentenceSplitterIterator();
+  }
 
-public class ICU4JBreakIteratorSentenceSplitter
-    extends AbstractSentenceSplitter
-    implements SentenceSplitter
-{
-    /** Create regular expression sentence extractor.
-     */
-
-    public ICU4JBreakIteratorSentenceSplitter()
-    {
-        sentenceSplitterIterator    =
-            new ICU4JBreakIteratorSentenceSplitterIterator();
-    }
-
-    /** Create regular expression sentence extractor for locale.
-     */
-
-    public ICU4JBreakIteratorSentenceSplitter( Locale locale )
-    {
-        sentenceSplitterIterator    =
-            new ICU4JBreakIteratorSentenceSplitterIterator( locale );
-    }
+  /** Create regular expression sentence extractor for locale. */
+  public ICU4JBreakIteratorSentenceSplitter(Locale locale) {
+    sentenceSplitterIterator = new ICU4JBreakIteratorSentenceSplitterIterator(locale);
+  }
 }
 
 /*
@@ -82,6 +68,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

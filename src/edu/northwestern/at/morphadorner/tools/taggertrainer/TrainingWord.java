@@ -2,75 +2,53 @@ package edu.northwestern.at.morphadorner.tools.taggertrainer;
 
 /*  Please see the license information at the end of this file. */
 
-/** Training data for one word in a tagged corpus.
+/**
+ * Training data for one word in a tagged corpus.
  *
- *  <p>
- *  The training data for a rule-based part of speech tagger consists of a
- *  tagged corpus in which each line contains the following three
- *  columns separated by an Ascii tab character.
- *  </p>
+ * <p>The training data for a rule-based part of speech tagger consists of a tagged corpus in which
+ * each line contains the following three columns separated by an Ascii tab character.
  *
- *  <ol>
- *      <li>The spelling of a word.</li>
- *      <li>The correct part of speech for a word.</li>
- *      <li>The guessed part of speech assigned by a part of speech
- *          tagger.</li>
- *      <li>A flag indicating if this word has been "covered" by a rule.
- *          </li>
- *  </ol>
+ * <ol>
+ *   <li>The spelling of a word.
+ *   <li>The correct part of speech for a word.
+ *   <li>The guessed part of speech assigned by a part of speech tagger.
+ *   <li>A flag indicating if this word has been "covered" by a rule.
+ * </ol>
  *
- *  <p>
- *  A list of such training data entries or "sites" can be used by a
- *  transformation based learning program to generate rules which
- *  attempt to correct erroneous guessed part of tags.  As rules are
- *  generated which "cover" specific training sites, these locations
- *  may need to marked as unavailable for use by other rules.
- *  We use a flag to mark training sites already covered by a
- *  correction rule, or to which no rule can apply -- for example,
- *  for words which are punctuation marks or which have only one
- *  possible part of speech tag.
- *  </p>
+ * <p>A list of such training data entries or "sites" can be used by a transformation based learning
+ * program to generate rules which attempt to correct erroneous guessed part of tags. As rules are
+ * generated which "cover" specific training sites, these locations may need to marked as
+ * unavailable for use by other rules. We use a flag to mark training sites already covered by a
+ * correction rule, or to which no rule can apply -- for example, for words which are punctuation
+ * marks or which have only one possible part of speech tag.
  */
+public class TrainingWord {
+  /** Spelling. */
+  public final String spelling;
 
-public class TrainingWord
-{
-    /** Spelling. */
+  /** Correct tag. */
+  public final String correctTag;
 
-    public final String spelling;
+  /** Guessed tag. */
+  public String guessedTag;
 
-    /** Correct tag. */
+  /** True if word covered by a rule or not subject to change. */
+  public boolean covered;
 
-    public final String correctTag;
-
-    /** Guessed tag. */
-
-    public String guessedTag;
-
-    /** True if word covered by a rule or not subject to change. */
-
-    public boolean covered;
-
-    /** Create a training word entry.
-     *
-     *  @param  spelling    The spelling.
-     *  @param  correctTag  The correct tag.
-     *  @param  guessedTag  The guessed tag.
-     *  @param  covered     True if word tag not subject to change.
-     */
-
-    public TrainingWord
-    (
-        String spelling ,
-        String correctTag ,
-        String guessedTag ,
-        boolean covered
-    )
-    {
-        this.spelling       = spelling;
-        this.correctTag     = correctTag;
-        this.guessedTag     = guessedTag;
-        this.covered        = covered;
-    }
+  /**
+   * Create a training word entry.
+   *
+   * @param spelling The spelling.
+   * @param correctTag The correct tag.
+   * @param guessedTag The guessed tag.
+   * @param covered True if word tag not subject to change.
+   */
+  public TrainingWord(String spelling, String correctTag, String guessedTag, boolean covered) {
+    this.spelling = spelling;
+    this.correctTag = correctTag;
+    this.guessedTag = guessedTag;
+    this.covered = covered;
+  }
 }
 
 /*
@@ -113,6 +91,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

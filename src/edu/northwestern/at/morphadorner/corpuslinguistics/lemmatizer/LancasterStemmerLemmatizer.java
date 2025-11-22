@@ -2,27 +2,19 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.stemmer.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** Use Lancaster Stemmer as a pseudo-lemmatizer.
- */
-
-public class LancasterStemmerLemmatizer
-    extends AbstractStemmerLemmatizer
-    implements IsCloseable, Lemmatizer
-{
-    /** Create Lancaster stemmer lemmatizer.
-     */
-
-    public LancasterStemmerLemmatizer()
-    {
-        stemmer = new LancasterStemmer();
-    }
+/** Use Lancaster Stemmer as a pseudo-lemmatizer. */
+public class LancasterStemmerLemmatizer extends AbstractStemmerLemmatizer
+    implements IsCloseable, Lemmatizer {
+  /** Create Lancaster stemmer lemmatizer. */
+  public LancasterStemmerLemmatizer() {
+    stemmer = new LancasterStemmer();
+  }
 }
 
 /*
@@ -65,6 +57,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

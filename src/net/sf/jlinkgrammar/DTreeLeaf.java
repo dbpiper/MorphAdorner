@@ -1,12 +1,8 @@
 package net.sf.jlinkgrammar;
 
-/**
- * TODO add javadoc
- *
- */
+/** TODO add javadoc */
 public class DTreeLeaf {
-    Domain     parent;
-    int         link;
-    DTreeLeaf  next;
-
+  Domain parent;
+  int link;
+  DTreeLeaf next;
 }

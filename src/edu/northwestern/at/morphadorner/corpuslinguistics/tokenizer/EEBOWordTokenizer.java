@@ -2,154 +2,121 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.text.*;
 import java.util.*;
 import java.util.regex.*;
 
-import edu.northwestern.at.utils.*;
-
-/** Word tokenizer for EEBO texts.
+/**
+ * Word tokenizer for EEBO texts.
  *
- *  <p>
- *  Do not use this when EEBO texts have been converted to TEIAnalytics
- *  format.
- *  </p>
+ * <p>Do not use this when EEBO texts have been converted to TEIAnalytics format.
  */
+public class EEBOWordTokenizer extends DefaultWordTokenizer implements WordTokenizer {
+  /** Pattern to match number.word */
+  protected static final Pattern numberDotSpellingPattern = Pattern.compile("(\\d+)\\.(\\p{L})+");
 
-public class EEBOWordTokenizer
-    extends DefaultWordTokenizer
-    implements WordTokenizer
-{
-    /** Pattern to match number.word */
+  protected static final Matcher numberDotSpellingMatcher = numberDotSpellingPattern.matcher("");
 
-    protected static final Pattern numberDotSpellingPattern =
-        Pattern.compile( "(\\d+)\\.(\\p{L})+" );
+  /** Pattern to match _CapCap */
+  protected static Pattern underlineCapCapPattern =
+      Pattern.compile("^_([ABCDEFGHIJKLMNOPQRSTUVWXYZ])([ABCDEFGHIJKLMNOPQRSTUVWXYZ])");
 
-    protected static final Matcher numberDotSpellingMatcher =
-        numberDotSpellingPattern.matcher( "" );
+  protected static final Matcher underlineCapCapMatcher = underlineCapCapPattern.matcher("");
 
-    /** Pattern to match _CapCap */
+  /** Create EEBO word tokenizer. */
+  public EEBOWordTokenizer() {
+    super();
+  }
 
-    protected static Pattern underlineCapCapPattern         =
-        Pattern.compile( "^_([ABCDEFGHIJKLMNOPQRSTUVWXYZ])([ABCDEFGHIJKLMNOPQRSTUVWXYZ])" );
+  /**
+   * Preprocess a word token.
+   *
+   * @param token Token to preprocess.
+   * @param tokenList List of previous tokens already issued.
+   * @return Preprocessed token. The token list may also have been modified.
+   */
+  public String preprocessToken(String token, List<String> tokenList) {
+    //  Remove vertical bars.
+    //  Unnecessary when EEBO texts are
+    //  preprocessed to TEI-A form.
 
-    protected static final Matcher underlineCapCapMatcher   =
-        underlineCapCapPattern.matcher( "" );
+    String result = token;
 
-    /** Create EEBO word tokenizer.
-     */
-
-    public EEBOWordTokenizer()
-    {
-        super();
+    if (!result.equals("|")) {
+      result = StringUtils.replaceAll(token, "|", "");
     }
 
-    /** Preprocess a word token.
-     *
-     *  @param  token           Token to preprocess.
-     *  @param  tokenList       List of previous tokens already issued.
-     *
-     *  @return                 Preprocessed token.
-     *                          The token list may also have been modified.
-     */
+    //  If first character of token
+    //  is a "+", and the token has more
+    //  then one character and is not
+    //  all symbols or punctuation,
+    //  remove the leading "+" and prepend
+    //  the previous token to this one.
+    //  Also remove the last token so
+    //  the combined token will take its
+    //  place.
+    //
+    //  Unnecessary when EEBO texts are
+    //  preprocessed to TEI-A form.
 
-    public String preprocessToken( String token , List<String> tokenList )
-    {
-                                //  Remove vertical bars.
-                                //  Unnecessary when EEBO texts are
-                                //  preprocessed to TEI-A form.
+    if (result.length() > 1) {
+      if (result.charAt(0) == '+') {
+        if (!CharUtils.isPunctuationOrSymbol(result)) {
+          result = result.substring(1);
 
-        String result   = token;
+          if (tokenList.size() > 0) {
+            result = (String) tokenList.get(tokenList.size() - 1) + result;
 
-        if ( !result.equals( "|" ) )
-        {
-            result  = StringUtils.replaceAll( token , "|" , "" );
+            tokenList.remove(tokenList.size() - 1);
+          }
         }
-
-                                //  If first character of token
-                                //  is a "+", and the token has more
-                                //  then one character and is not
-                                //  all symbols or punctuation,
-                                //  remove the leading "+" and prepend
-                                //  the previous token to this one.
-                                //  Also remove the last token so
-                                //  the combined token will take its
-                                //  place.
-                                //
-                                //  Unnecessary when EEBO texts are
-                                //  preprocessed to TEI-A form.
-
-        if ( result.length() > 1 )
-        {
-            if ( result.charAt( 0 ) == '+' )
-            {
-                if ( !CharUtils.isPunctuationOrSymbol( result ) )
-                {
-                    result  = result.substring( 1 );
-
-                    if ( tokenList.size() > 0 )
-                    {
-                        result  =
-                            (String)tokenList.get( tokenList.size() - 1 ) +
-                            result;
-
-                        tokenList.remove( tokenList.size() - 1 );
-                    }
-                }
-            }
-                                //  If "+" appears after first
-                                //  character in token, just remove
-                                //  it.
-            else
-            {
-                result  =
-                    StringUtils.replaceAll( result , "+" , "" );
-            }
-        }
-                                //  Replace _CapCap at start of word
-                                //  by Capcap.
-                                //
-                                //  Unnecessary when EEBO texts are
-                                //  preprocessed to TEI-A form.
-
-        if ( ( result.length() > 1 ) && ( result.charAt( 0 ) == '_' ) )
-        {
-            underlineCapCapMatcher.reset( result );
-
-            if ( underlineCapCapMatcher.find() )
-            {
-                String char1    = result.charAt( 1 ) + "";
-
-                String char2    =
-                    Character.toLowerCase( result.charAt( 2 ) ) + "";
-
-                String rest     = "";
-
-                if ( result.length() > 3 )
-                {
-                    rest    = result.substring( 3 );
-                }
-
-                result  = char1 + char2 + rest;
-            }
-        }
-                                //  Split tokens of the form
-                                //  number.word into number. word .
-
-        if ( ( result.length() > 2 ) && ( result.indexOf( "." ) > 0 ) )
-        {
-            numberDotSpellingMatcher.reset( result );
-
-            if ( numberDotSpellingMatcher.matches() )
-            {
-                tokenList.add( numberDotSpellingMatcher.group( 1 ) + "." );
-
-                result  = numberDotSpellingMatcher.group( 2 );
-            }
-        }
-
-        return result;
+      }
+      //  If "+" appears after first
+      //  character in token, just remove
+      //  it.
+      else {
+        result = StringUtils.replaceAll(result, "+", "");
+      }
     }
+    //  Replace _CapCap at start of word
+    //  by Capcap.
+    //
+    //  Unnecessary when EEBO texts are
+    //  preprocessed to TEI-A form.
+
+    if ((result.length() > 1) && (result.charAt(0) == '_')) {
+      underlineCapCapMatcher.reset(result);
+
+      if (underlineCapCapMatcher.find()) {
+        String char1 = result.charAt(1) + "";
+
+        String char2 = Character.toLowerCase(result.charAt(2)) + "";
+
+        String rest = "";
+
+        if (result.length() > 3) {
+          rest = result.substring(3);
+        }
+
+        result = char1 + char2 + rest;
+      }
+    }
+    //  Split tokens of the form
+    //  number.word into number. word .
+
+    if ((result.length() > 2) && (result.indexOf(".") > 0)) {
+      numberDotSpellingMatcher.reset(result);
+
+      if (numberDotSpellingMatcher.matches()) {
+        tokenList.add(numberDotSpellingMatcher.group(1) + ".");
+
+        result = numberDotSpellingMatcher.group(2);
+      }
+    }
+
+    return result;
+  }
 }
 
 /*
@@ -192,6 +159,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

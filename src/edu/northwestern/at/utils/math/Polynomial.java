@@ -2,92 +2,62 @@ package edu.northwestern.at.utils.math;
 
 /*  Please see the license information at the end of this file. */
 
-/** Polynomial functions.
- */
+/** Polynomial functions. */
+public class Polynomial {
+  /**
+   * Evaluate a polynomial expression using Horner's method.
+   *
+   * @param polycoefs Array of polynomial coefficients. The coefficients should be ordered with the
+   *     constant term first and the coefficient for the highest powered term last.
+   * @param x Value for which to evaluate polynomial.
+   * @return Polynomial evaluated using Horner's method.
+   *     <p>Horner's method is given by the following recurrence relation: c[i]*x^i + ... + c[1]*x +
+   *     c[0] = c[0] + x*(c[i-1]*x^[i-1] + ... + c[1])
+   *     <p>Horner's method avoids loss of precision which can occur when the higher-power values of
+   *     x are computed directly.
+   */
+  public static double hornersMethod(double polycoefs[], double x) {
+    double result = 0.0;
 
-public class Polynomial
-{
-    /** Evaluate a polynomial expression using Horner's method.
-     *
-     *  @param  polycoefs   Array of polynomial coefficients.
-     *                      The coefficients should be ordered
-     *                      with the constant term first and the
-     *                      coefficient for the highest powered term
-     *                      last.
-     *
-     *  @param  x           Value for which to evaluate polynomial.
-     *
-     *  @return             Polynomial evaluated using Horner's method.
-     *
-     *  <p>
-     *  Horner's method is given by the following recurrence relation:
-     *  c[i]*x^i + ... + c[1]*x + c[0] = c[0] + x*(c[i-1]*x^[i-1] + ... + c[1])
-     *  </p>
-     *
-     *  <p>
-     *  Horner's method avoids loss of precision which can occur
-     *  when the higher-power values of x are computed directly.
-     *  </p>
-     */
-
-    public static double hornersMethod( double polycoefs[] , double x )
-    {
-        double result   = 0.0;
-
-        for ( int i = polycoefs.length - 1 ; i >= 0 ; i-- )
-        {
-            result  = result * x + polycoefs[ i ] ;
-        }
-
-        return result;
+    for (int i = polycoefs.length - 1; i >= 0; i--) {
+      result = result * x + polycoefs[i];
     }
 
-    /** Evaluates a Chebyschev series.
-     *
-     *  @param  coeffs      The Chebyschev polynomial coefficients.
-     *
-     *  @param  x           The value for which to evaluate
-     *                      the polynomial.
-     *
-     *  @return             The Chebyschev polynomial evaluated
-     *                      at x.
-     */
+    return result;
+  }
 
-    public static double evaluateChebyschev
-    (
-        double coeffs[] ,
-        double x
-    )
-    {
-        double b0;
-        double b1;
-        double b2;
-        double twox;
+  /**
+   * Evaluates a Chebyschev series.
+   *
+   * @param coeffs The Chebyschev polynomial coefficients.
+   * @param x The value for which to evaluate the polynomial.
+   * @return The Chebyschev polynomial evaluated at x.
+   */
+  public static double evaluateChebyschev(double coeffs[], double x) {
+    double b0;
+    double b1;
+    double b2;
+    double twox;
 
-        int     i;
+    int i;
 
-        b0      = 0.0D;
-        b1      = 0.0D;
-        b2      = 0.0D;
+    b0 = 0.0D;
+    b1 = 0.0D;
+    b2 = 0.0D;
 
-        twox    = x + x;
+    twox = x + x;
 
-        for ( i = coeffs.length - 1 ;  i >= 0 ;  i-- )
-        {
-            b2  = b1;
-            b1  = b0;
-            b0  = twox * b1 - b2 + coeffs[ i ];
-        }
-
-        return 0.5D * ( b0 - b2 );
+    for (i = coeffs.length - 1; i >= 0; i--) {
+      b2 = b1;
+      b1 = b0;
+      b0 = twox * b1 - b2 + coeffs[i];
     }
 
-    /** Don't allow instantiation but do allow overrides.
-     */
+    return 0.5D * (b0 - b2);
+  }
 
-    protected Polynomial()
-    {
-    }
+  /** Don't allow instantiation but do allow overrides. */
+  protected Polynomial() {}
 }
 
 /*
@@ -130,5 +100,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

@@ -2,111 +2,85 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.allunknown;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** All Unknown Part of Speech tagger.
+/**
+ * All Unknown Part of Speech tagger.
  *
- *  <p>
- *  The all unknown part of speech tagger assigns an "unknown" type
- *  part of speech to all words.
+ * <p>The all unknown part of speech tagger assigns an "unknown" type part of speech to all words.
  */
+public class AllUnknownTagger extends AbstractPartOfSpeechTagger implements CanTagOneWord {
+  /** Unknown part of speech tag. "zz" is NUPos unknown. */
+  protected static String unknownPOS = "zz";
 
-public class AllUnknownTagger extends AbstractPartOfSpeechTagger
-    implements CanTagOneWord
-{
-    /** Unknown part of speech tag. "zz" is NUPos unknown. */
+  /** Create all unknown tagger. */
+  public AllUnknownTagger() {}
 
-    protected static String unknownPOS  = "zz";
+  /**
+   * Create all unknown tagger.
+   *
+   * @param unknownPOS Part of speech for unknown word.
+   */
+  public AllUnknownTagger(String unknownPOS) {
+    AllUnknownTagger.unknownPOS = unknownPOS;
+  }
 
-    /** Create all unknown tagger.
-     */
+  /**
+   * Tag a sentence.
+   *
+   * @param sentence The sentence as an {@link
+   *     edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
+   * @return The input List<AdornedWord> with its words tagged with parts of speech.
+   */
+  public <T extends AdornedWord> List<T> tagAdornedWordList(List<T> sentence) {
+    //  Loop over words in sentence.
 
-    public AllUnknownTagger()
-    {
+    for (int i = 0; i < sentence.size(); i++) {
+      //  Get next word.
+
+      AdornedWord word = sentence.get(i);
+
+      //  Assign part of speech tag.
+
+      tagWord(word);
     }
+    //  Return tagged sentence.
+    return sentence;
+  }
 
-    /** Create all unknown tagger.
-     *
-     *  @param  unknownPOS      Part of speech for unknown word.
-     */
+  /**
+   * Tag a single word.
+   *
+   * @param word The word.
+   * @return The part of speech for the word.
+   */
+  public String tagWord(String word) {
+    return unknownPOS;
+  }
 
-    public AllUnknownTagger
-    (
-        String unknownPOS
-    )
-    {
-        AllUnknownTagger.unknownPOS = unknownPOS;
-    }
+  /**
+   * Tag a single adorned word.
+   *
+   * @param word The adorned word.
+   * @return The adorned word with the part of speech assigned.
+   */
+  public String tagWord(AdornedWord word) {
+    word.setPartsOfSpeech(unknownPOS);
 
-    /** Tag a sentence.
-     *
-     *  @param  sentence    The sentence as an {@link edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.AdornedWord}
-     *
-     *  @return             The input List<AdornedWord> with its
-     *                          words tagged with parts of speech.
-     */
+    return unknownPOS;
+  }
 
-    public<T extends AdornedWord> List<T> tagAdornedWordList
-    (
-        List<T> sentence
-    )
-    {
-                                //  Loop over words in sentence.
-
-        for ( int i = 0 ; i < sentence.size() ; i++ )
-        {
-                                        //  Get next word.
-
-            AdornedWord word    = sentence.get( i );
-
-                                //  Assign part of speech tag.
-
-            tagWord( word );
-        }
-                                //  Return tagged sentence.
-        return sentence;
-    }
-
-    /** Tag a single word.
-     *
-     *  @param  word    The word.
-     *
-     *  @return         The part of speech for the word.
-     */
-
-    public String tagWord( String word )
-    {
-        return unknownPOS;
-    }
-
-    /** Tag a single adorned word.
-     *
-     *  @param  word    The adorned word.
-     *
-     *  @return         The adorned word with the part of speech
-     *                  assigned.
-     */
-
-     public String tagWord( AdornedWord word )
-     {
-        word.setPartsOfSpeech( unknownPOS );
-
-        return unknownPOS;
-     }
-
-    /** Return tagger description.
-     *
-     *  @return     Tagger description.
-     */
-
-    public String toString()
-    {
-        return "All unknown tagger";
-    }
+  /**
+   * Return tagger description.
+   *
+   * @return Tagger description.
+   */
+  public String toString() {
+    return "All unknown tagger";
+  }
 }
 
 /*
@@ -149,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

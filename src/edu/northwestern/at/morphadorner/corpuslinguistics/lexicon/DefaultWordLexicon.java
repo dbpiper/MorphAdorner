@@ -2,37 +2,22 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lexicon;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
+import java.io.*;
+import java.util.*;
 
-/** DefaultWordLexicon: Lexicon which uses default word lexicon.
- */
+/** DefaultWordLexicon: Lexicon which uses default word lexicon. */
+public class DefaultWordLexicon extends DefaultLexicon implements Lexicon {
+  /** Resourch path to default (NUPOS) lexicon. */
+  protected static final String defaultLexiconPath = "resources/nupos.lex";
 
-public class DefaultWordLexicon extends DefaultLexicon implements Lexicon
-{
-    /** Resourch path to default (NUPOS) lexicon. */
-
-    protected static final String defaultLexiconPath    =
-        "resources/nupos.lex";
-
-    /** Create an empty lexicon.
-     */
-
-    public DefaultWordLexicon()
-        throws Exception
-    {
-                                //  Create empty lexicon.
-        super();
-                                //  Load default word lexicon.
-        loadLexicon
-        (
-            DefaultLexicon.class.getResource( defaultLexiconPath ) ,
-            "utf-8"
-        );
-    }
+  /** Create an empty lexicon. */
+  public DefaultWordLexicon() throws Exception {
+    //  Create empty lexicon.
+    super();
+    //  Load default word lexicon.
+    loadLexicon(DefaultLexicon.class.getResource(defaultLexiconPath), "utf-8");
+  }
 }
 
 /*
@@ -75,6 +60,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

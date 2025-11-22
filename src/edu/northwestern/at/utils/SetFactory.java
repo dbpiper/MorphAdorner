@@ -4,42 +4,29 @@ package edu.northwestern.at.utils;
 
 import java.util.*;
 
-/** Factory for creating a HashSet.
- */
+/** Factory for creating a HashSet. */
+public class SetFactory {
+  /** Create a new HashSet. */
+  public static <E> Set<E> createNewSet() {
+    return new HashSet<E>();
+  }
 
-public class SetFactory
-{
-    /** Create a new HashSet.
-     */
+  /**
+   * Create a new HashSet.
+   *
+   * @param capacity Initial capacity.
+   */
+  public static <E> Set<E> createNewSet(int capacity) {
+    return new HashSet<E>(capacity);
+  }
 
-    public static<E> Set<E> createNewSet()
-    {
-        return new HashSet<E>();
-    }
+  /** Create a new TreeSet. */
+  public static <E> SortedSet<E> createNewSortedSet() {
+    return new TreeSet<E>();
+  }
 
-    /** Create a new HashSet.
-     *
-     *  @param  capacity    Initial capacity.
-     */
-
-    public static<E> Set<E> createNewSet( int capacity )
-    {
-        return new HashSet<E>( capacity );
-    }
-
-    /** Create a new TreeSet.
-     */
-
-    public static<E> SortedSet<E> createNewSortedSet()
-    {
-        return new TreeSet<E>();
-    }
-
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected SetFactory()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected SetFactory() {}
 }
 
 /*
@@ -82,6 +69,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

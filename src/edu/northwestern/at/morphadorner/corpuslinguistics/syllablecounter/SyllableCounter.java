@@ -2,19 +2,15 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.syllablecounter;
 
 /*  Please see the license information at the end of this file. */
 
-/** Defines an interface for retrieving the number of syllables in a word.
- */
-
-public interface SyllableCounter
-{
-    /** Find number of syllables in a single word.
-     *
-     *  @param  word    The word whose syllable count is desired.
-     *
-     *  @return         The number of syllables in the word.
-     */
-
-    public int countSyllables( String word );
+/** Defines an interface for retrieving the number of syllables in a word. */
+public interface SyllableCounter {
+  /**
+   * Find number of syllables in a single word.
+   *
+   * @param word The word whose syllable count is desired.
+   * @return The number of syllables in the word.
+   */
+  public int countSyllables(String word);
 }
 
 /*
@@ -57,5 +53,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-

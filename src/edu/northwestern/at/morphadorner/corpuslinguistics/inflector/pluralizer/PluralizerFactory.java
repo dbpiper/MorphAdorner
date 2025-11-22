@@ -5,112 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector.pluralizer;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** Pluralizer factory.
- */
+/** Pluralizer factory. */
+public class PluralizerFactory {
+  /**
+   * Get a pluralizer.
+   *
+   * @return The pluralizer.
+   */
+  public static Pluralizer newPluralizer() {
+    String className = System.getProperty("pluralizer.class");
 
-public class PluralizerFactory
-{
-    /** Get a pluralizer.
-     *
-     *  @return     The pluralizer.
-     */
-
-    public static Pluralizer newPluralizer()
-    {
-        String className    =
-            System.getProperty( "pluralizer.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultPluralizer";
-        }
-
-        return newPluralizer( className );
+    if (className == null) {
+      className = "DefaultPluralizer";
     }
 
-    /** Get a pluralizer.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The pluralizer.
-     */
+    return newPluralizer(className);
+  }
 
-    public static Pluralizer newPluralizer
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a pluralizer.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The pluralizer.
+   */
+  public static Pluralizer newPluralizer(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "pluralizer.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultPluralizer";
-        }
-
-        return newPluralizer( className );
+    if (properties != null) {
+      className = properties.getProperty("pluralizer.class");
     }
 
-    /** Get a pluralizer of a specified class name.
-     *
-     *  @param  className   Class name for the pluralizer.
-     *
-     *  @return             The pluralizer.
-     */
-
-    public static Pluralizer newPluralizer( String className )
-    {
-        Pluralizer pluralizer   = null;
-
-        try
-        {
-            pluralizer  =
-                (Pluralizer)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                ( PluralizerFactory.class.getName() ) +
-                "." + className;
-
-            try
-            {
-                pluralizer  =
-                    (Pluralizer)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create pluralizer of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    pluralizer  = new DefaultPluralizer();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null pluralizer.
-/*
-                    System.err.println(
-                        "Unable to create pluralizer, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return pluralizer;
+    if (className == null) {
+      className = "DefaultPluralizer";
     }
+
+    return newPluralizer(className);
+  }
+
+  /**
+   * Get a pluralizer of a specified class name.
+   *
+   * @param className Class name for the pluralizer.
+   * @return The pluralizer.
+   */
+  public static Pluralizer newPluralizer(String className) {
+    Pluralizer pluralizer = null;
+
+    try {
+      pluralizer = (Pluralizer) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(PluralizerFactory.class.getName()) + "." + className;
+
+      try {
+        pluralizer = (Pluralizer) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create pluralizer of class " + fixedClassName + ", using default.");
+
+        try {
+          pluralizer = new DefaultPluralizer();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null pluralizer.
+          /*
+                              System.err.println(
+                                  "Unable to create pluralizer, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return pluralizer;
+  }
 }
 
 /*
@@ -153,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

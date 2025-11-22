@@ -2,63 +2,53 @@ package edu.northwestern.at.utils.cache;
 
 /*  Please see the license information at the end of this file. */
 
-/** A simple generic cache interface.
- */
+/** A simple generic cache interface. */
+public interface Cache<K, V> {
+  /** Clear all entries in the cache. */
+  public void clear();
 
-public interface Cache<K, V>
-{
-    /** Clear all entries in the cache.
-     */
+  /**
+   * True if cache contains a specified key.
+   *
+   * @param key The key to look up.
+   * @return true if the cache contains the key.
+   */
+  public boolean containsKey(K key);
 
-    public void clear();
+  /**
+   * Retrieve a cached value.
+   *
+   * @param key The key of the entry to retrieve.
+   * @return The value of the cached entry specified by key; null if the cache does not contain the
+   *     key.
+   */
+  public V get(K key);
 
-    /** True if cache contains a specified key.
-     *
-     *  @param  key     The key to look up.
-     *
-     *  @return         true if the cache contains the key.
-     */
+  /**
+   * Add or replace a cached value.
+   *
+   * @param key The key of the entry to add.
+   * @param value The value of the entry to add.
+   * @return The value of any existing cached entry specified by the key; null if the cache does not
+   *     contain the key.
+   */
+  public V put(K key, V value);
 
-    public boolean containsKey( K key );
+  /**
+   * Remove a specific entry from the cache.
+   *
+   * @param key The key of the entry to remove.
+   * @return The entry removed, or null if none.
+   */
+  public V remove(K key);
 
-    /** Retrieve a cached value.
-     *
-     *  @param  key     The key of the entry to retrieve.
-     *
-     *  @return         The value of the cached entry specified by key;
-     *                  null if the cache does not contain the key.
-     */
-
-    public V get( K key );
-
-    /** Add or replace a cached value.
-     *
-     *  @param  key     The key of the entry to add.
-     *  @param  value   The value of the entry to add.
-     *
-     *  @return         The value of any existing cached entry specified
-     *                  by the key; null if the cache does not contain
-     *                  the key.
-     */
-
-    public V put( K key , V value );
-
-    /** Remove a specific entry from the cache.
-     *
-     *  @param  key     The key of the entry to remove.
-     *
-     *  @return         The entry removed, or null if none.
-     */
-
-    public V remove( K key );
-
-    /** Return current size of cache.
-     *
-     *  @return     Number of entries (keys) currently stored in cache.
-     */
-
-    public int size();
- }
+  /**
+   * Return current size of cache.
+   *
+   * @return Number of entries (keys) currently stored in cache.
+   */
+  public int size();
+}
 
 /*
 Copyright (c) 2008, 2013 by Northwestern University.
@@ -100,6 +90,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

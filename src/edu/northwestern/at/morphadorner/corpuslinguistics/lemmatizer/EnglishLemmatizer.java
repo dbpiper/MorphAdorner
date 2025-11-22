@@ -2,46 +2,25 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
-
 /** A lemmatizer for English. */
+public class EnglishLemmatizer extends RuleBasedLemmatizer implements Lemmatizer {
+  /** Path to list of irregular word forms. */
+  protected static String irregularFormsFileName = "resources/englishirregularforms.txt";
 
-public class EnglishLemmatizer
-    extends RuleBasedLemmatizer
-    implements Lemmatizer
-{
-    /** Path to list of irregular word forms. */
+  /** Path to list of rules. */
+  protected static String rulesFileName = "resources/englishrules.txt";
 
-    protected static String irregularFormsFileName =
-        "resources/englishirregularforms.txt";
+  /** Create an English lemmatizer. */
+  public EnglishLemmatizer() throws Exception {
+    loadRules(EnglishLemmatizer.class.getResource(rulesFileName), "utf-8");
 
-    /** Path to list of rules. */
-
-    protected static String rulesFileName =
-        "resources/englishrules.txt";
-
-    /** Create an English lemmatizer. */
-
-    public EnglishLemmatizer()
-        throws Exception
-    {
-        loadRules
-        (
-            EnglishLemmatizer.class.getResource( rulesFileName ) ,
-            "utf-8"
-        );
-
-        loadIrregularForms
-        (
-            EnglishLemmatizer.class.getResource( irregularFormsFileName ) ,
-            "utf-8"
-        );
-    }
+    loadIrregularForms(EnglishLemmatizer.class.getResource(irregularFormsFileName), "utf-8");
+  }
 }
 
 /*
@@ -84,6 +63,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

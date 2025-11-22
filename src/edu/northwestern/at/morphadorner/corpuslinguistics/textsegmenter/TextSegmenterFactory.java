@@ -5,114 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsegmenter;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** TextSegmenter factory.
- */
+/** TextSegmenter factory. */
+public class TextSegmenterFactory {
+  /**
+   * Get a segmenter.
+   *
+   * @return The segmenter.
+   */
+  public static TextSegmenter newTextSegmenter() {
+    String className = System.getProperty("segmenter.class");
 
-public class TextSegmenterFactory
-{
-    /** Get a segmenter.
-     *
-     *  @return     The segmenter.
-     */
-
-    public static TextSegmenter newTextSegmenter()
-    {
-        String className    =
-            System.getProperty( "segmenter.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultTextSegmenter";
-        }
-
-        return newTextSegmenter( className );
+    if (className == null) {
+      className = "DefaultTextSegmenter";
     }
 
-    /** Get a segmenter.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The segmenter.
-     */
+    return newTextSegmenter(className);
+  }
 
-    public static TextSegmenter newTextSegmenter
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a segmenter.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The segmenter.
+   */
+  public static TextSegmenter newTextSegmenter(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "segmenter.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultTextSegmenter";
-        }
-
-        return newTextSegmenter( className );
+    if (properties != null) {
+      className = properties.getProperty("segmenter.class");
     }
 
-    /** Get a segmenter of a specified class name.
-     *
-     *  @param  className   Class name for the segmenter.
-     *
-     *  @return             The segmenter.
-     */
-
-    public static TextSegmenter newTextSegmenter( String className )
-    {
-        TextSegmenter segmenter = null;
-
-        try
-        {
-            segmenter   =
-                (TextSegmenter)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    TextSegmenterFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                segmenter   =
-                    (TextSegmenter)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create segmenter of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    segmenter   = new DefaultTextSegmenter();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null segmenter.
-/*
-                    System.err.println(
-                        "Unable to create segmenter, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return segmenter;
+    if (className == null) {
+      className = "DefaultTextSegmenter";
     }
+
+    return newTextSegmenter(className);
+  }
+
+  /**
+   * Get a segmenter of a specified class name.
+   *
+   * @param className Class name for the segmenter.
+   * @return The segmenter.
+   */
+  public static TextSegmenter newTextSegmenter(String className) {
+    TextSegmenter segmenter = null;
+
+    try {
+      segmenter = (TextSegmenter) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(TextSegmenterFactory.class.getName()) + "." + className;
+
+      try {
+        segmenter = (TextSegmenter) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create segmenter of class " + fixedClassName + ", using default.");
+
+        try {
+          segmenter = new DefaultTextSegmenter();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null segmenter.
+          /*
+                              System.err.println(
+                                  "Unable to create segmenter, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return segmenter;
+  }
 }
 
 /*
@@ -155,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

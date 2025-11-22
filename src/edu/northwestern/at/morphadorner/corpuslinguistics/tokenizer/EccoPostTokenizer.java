@@ -2,71 +2,45 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.util.regex.*;
 
-import edu.northwestern.at.utils.*;
+/** Ecco text post tokenizer which processes tokens after extraction. */
+public class EccoPostTokenizer extends DefaultPostTokenizer implements PostTokenizer {
+  /** Character replacer. */
+  protected static Pattern eccoPostPattern =
+      Pattern.compile(
+          CharUtils.CHAR_FAKE_SOFT_HYPHEN_STRING
+              + "|"
+              + CharUtils.NONBREAKING_HYPHEN_STRING
+              + "|"
+              + CharUtils.DIVIDER_VERTICAL_BAR_STRING);
 
-/** Ecco text post tokenizer which processes tokens after extraction.
- */
+  protected static Matcher eccoPostMatcher = eccoPostPattern.matcher("");
 
-public class EccoPostTokenizer
-    extends DefaultPostTokenizer
-    implements PostTokenizer
-{
-    /** Character replacer. */
+  /** Create Ecco text postTokenizer. */
+  public EccoPostTokenizer() {
+    super();
+  }
 
-    protected static Pattern eccoPostPattern    =
-        Pattern.compile
-        (
-            CharUtils.CHAR_FAKE_SOFT_HYPHEN_STRING + "|" +
-            CharUtils.NONBREAKING_HYPHEN_STRING + "|" +
-            CharUtils.DIVIDER_VERTICAL_BAR_STRING
-        );
+  /**
+   * Process a token after tokenization.
+   *
+   * @param token The token to process after tokenization.
+   * @return Array of two strings. [0] = the token minimally processed. [1] = the token maximally
+   *     processed.
+   *     <p>The minimally processed token is typically results in an original spelling.
+   *     <p>The maximally processed token typically results in a partially or completely
+   *     standardized spelling.
+   *     <p>These may be identical.
+   */
+  public String[] postTokenize(String token) {
+    String fixedToken = eccoPostMatcher.reset(token).replaceAll("");
 
-    protected static Matcher eccoPostMatcher    =
-        eccoPostPattern.matcher( "" );
+    fixedToken = StringUtils.replaceAll(fixedToken, CharUtils.LONG_S_STRING, "s");
 
-    /** Create Ecco text postTokenizer.
-     */
-
-    public EccoPostTokenizer()
-    {
-        super();
-    }
-
-    /** Process a token after tokenization.
-     *
-     *  @param  token   The token to process after tokenization.
-     *
-     *  @return         Array of two strings.
-     *                  [0] = the token minimally processed.
-     *                  [1] = the token maximally processed.
-     *
-     *  <p>
-     *  The minimally processed token is typically results in an original
-     *  spelling.
-     *  </p>
-     *  <p>
-     *  The maximally processed token typically results in a
-     *  partially or completely standardized spelling.
-     *  </p>
-     *
-     *  <p>
-     *  These may be identical.
-     *  </p>
-     */
-
-    public String[] postTokenize( String token )
-    {
-        String fixedToken   =
-            eccoPostMatcher.reset( token ).replaceAll( "" );
-
-        fixedToken  =
-            StringUtils.replaceAll(
-                fixedToken , CharUtils.LONG_S_STRING , "s" );
-
-        return new String[]{ fixedToken , fixedToken };
-    }
+    return new String[] {fixedToken, fixedToken};
+  }
 }
 
 /*
@@ -109,6 +83,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,82 +2,60 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.sentencemelder;
 
 /*  Please see the license information at the end of this file. */
 
+import com.megginson.sax.*;
 import java.util.*;
 
-import com.megginson.sax.*;
-
-/** Sentence melder state.
+/**
+ * Sentence melder state.
  *
- *  <p>
- *  All of the state variables have package scope.
- *  Classes outside the sentence melder
- *  package should treat the state as an opaque object.
- *  </p>
+ * <p>All of the state variables have package scope. Classes outside the sentence melder package
+ * should treat the state as an opaque object.
  */
+public class SentenceMelderState {
+  /** True if we're in a double quoted portion of the text. */
+  boolean inDoubleQuotes = false;
 
-public class SentenceMelderState
-{
-    /** True if we're in a double quoted portion of the text. */
+  /** Index of the starting double quote. */
+  int doubleQuoteStart = -1;
 
-    boolean inDoubleQuotes  = false;
+  /** Index of the starting single quote. */
+  int singleQuoteStart = -1;
 
-    /** Index of the starting double quote. */
+  /** True if we're in a single quoted portion of the text. */
+  boolean inSingleQuotes = false;
 
-    int doubleQuoteStart        = -1;
+  /** Previous word token. */
+  String previousWord = "";
 
-    /** Index of the starting single quote. */
+  /** Remembers the number of words processed so far. */
+  int wordsDone = 0;
 
-    int singleQuoteStart        = -1;
+  /** Holds reconstituted sentence. */
+  StringBuffer sb = new StringBuffer();
 
-    /** True if we're in a single quoted portion of the text. */
+  /** XML writer for XML output. */
+  XMLWriter xmlWriter = null;
 
-    boolean inSingleQuotes  = false;
+  /** XML element URI. */
+  String elementURI = "";
 
-    /** Previous word token. */
+  /** Create sentence melder state. */
+  SentenceMelderState() {}
 
-    String previousWord     = "";
-
-    /** Remembers the number of words processed so far. */
-
-    int wordsDone           = 0;
-
-    /** Holds reconstituted sentence. */
-
-    StringBuffer sb = new StringBuffer();
-
-    /** XML writer for XML output. */
-
-    XMLWriter xmlWriter = null;
-
-    /** XML element URI. */
-
-    String elementURI   = "";
-
-    /** Create sentence melder state.
-     */
-
-    SentenceMelderState()
-    {
-    }
-
-    /** Reset the melder.
-     *
-     *  <p>
-     *  Clears the internal state which tracks quote mark pairing,
-     *  word count, and the previous word encountered.  Usually called
-     *  between text divisions such as paragraphs.
-     *  </p>
-     */
-
-    public void reset()
-    {
-        previousWord        = "";
-        inSingleQuotes      = false;
-        inDoubleQuotes      = false;
-        wordsDone           = 0;
-        doubleQuoteStart    = -1;
-        singleQuoteStart    = -1;
-    }
+  /**
+   * Reset the melder.
+   *
+   * <p>Clears the internal state which tracks quote mark pairing, word count, and the previous word
+   * encountered. Usually called between text divisions such as paragraphs.
+   */
+  public void reset() {
+    previousWord = "";
+    inSingleQuotes = false;
+    inDoubleQuotes = false;
+    wordsDone = 0;
+    doubleQuoteStart = -1;
+    singleQuoteStart = -1;
+  }
 }
 
 /*
@@ -120,6 +98,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

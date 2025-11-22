@@ -5,37 +5,30 @@ package edu.northwestern.at.utils.cache;
 import java.util.*;
 
 /** Fixed maximum size cache employing least-recently used method to age entries. */
+public class LRUCache<K, V> extends LinkedHashMap<K, V> implements Cache<K, V> {
+  /** Maximum number of entries in cache. */
+  protected int maxEntries;
 
-public class LRUCache<K, V>
-    extends LinkedHashMap<K, V>
-    implements Cache<K, V>
-{
-    /** Maximum number of entries in cache. */
+  /**
+   * Create a new cache.
+   *
+   * @param maxEntries Maximum number of entries allowed.
+   */
+  public LRUCache(int maxEntries) {
+    super(Math.max(maxEntries, 2) + 1, 1.1f, true);
 
-    protected int maxEntries;
+    this.maxEntries = Math.max(maxEntries, 2);
+  }
 
-    /** Create a new cache.
-     *
-     *  @param  maxEntries  Maximum number of entries allowed.
-     */
-
-    public LRUCache( int maxEntries )
-    {
-        super( Math.max( maxEntries , 2 ) + 1 , 1.1f , true );
-
-        this.maxEntries = Math.max( maxEntries , 2 );
-    }
-
-    /** See if we should delete the least recently used entry.
-     *
-     *  @return     true if least recently used entry should be removed,
-     *              false to keep least recently used entry.
-     */
-
-    protected boolean removeEldestEntry( Map.Entry< K , V > lruEntry )
-    {
-        return ( size() > maxEntries );
-    }
+  /**
+   * See if we should delete the least recently used entry.
+   *
+   * @return true if least recently used entry should be removed, false to keep least recently used
+   *     entry.
+   */
+  protected boolean removeEldestEntry(Map.Entry<K, V> lruEntry) {
+    return (size() > maxEntries);
+  }
 }
 
 /*
@@ -78,6 +71,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

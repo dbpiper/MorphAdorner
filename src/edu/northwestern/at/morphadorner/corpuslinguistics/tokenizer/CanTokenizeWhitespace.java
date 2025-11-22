@@ -3,24 +3,18 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer;
 /*  Please see the license information at the end of this file. */
 
 /** Interface for tokenizer which can tokenize whitespace. */
+public interface CanTokenizeWhitespace {
+  /** Get store whitespace tokens. */
+  public boolean getStoreWhitespaceTokens();
 
-public interface CanTokenizeWhitespace
-{
-    /** Get store whitespace tokens. */
+  /** Set store whitespace tokens. */
+  public void setStoreWhitespaceTokens(boolean storeWhitespaceTokens);
 
-    public boolean getStoreWhitespaceTokens();
+  /** Get merge whitespace tokens. */
+  public boolean getMergeWhitespaceTokens();
 
-    /** Set store whitespace tokens. */
-
-    public void setStoreWhitespaceTokens( boolean storeWhitespaceTokens );
-
-    /** Get merge whitespace tokens. */
-
-    public boolean getMergeWhitespaceTokens();
-
-    /** Set merge whitespace tokens. */
-
-    public void setMergeWhitespaceTokens( boolean mergeWhitespaceTokens );
+  /** Set merge whitespace tokens. */
+  public void setMergeWhitespaceTokens(boolean mergeWhitespaceTokens);
 }
 
 /*
@@ -63,6 +57,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,22 +2,16 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.inflector;
 
 /*  Please see the license information at the end of this file. */
 
-/** DefaultInflector: The default MorphAdorner inflector.
+/**
+ * DefaultInflector: The default MorphAdorner inflector.
  *
- *  <p>
- *  The English language inflector is the default MorphAdorner inflector.
- *  </p>
+ * <p>The English language inflector is the default MorphAdorner inflector.
  */
-
-public class DefaultInflector extends EnglishInflector implements Inflector
-{
-    /** Create the default inflector.
-     */
-
-    public DefaultInflector()
-    {
-        super();
-    }
+public class DefaultInflector extends EnglishInflector implements Inflector {
+  /** Create the default inflector. */
+  public DefaultInflector() {
+    super();
+  }
 }
 
 /*
@@ -60,6 +54,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

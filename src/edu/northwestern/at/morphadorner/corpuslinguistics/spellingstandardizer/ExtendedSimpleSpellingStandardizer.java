@@ -2,229 +2,184 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.spellingstandardizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
+import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.spellcheck.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.spellcheck.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.phonetics.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.stringsimilarity.*;
+/** SimpleSpellingStandardizer maps alternate spellings to standard spellings. */
+public class ExtendedSimpleSpellingStandardizer extends SimpleSpellingStandardizer
+    implements SpellingStandardizer {
+  /** Gap filler. Only allocated if needed. */
+  protected GapFiller gapFiller = null;
 
-/** SimpleSpellingStandardizer maps alternate spellings
- *  to standard spellings.
- */
+  /** Create extended simple spelling standardizer. */
+  public ExtendedSimpleSpellingStandardizer() {
+    super();
+  }
 
-public class ExtendedSimpleSpellingStandardizer
-    extends SimpleSpellingStandardizer
-    implements SpellingStandardizer
-{
-    /** Gap filler.  Only allocated if needed. */
+  /**
+   * Fix gaps in a word.
+   *
+   * @param word Word with gaps.
+   * @return Word with gaps possibly filled. Original word return if gaps cannot be filled.
+   */
+  protected String fixGaps(String word) {
+    String result = word;
 
-    protected GapFiller gapFiller   = null;
+    //  If there is no gap filler yet,
+    //  create one.
 
-    /** Create extended simple spelling standardizer.
-     */
+    if (gapFiller == null) {
+      //  Add mapped spellings.
 
-    public ExtendedSimpleSpellingStandardizer()
-    {
-        super();
+      gapFiller = new GapFiller(mappedSpellings);
+
+      //  Add standard spellings.
+
+      gapFiller.addWords(standardSpellingSet);
+
+      //  Add words in lexicon, if any.
+
+      if (lexicon != null) {
+        gapFiller.addWords(lexicon.getEntries());
+      }
+    }
+    //  Get list of candidate words with
+    //  gap filled.
+
+    List<String> candidates = gapFiller.getMatchingWords(result);
+
+    //  if no candidates, return original
+    //  word with gaps.
+
+    if (candidates.size() == 0) {
+    }
+    //  If one candidate, return it.
+
+    else if (candidates.size() == 1) {
+      result = candidates.get(0);
+    }
+    //  If two candidates, differing
+    //  only in case, return the lower case
+    //  version..
+
+    else if ((candidates.size() == 2) && candidates.get(0).equalsIgnoreCase(candidates.get(1))) {
+      result = candidates.get(0).toLowerCase();
+    }
+    //  Otherwise, prune list by
+    //  selecting only the candidates which
+    //  are standard spellings.
+    else {
+      List<String> reducedCandidates = ListFactory.createNewList();
+
+      for (int j = 0; j < candidates.size(); j++) {
+        String candidate = candidates.get(j);
+
+        if (standardSpellingSet.contains(candidate)) {
+          reducedCandidates.add(candidate);
+        }
+      }
+
+      //  If only one candidate left, that's
+      //  the one to return.
+
+      if (reducedCandidates.size() == 1) {
+        result = reducedCandidates.get(0);
+      }
     }
 
-    /** Fix gaps in a word.
-     *
-     *  @param  word    Word with gaps.
-     *
-     *  @return             Word with gaps possibly filled.
-     *                      Original word return if gaps cannot be
-     *                      filled.
-     */
+    return result;
+  }
 
-    protected String fixGaps( String word )
-    {
-        String result   = word;
+  /**
+   * Preprocess spelling.
+   *
+   * @param spelling Spelling to preprocess.
+   * @return Preprocessed spelling.
+   */
+  public String preprocessSpelling(String spelling) {
+    //  Decruftify spelling.
 
-                                //  If there is no gap filler yet,
-                                //  create one.
+    String result = EnglishDecruftifier.simpleDecruftify(spelling);
 
-        if ( gapFiller == null )
-        {
-                                //  Add mapped spellings.
+    //  Does the spelling contain one or
+    //  more gap characters?
 
-            gapFiller   = new GapFiller( mappedSpellings );
-
-                                //  Add standard spellings.
-
-            gapFiller.addWords( standardSpellingSet );
-
-                                //  Add words in lexicon, if any.
-
-            if ( lexicon != null )
-            {
-                gapFiller.addWords( lexicon.getEntries() );
-            }
-        }
-                                //  Get list of candidate words with
-                                //  gap filled.
-
-        List<String> candidates = gapFiller.getMatchingWords( result );
-
-                                //  if no candidates, return original
-                                //  word with gaps.
-
-        if ( candidates.size() == 0 )
-        {
-        }
-                                //  If one candidate, return it.
-
-        else if ( candidates.size() == 1 )
-        {
-            result  = candidates.get( 0 );
-        }
-                                //  If two candidates, differing
-                                //  only in case, return the lower case
-                                //  version..
-
-        else if (  ( candidates.size() == 2 ) &&
-            candidates.get( 0 ).equalsIgnoreCase( candidates.get( 1 ) )
-        )
-        {
-            result  = candidates.get( 0 ).toLowerCase();
-        }
-                                //  Otherwise, prune list by
-                                //  selecting only the candidates which
-                                //  are standard spellings.
-        else
-        {
-            List<String> reducedCandidates  =
-                ListFactory.createNewList();
-
-            for ( int j = 0 ; j < candidates.size() ; j++ )
-            {
-                String candidate    = candidates.get( j );
-
-                if ( standardSpellingSet.contains( candidate ) )
-                {
-                    reducedCandidates.add( candidate );
-                }
-            }
-
-                                //  If only one candidate left, that's
-                                //  the one to return.
-
-            if ( reducedCandidates.size() == 1 )
-            {
-                result  = reducedCandidates.get( 0 );
-            }
-        }
-
-        return result;
+    if (CharUtils.hasGapMarkers(result)) {
+      result = fixGaps(result);
     }
 
-    /** Preprocess spelling.
-     *
-     *  @param  spelling    Spelling to preprocess.
-     *
-     *  @return             Preprocessed spelling.
-     */
+    return result;
+  }
 
-    public String preprocessSpelling( String spelling )
-    {
-                                //  Decruftify spelling.
+  /**
+   * Returns standard spellings given a spelling.
+   *
+   * @param spelling The spelling.
+   * @param addToCache Add standardized spelling to spelling map.
+   * @return The standard spellings as an array of String.
+   */
+  protected String[] doStandardizeSpelling(String spelling, boolean addToCache) {
+    String result = super.standardizeSpelling(spelling)[0];
 
-        String result   = EnglishDecruftifier.simpleDecruftify( spelling );
+    if (!standardSpellingSet.contains(result.toLowerCase())) {
+      String lowerCaseSpelling = result.toLowerCase();
 
-                                //  Does the spelling contain one or
-                                //  more gap characters?
+      result = preprocessSpelling(lowerCaseSpelling);
 
-        if ( CharUtils.hasGapMarkers( result ) )
-        {
-            result  = fixGaps( result );
+      if (mappedSpellings != null) {
+        if (mappedSpellings.containsString(result)) {
+          result = mappedSpellings.getTag(result);
+        } else {
+          if (addToCache) addCachedSpelling(spelling, result);
         }
-
-        return result;
+      }
     }
 
-    /** Returns standard spellings given a spelling.
-     *
-     *  @param  spelling    The spelling.
-     *  @param  addToCache  Add standardized spelling to spelling map.
-     *
-     *  @return             The standard spellings as an array of String.
-     */
+    result = fixCapitalization(spelling, result);
 
-    protected String[] doStandardizeSpelling
-    (
-        String spelling ,
-        boolean addToCache
-    )
-    {
-        String result   = super.standardizeSpelling( spelling )[ 0 ];
+    return new String[] {result};
+  }
 
-        if ( !standardSpellingSet.contains( result.toLowerCase() ) )
-        {
-            String lowerCaseSpelling    = result.toLowerCase();
+  /**
+   * Returns standard spellings given a spelling.
+   *
+   * @param spelling The spelling.
+   * @return The standard spellings as an array of String.
+   */
+  public String[] standardizeSpelling(String spelling) {
+    return doStandardizeSpelling(spelling, true);
+  }
 
-            result  = preprocessSpelling( lowerCaseSpelling );
+  /**
+   * Set gap filler.
+   *
+   * @param gapFiller The gap filler.
+   */
+  public void setGapFiller(GapFiller gapFiller) {
+    this.gapFiller = gapFiller;
+  }
 
-            if ( mappedSpellings != null )
-            {
-                if ( mappedSpellings.containsString( result ) )
-                {
-                    result  = mappedSpellings.getTag( result );
-                }
-                else
-                {
-                    if ( addToCache ) addCachedSpelling( spelling , result );
-                }
-            }
-        }
+  /**
+   * Get gap filler.
+   *
+   * @return gapFiller The gap filler.
+   */
+  public GapFiller getGapFiller() {
+    return gapFiller;
+  }
 
-        result  = fixCapitalization( spelling , result );
-
-        return new String[]{ result };
-    }
-
-    /** Returns standard spellings given a spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The standard spellings as an array of String.
-     */
-
-     public String[] standardizeSpelling( String spelling )
-     {
-        return doStandardizeSpelling( spelling , true );
-     }
-
-    /** Set gap filler.
-     *
-     *  @param  gapFiller   The gap filler.
-     */
-
-    public void setGapFiller( GapFiller gapFiller )
-    {
-        this.gapFiller  = gapFiller;
-    }
-
-    /** Get gap filler.
-     *
-     *  @return     gapFiller   The gap filler.
-     */
-
-    public GapFiller getGapFiller()
-    {
-        return gapFiller;
-    }
-
-    /** Return standardizer description.
-     *
-     *  @return     Standardizer description.
-     */
-
-    public String toString()
-    {
-        return "English Extended Simple Spelling Standardizer";
-    }
+  /**
+   * Return standardizer description.
+   *
+   * @return Standardizer description.
+   */
+  public String toString() {
+    return "English Extended Simple Spelling Standardizer";
+  }
 }
 
 /*
@@ -267,6 +222,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

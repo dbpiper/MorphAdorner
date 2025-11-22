@@ -4,125 +4,99 @@ package edu.northwestern.at.utils;
 
 import java.util.*;
 
-/** Interface for two dimensional map.
- */
+/** Interface for two dimensional map. */
+public interface Map2D<R extends Comparable, C extends Comparable, V> {
+  /** Clear all entries from this map and its child maps. */
+  public void clear();
 
-public interface Map2D<R extends Comparable, C extends Comparable, V>
-{
-    /** Clear all entries from this map and its child maps.
-     */
+  /**
+   * Return number of entries.
+   *
+   * @return Number of entries in map.
+   */
+  public int size();
 
-    public void clear();
+  /**
+   * Determine if map contains a key pair.
+   *
+   * @param rowKey Row key.
+   * @param columnKey Column key.
+   * @return true if entry exists, false otherwise.
+   */
+  public boolean containsKeys(Object rowKey, Object columnKey);
 
-    /** Return number of entries.
-     *
-     *  @return     Number of entries in map.
-     */
+  /**
+   * Determine if map contains a compound key.
+   *
+   * @param key Compound key.
+   * @return true if entry exists, false otherwise.
+   */
+  public boolean containsKey(CompoundKey key);
 
-    public int size();
+  /**
+   * Get value at specified (rowKey, columnKey) position.
+   *
+   * @param rowKey Row key.
+   * @param columnKey Column key.
+   * @return The value at the specified (rowKey, columnKey) position.
+   */
+  public V get(Object rowKey, Object columnKey);
 
-    /** Determine if map contains a key pair.
-     *
-     *  @param  rowKey      Row key.
-     *  @param  columnKey   Column key.
-     *
-     *  @return             true if entry exists, false otherwise.
-     */
+  /**
+   * Get value at specified CompoundKey position.
+   *
+   * @param key Compound key.
+   * @return The value at the specified compound key position.
+   */
+  public V get(CompoundKey key);
 
-    public boolean containsKeys
-    (
-        Object rowKey ,
-        Object columnKey
-    );
+  /**
+   * Add value for specified (rowKey, columnKey) .
+   *
+   * @param rowKey Row key.
+   * @param columnKey Column key.
+   * @param value Value to store.
+   * @return Previous value for (rowKey, columnKey). May be null.
+   */
+  public V put(R rowKey, C columnKey, V value);
 
-    /** Determine if map contains a compound key.
-     *
-     *  @param  key     Compound key.
-     *
-     *  @return         true if entry exists, false otherwise.
-     */
+  /**
+   * Remove entry at (rowKey, columnKey).
+   *
+   * @param rowKey Row key.
+   * @param columnKey Column key.
+   * @return Previous value for (rowKey, columnKey). May be null.
+   */
+  public V remove(Object rowKey, Object columnKey);
 
-    public boolean containsKey
-    (
-        CompoundKey key
-    );
+  /**
+   * Get the compound key set.
+   *
+   * @return The compound key set.
+   */
+  public Set<CompoundKey> keySet();
 
-    /** Get value at specified (rowKey, columnKey) position.
-     *
-     *  @param      rowKey      Row key.
-     *  @param      columnKey   Column key.
-     *
-     *  @return     The value at the specified (rowKey, columnKey) position.
-     */
+  /**
+   * Get row key set.
+   *
+   * @return rows key set.
+   */
+  public Set<R> rowKeySet();
 
-    public V get( Object rowKey , Object columnKey );
+  /**
+   * Get column key set.
+   *
+   * @return column key set.
+   */
+  public Set<C> columnKeySet();
 
-    /** Get value at specified CompoundKey position.
-     *
-     *  @param      key     Compound key.
-     *
-     *  @return     The value at the specified compound key position.
-     */
-
-    public V get( CompoundKey key );
-
-    /** Add value for specified (rowKey, columnKey) .
-     *
-     *  @param      rowKey      Row key.
-     *  @param      columnKey   Column key.
-     *  @param      value       Value to store.
-     *
-     *  @return     Previous value for (rowKey, columnKey).
-     *              May be null.
-     */
-
-    public V put
-    (
-        R rowKey ,
-        C columnKey ,
-        V value
-    );
-
-    /** Remove entry at (rowKey, columnKey).
-     *
-     *  @param      rowKey      Row key.
-     *  @param      columnKey   Column key.
-     *
-     *  @return     Previous value for (rowKey, columnKey).
-     *              May be null.
-     */
-
-    public V remove( Object rowKey , Object columnKey );
-
-    /** Get the compound key set.
-     *
-     *  @return     The compound key set.
-     */
-
-    public Set<CompoundKey> keySet();
-
-    /** Get row key set.
-     *
-     *      @return     rows key set.
-     */
-
-    public Set<R> rowKeySet();
-
-    /** Get column  key set.
-     *
-     *      @return     column key set.
-     */
-
-    public Set<C> columnKeySet();
-
-    /** Get column key set with specified row value.
-     *
-     *  @param  rowKey  Row key value.
-     *
-     *  @return         Column key set.  May be empty if no row key matches.
-     */
-
-    public Set<C> columnKeySet( Object rowKey );
+  /**
+   * Get column key set with specified row value.
+   *
+   * @param rowKey Row key value.
+   * @return Column key set. May be empty if no row key matches.
+   */
+  public Set<C> columnKeySet(Object rowKey);
 }
 
 /*
@@ -165,6 +139,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

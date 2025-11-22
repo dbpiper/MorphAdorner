@@ -5,43 +5,29 @@ package edu.northwestern.at.morphadorner;
 import edu.northwestern.at.morphadorner.corpuslinguistics.sentencemelder.*;
 
 /** Saves XML writer state. */
+public class XMLWriterState {
+  /** True if we're processing first word in a sentence. */
+  protected boolean isFirstWord = false;
+  ;
 
-public class XMLWriterState
-{
-    /** True if we're processing first word in a sentence. */
+  /** XML sentence melder. */
+  protected SentenceMelderState sentenceMelderState;
 
-    protected boolean isFirstWord = false;;
+  /** Create XMLWriterState object. */
+  public XMLWriterState(boolean isFirstWord, SentenceMelder sentenceMelder) {
+    this.isFirstWord = isFirstWord;
+    this.sentenceMelderState = sentenceMelder.getState();
+  }
 
-    /** XML sentence melder. */
+  /** Get "is first word" flag. */
+  public boolean getIsFirstWord() {
+    return isFirstWord;
+  }
 
-    protected SentenceMelderState sentenceMelderState;
-
-    /** Create XMLWriterState object.
-     */
-
-    public XMLWriterState
-    (
-        boolean isFirstWord ,
-        SentenceMelder sentenceMelder
-    )
-    {
-        this.isFirstWord            = isFirstWord;
-        this.sentenceMelderState    = sentenceMelder.getState();
-    }
-
-    /** Get "is first word" flag. */
-
-    public boolean getIsFirstWord()
-    {
-        return isFirstWord;
-    }
-
-    /** Get sentence melder state. */
-
-    public SentenceMelderState getSentenceMelderState()
-    {
-        return sentenceMelderState;
-    }
+  /** Get sentence melder state. */
+  public SentenceMelderState getSentenceMelderState() {
+    return sentenceMelderState;
+  }
 }
 
 /*
@@ -84,6 +70,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

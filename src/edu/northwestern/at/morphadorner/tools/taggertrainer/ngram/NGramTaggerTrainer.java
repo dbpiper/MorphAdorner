@@ -2,226 +2,173 @@ package edu.northwestern.at.morphadorner.tools.taggertrainer.ngram;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.text.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.transitionmatrix.*;
-import edu.northwestern.at.utils.html.*;
 import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.html.*;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.*;
+import java.util.*;
 
-public class NGramTaggerTrainer
-{
-    /** The word lexicon. */
+public class NGramTaggerTrainer {
+  /** The word lexicon. */
+  protected static Lexicon wordLexicon;
 
-    protected static Lexicon wordLexicon;
+  /** The input training data file to process. */
+  protected static String trainingDataFileName;
 
-    /** The input training data file to process. */
+  /** Number of lines/words in training data. */
+  protected static int trainingDataCount = 0;
 
-    protected static String trainingDataFileName;
+  /** Part of speech transition probability matrix. */
+  protected static TransitionMatrix transitionMatrix = new TransitionMatrix();
 
-    /** Number of lines/words in training data. */
+  /** Transition matrix file name. */
+  protected static String transitionMatrixFileName = null;
 
-    protected static int trainingDataCount  = 0;
+  /** Separator character(s) for tokens in input text. */
+  protected static String sepChars = "\t";
 
-    /** Part of speech transition probability matrix. */
+  /**
+   * Get program parameters.
+   *
+   * @param args Command line parameters.
+   */
+  protected static void getProgramParameters(String args[]) throws IOException {
+    //  Error if insufficient arguments
 
-    protected static TransitionMatrix transitionMatrix  =
-        new TransitionMatrix();
+    if (args.length < 3) help();
 
-    /** Transition matrix file name. */
+    //  Training text file name.
 
-    protected static String transitionMatrixFileName    = null;
+    trainingDataFileName = args[0];
 
-    /** Separator character(s) for tokens in input text.
-     */
+    //  Load the word lexicon.
 
-    protected static String sepChars    = "\t";
+    File file = new File(args[1]);
 
-    /** Get program parameters.
-     *
-     *  @param  args    Command line parameters.
-     */
+    wordLexicon = new BaseLexicon();
 
-    protected static void getProgramParameters( String args[] )
-        throws IOException
-    {
-                                //  Error if insufficient arguments
+    wordLexicon.loadLexicon(file.toURI().toURL(), "utf-8");
 
-        if ( args.length < 3 ) help();
+    //  Transition matrix file name.
 
-                                //  Training text file name.
+    transitionMatrixFileName = args[2];
+  }
 
-        trainingDataFileName    = args[ 0 ];
+  /** Load training data. */
+  protected static void loadTrainingData() throws IOException {
+    long startTime = System.currentTimeMillis();
 
-                                //  Load the word lexicon.
+    BufferedReader input =
+        new BufferedReader(new UnicodeReader(new FileInputStream(trainingDataFileName), "utf-8"));
 
-        File file   = new File( args[ 1 ] );
+    String line;
+    trainingDataCount = 0;
+    String previousPOS = ".";
+    String previousPOSM1 = ".";
 
-        wordLexicon = new BaseLexicon();
+    while ((line = input.readLine()) != null) {
+      line = line.trim();
 
-        wordLexicon.loadLexicon( file.toURI().toURL() , "utf-8" );
+      if (line.length() == 0) continue;
 
-                                //  Transition matrix file name.
+      StringTokenizer tokenizer = new StringTokenizer(line, sepChars);
 
-        transitionMatrixFileName    = args[ 2 ];
+      String spelling = "";
+      String currentPOS = "";
+
+      try {
+        spelling = tokenizer.nextToken().trim();
+        currentPOS = tokenizer.nextToken().trim();
+      } catch (Exception e) {
+        if (CharUtils.isPunctuationOrSymbol(spelling)) {
+          currentPOS = spelling;
+        } else {
+          e.printStackTrace();
+          System.out.println("line=" + line);
+        }
+      }
+      //  Increment unigram count.
+
+      transitionMatrix.incrementCount(currentPOS, 1);
+
+      //  Increment bigram count.
+
+      transitionMatrix.incrementCount(previousPOS, currentPOS, 1);
+
+      //  Increment trigram count.
+
+      transitionMatrix.incrementCount(previousPOSM1, previousPOS, currentPOS, 1);
+
+      //  Increment word count.
+
+      trainingDataCount++;
+
+      //  Previous part of speech is now
+      //  this part of speech.
+
+      previousPOSM1 = previousPOS;
+      previousPOS = currentPOS;
     }
 
-    /** Load training data. */
+    long endTime = System.currentTimeMillis();
+    long secs = (endTime - startTime + 999) / 1000;
 
-    protected static void loadTrainingData()
-        throws IOException
-    {
-        long startTime      = System.currentTimeMillis();
+    System.out.println("Training data loaded in " + secs + " seconds.");
+  }
 
-        BufferedReader input    =
-            new BufferedReader
-            (
-                new UnicodeReader
-                (
-                    new FileInputStream( trainingDataFileName ) ,
-                    "utf-8"
-                )
-            );
+  /** Create and run a part of speech tagger trainer. */
+  public static void main(String[] args) {
+    //  Get program parameters.
+    try {
+      getProgramParameters(args);
 
-        String line;
-        trainingDataCount       = 0;
-        String previousPOS      = ".";
-        String previousPOSM1    = ".";
+      //  Run part of speech tagger trainer.
 
-        while ( ( line = input.readLine() ) != null )
-        {
-            line    = line.trim();
+      loadTrainingData();
 
-            if ( line.length() == 0 ) continue;
+      //  Save transition matrix.
 
-            StringTokenizer tokenizer   =
-                new StringTokenizer( line , sepChars );
+      transitionMatrix.saveTransitionMatrix(transitionMatrixFileName, "utf-8", '\t');
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-            String spelling     = "";
-            String currentPOS   = "";
+  /**
+   * Get URL from file name or URL.
+   *
+   * @param fileNameOrURL The file name or URL string.
+   * @return A URL for the specified file name or URL.
+   */
+  protected static URL getURL(String fileNameOrURL) {
+    URL fileURL;
 
-            try
-            {
-                spelling    = tokenizer.nextToken().trim();
-                currentPOS  = tokenizer.nextToken().trim();
-            }
-            catch ( Exception e )
-            {
-                if ( CharUtils.isPunctuationOrSymbol( spelling ) )
-                {
-                    currentPOS  = spelling;
-                }
-                else
-                {
-                    e.printStackTrace();
-                    System.out.println( "line=" + line );
-                }
-            }
-                                //  Increment unigram count.
-
-            transitionMatrix.incrementCount( currentPOS , 1 );
-
-                                //  Increment bigram count.
-
-            transitionMatrix.incrementCount( previousPOS , currentPOS , 1 );
-
-                                //  Increment trigram count.
-
-            transitionMatrix.incrementCount(
-                previousPOSM1 , previousPOS , currentPOS , 1 );
-
-                                //  Increment word count.
-
-            trainingDataCount++;
-
-                                //  Previous part of speech is now
-                                //  this part of speech.
-
-            previousPOSM1   = previousPOS;
-            previousPOS     = currentPOS;
-        }
-
-        long endTime        = System.currentTimeMillis();
-        long secs           = ( endTime - startTime + 999 ) / 1000;
-
-        System.out.println(
-            "Training data loaded in " + secs + " seconds." );
+    try {
+      fileURL = new URL(fileNameOrURL);
+    } catch (MalformedURLException e) {
+      try {
+        fileURL = new File(fileNameOrURL).toURI().toURL();
+      } catch (Exception e2) {
+        fileURL = null;
+      }
     }
 
-    /** Create and run a part of speech tagger trainer.
-     */
+    return fileURL;
+  }
 
-    public static void main( String[] args )
-    {
-                                //  Get program parameters.
-        try
-        {
-            getProgramParameters( args );
+  /** Prints the help message. */
+  protected static void help() {
+    System.out.println(
+        "java edu.northwestern.at.taggertrainer.ngram.NGramTaggerTrainer trainingdata wordlexicon"
+            + " outputtransitionmatrix");
 
-                                //  Run part of speech tagger trainer.
-
-            loadTrainingData();
-
-                                //  Save transition matrix.
-
-            transitionMatrix.saveTransitionMatrix
-            (
-                transitionMatrixFileName ,
-                "utf-8" ,
-                '\t'
-            );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
-    }
-
-    /** Get URL from file name or URL.
-     *
-     *  @param  fileNameOrURL   The file name or URL string.
-     *
-     *  @return                 A URL for the specified file name or URL.
-     */
-
-    protected static URL getURL( String fileNameOrURL )
-    {
-        URL fileURL;
-
-        try
-        {
-            fileURL = new URL( fileNameOrURL );
-        }
-        catch ( MalformedURLException e )
-        {
-            try
-            {
-                fileURL = new File( fileNameOrURL ).toURI().toURL();
-            }
-            catch ( Exception e2 )
-            {
-                fileURL = null;
-            }
-        }
-
-        return fileURL;
-    }
-
-    /** Prints the help message.
-     */
-
-    protected static void help()
-    {
-        System.out.println(
-            "java edu.northwestern.at.taggertrainer.ngram.NGramTaggerTrainer trainingdata wordlexicon outputtransitionmatrix" );
-
-        System.exit( 1 );
-    }
+    System.exit(1);
+  }
 }
 
 /*
@@ -264,6 +211,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

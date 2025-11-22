@@ -2,40 +2,33 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.lemmatizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
+import java.util.*;
 
-/** Interface for a Lemmatizer Rule.
+/**
+ * Interface for a Lemmatizer Rule.
  *
- *  <p>
- *  A lemmarizer rule specifies a string substitution pattern
- *  used as part of the process of reducing an elaborated
- *  morphological form to its base form (lemma).
- *  </p>
+ * <p>A lemmarizer rule specifies a string substitution pattern used as part of the process of
+ * reducing an elaborated morphological form to its base form (lemma).
  */
+public interface LemmatizerRule {
+  /**
+   * Apply a lemmatization rule to a string.
+   *
+   * @param s String to which to apply rule.
+   * @param dictionary List of known words.
+   * @return String after rule applied.
+   */
+  public String apply(String s, Set<String> dictionary);
 
-public interface LemmatizerRule
-{
-    /** Apply a lemmatization rule to a string.
-     *
-     *  @param  s           String to which to apply rule.
-     *  @param  dictionary  List of known words.
-     *
-     *  @return             String after rule applied.
-     */
-
-    public String apply( String s , Set<String> dictionary );
-
-    /** Apply a lemmatization rule to a string.
-     *
-     *  @param  s   String to which to apply rule.
-     *
-     *  @return     String after rule applied.
-     */
-
-    public String apply( String s );
+  /**
+   * Apply a lemmatization rule to a string.
+   *
+   * @param s String to which to apply rule.
+   * @return String after rule applied.
+   */
+  public String apply(String s);
 }
 
 /*
@@ -78,6 +71,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

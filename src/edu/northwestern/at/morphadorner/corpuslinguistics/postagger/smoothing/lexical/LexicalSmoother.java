@@ -2,52 +2,43 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.l
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.utils.math.*;
+import java.util.*;
 
-/** Interface for a lexical smoother.
+/**
+ * Interface for a lexical smoother.
  *
- *  <p>
- *  A lexical smoother computes the lexically smoothed probabability of
- *  a word given a part of speech tag, e.g., p( word | tag ).
- *  </p>
+ * <p>A lexical smoother computes the lexically smoothed probabability of a word given a part of
+ * speech tag, e.g., p( word | tag ).
  */
+public interface LexicalSmoother {
+  /**
+   * Set the part of speech tagger for this smoother.
+   *
+   * @param posTagger Part of speech tagger for which this smoother provides probabilities.
+   */
+  public void setPartOfSpeechTagger(PartOfSpeechTagger posTagger);
 
-public interface LexicalSmoother
-{
-    /** Set the part of speech tagger for this smoother.
-     *
-     *  @param  posTagger   Part of speech tagger for which
-     *                      this smoother provides probabilities.
-     */
+  /**
+   * Get the number of cached lexical probabilities.
+   *
+   * @return The number of cached lexical probabilities.
+   */
+  public int cachedProbabilitiesCount();
 
-    public void setPartOfSpeechTagger( PartOfSpeechTagger posTagger );
+  /** Clear cached probabilities.. */
+  public void clearCachedProbabilities();
 
-    /** Get the number of cached lexical probabilities.
-     *
-     *  @return     The number of cached lexical probabilities.
-     */
-
-    public int cachedProbabilitiesCount();
-
-    /** Clear cached probabilities..
-     */
-
-    public void clearCachedProbabilities();
-
-    /** Get lexically smoothed probability of a word given a tag.
-     *
-     *  @param  word    The word.
-     *  @param  tag     The part of speech tag.
-     *
-     *  @return         Lexically smoothed probability of word given tag,
-     *                  e.g., p( word | tag ).
-     */
-
-     public Probability lexicalProbability( String word , String tag  );
+  /**
+   * Get lexically smoothed probability of a word given a tag.
+   *
+   * @param word The word.
+   * @param tag The part of speech tag.
+   * @return Lexically smoothed probability of word given tag, e.g., p( word | tag ).
+   */
+  public Probability lexicalProbability(String word, String tag);
 }
 
 /*
@@ -90,6 +81,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

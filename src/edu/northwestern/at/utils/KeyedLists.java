@@ -4,141 +4,110 @@ package edu.northwestern.at.utils;
 
 import java.util.*;
 
-/** Maps keys and lists of values.
+/**
+ * Maps keys and lists of values.
  *
- *  <p>
- *  This class extends HashMap to allow each key
- *  to take an ArrayList of values.
- *  </p>
+ * <p>This class extends HashMap to allow each key to take an ArrayList of values.
  */
+public class KeyedLists<K extends Comparable, V> extends HashMap<K, List<V>> {
+  /** Create a keyed lists object. */
+  public KeyedLists() {
+    super();
+  }
 
-public class KeyedLists<K extends Comparable, V>
-    extends HashMap<K,List<V>>
-{
-    /** Create a keyed lists object.
-     */
+  /**
+   * Get indexed entry in list for specified key.
+   *
+   * @param key The key.
+   * @param index Index of list entry to retrieve.
+   * @return The indexed entry from the list for the given key. May be null if not found.
+   */
+  public Object get(Object key, int index) {
+    V result = null;
 
-    public KeyedLists()
-    {
-        super();
+    List<V> list = get(key);
+
+    if (list != null) {
+      result = list.get(index);
     }
 
-    /** Get indexed entry in list for specified key.
-     *
-     *  @param  key     The key.
-     *  @param  index   Index of list entry to retrieve.
-     *
-     *  @return         The indexed entry from the
-     *                  list for the given key.
-     *                  May be null if not found.
-     */
+    return result;
+  }
 
-    public Object get( Object key , int index )
-    {
-        V result        = null;
+  /**
+   * Add all entries from a collection to list for a key.
+   *
+   * @param key The key.
+   * @param collection Collection whose entries should be added.
+   * @return Updated list.
+   */
+  public Object putAll(K key, Collection<V> collection) {
+    List<V> result = null;
 
-        List<V> list    = get( key );
+    List<V> list = get(key);
 
-        if ( list != null )
-        {
-            result  = list.get( index );
-        }
-
-        return result;
+    if (list == null) {
+      list = new ArrayList<V>();
+      super.put(key, list);
     }
 
-    /** Add all entries from a collection to list for a key.
-     *
-     *  @param  key         The key.
-     *  @param  collection  Collection whose entries should be added.
-     *
-     *  @return             Updated list.
-     */
+    list.addAll(collection);
 
-    public Object putAll( K key , Collection<V> collection )
-    {
-        List<V> result  = null;
-
-        List<V> list    = get( key );
-
-        if ( list == null )
-        {
-            list = new ArrayList<V>();
-            super.put( key , list );
-        }
-
-        list.addAll( collection );
-
-        if ( list.size() != collection.size() )
-        {
-            result  = list;
-        }
-
-        return result;
+    if (list.size() != collection.size()) {
+      result = list;
     }
 
-    /** Add an entry to list for a key.
-     *
-     *  @param  key         The key.
-     *  @param  value       Value to add to key's list.
-     *
-     *  @return             Updated list.
-     */
+    return result;
+  }
 
-    public Object put( K key , V value )
-    {
-        List<V> result  = null;
-        List<V> list    = get( key );
+  /**
+   * Add an entry to list for a key.
+   *
+   * @param key The key.
+   * @param value Value to add to key's list.
+   * @return Updated list.
+   */
+  public Object put(K key, V value) {
+    List<V> result = null;
+    List<V> list = get(key);
 
-        if ( list == null )
-        {
-            list    = new ArrayList<V>();
-            super.put( key , list );
-        }
-
-        list.add( value );
-
-        if ( list.size() > 1 )
-        {
-            result  = list;
-        }
-
-        return result;
+    if (list == null) {
+      list = new ArrayList<V>();
+      super.put(key, list);
     }
 
-    /** Remove an entry from list for a key.
-     *
-     *  @param  key         The key.
-     *  @param  value       Value to add to key's list.
-     *
-     *  @return             true if entry removed.
-     *                      Only the first occurrence
-     *                      of the value is removed.
-     *
-     *  <p>
-     *  The key is removed should the associated
-     *  list become empty.
-     *  </p>
-     */
+    list.add(value);
 
-    public boolean remove( K key , V value )
-    {
-        boolean result  = false;
-
-        List<V> list    = get( key );
-
-        if ( list != null )
-        {
-            result  = list.remove( value );
-
-            if ( list.size() == 0 )
-            {
-                remove( key );
-            }
-        }
-
-        return result;
+    if (list.size() > 1) {
+      result = list;
     }
+
+    return result;
+  }
+
+  /**
+   * Remove an entry from list for a key.
+   *
+   * @param key The key.
+   * @param value Value to add to key's list.
+   * @return true if entry removed. Only the first occurrence of the value is removed.
+   *     <p>The key is removed should the associated list become empty.
+   */
+  public boolean remove(K key, V value) {
+    boolean result = false;
+
+    List<V> list = get(key);
+
+    if (list != null) {
+      result = list.remove(value);
+
+      if (list.size() == 0) {
+        remove(key);
+      }
+    }
+
+    return result;
+  }
 }
 
 /*
@@ -181,6 +150,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

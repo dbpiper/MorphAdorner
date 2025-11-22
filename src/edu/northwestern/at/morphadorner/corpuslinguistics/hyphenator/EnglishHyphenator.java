@@ -4,19 +4,12 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.hyphenator;
 
 import edu.northwestern.at.utils.*;
 
-/** EnglishHyphenator: Hyphenates English words using British hyphenation rules.
- */
-
-public class EnglishHyphenator
-    extends BritishHyphenator
-    implements Hyphenator
-{
-    /** Create an English hyphenator using British hyphenation rules. */
-
-    public EnglishHyphenator()
-    {
-        super();
-    }
+/** EnglishHyphenator: Hyphenates English words using British hyphenation rules. */
+public class EnglishHyphenator extends BritishHyphenator implements Hyphenator {
+  /** Create an English hyphenator using British hyphenation rules. */
+  public EnglishHyphenator() {
+    super();
+  }
 }
 
 /*
@@ -59,6 +52,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

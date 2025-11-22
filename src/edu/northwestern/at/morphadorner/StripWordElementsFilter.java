@@ -2,239 +2,178 @@ package edu.northwestern.at.morphadorner;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.sentencemelder.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.text.*;
 import java.util.*;
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.sentencemelder.*;
-import edu.northwestern.at.utils.xml.*;
+/** Filter to strip word elements for specified tags from adorned file. */
+public class StripWordElementsFilter extends ExtendedXMLFilterImpl {
+  /** Set of tags from which to strip words. */
+  protected Set<String> elementsToStripSet;
 
-/** Filter to strip word elements for specified tags from adorned file.
-  */
+  /** XML sentence melder. */
+  protected XMLSentenceMelder sentenceMelder = null;
 
-public class StripWordElementsFilter extends ExtendedXMLFilterImpl
-{
-    /** Set of tags from which to strip words. */
+  /** Strip element stack. */
+  protected QueueStack<String> stripElementStack = new QueueStack<String>();
 
-    protected Set<String> elementsToStripSet;
+  /** True if processing word element. */
+  protected boolean processingWord;
 
-    /** XML sentence melder. */
+  /**
+   * Create filter.
+   *
+   * @param reader XML input reader to which filter applies.
+   * @param elementsToStrip Elements to strip separated by spaces.
+   * @param sentenceMelder Associated sentence melder.
+   */
+  public StripWordElementsFilter(
+      XMLReader reader, String elementsToStrip, XMLSentenceMelder sentenceMelder) {
+    super(reader);
 
-    protected XMLSentenceMelder sentenceMelder  = null;
+    //  Create set of elements from which
+    //  to strip word elements.
 
-    /** Strip element stack. */
+    elementsToStripSet = SetFactory.createNewSet();
 
-    protected QueueStack<String> stripElementStack  =
-        new QueueStack<String>();
+    elementsToStripSet.addAll(Arrays.asList(StringUtils.makeTokenArray(elementsToStrip)));
+    //  Not processing word element yet.
 
-    /** True if processing word element. */
+    processingWord = false;
+  }
 
-    protected boolean processingWord;
+  /**
+   * Create filter.
+   *
+   * @param reader XML input reader to which filter applies.
+   * @param elementsToStrip Elements to strip separated by spaces.
+   */
+  public StripWordElementsFilter(XMLReader reader, String elementsToStrip) {
+    this(reader, elementsToStrip, null);
+  }
 
-    /** Create filter.
-      *
-      * @param  reader          XML input reader to which filter applies.
-      * @param  elementsToStrip Elements to strip separated by spaces.
-      * @param  sentenceMelder  Associated sentence melder.
-      */
+  /**
+   * Set associated sentence melder.
+   *
+   * @param sentenceMelder Sentence melder.
+   */
+  public void setSentenceMelder(XMLSentenceMelder sentenceMelder) {
+    //  Set XML sentence melder.
 
-    public StripWordElementsFilter
-    (
-        XMLReader reader ,
-        String elementsToStrip ,
-        XMLSentenceMelder sentenceMelder
-    )
-    {
-        super( reader );
+    this.sentenceMelder = sentenceMelder;
+  }
 
-                                //  Create set of elements from which
-                                //  to strip word elements.
+  /**
+   * Handle start of an XML element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   * @param atts The XML element's attributes.
+   */
+  public void startElement(String uri, String localName, String qName, Attributes atts)
+      throws SAXException {
+    //  If this element is one from which
+    //  we're to strip word elements,
+    //  push the element onto the stack.
 
-        elementsToStripSet  = SetFactory.createNewSet();
-
-        elementsToStripSet.addAll
-        (
-            Arrays.asList( StringUtils.makeTokenArray( elementsToStrip ) )
-        );
-                                //  Not processing word element yet.
-
-        processingWord  = false;
+    if (elementsToStripSet.contains(localName)) {
+      stripElementStack.push(localName);
     }
+    //  Not processing word element yet.
 
-    /** Create filter.
-     *
-     *  @param  reader          XML input reader to which filter applies.
-     *  @param  elementsToStrip Elements to strip separated by spaces.
-     */
+    processingWord = false;
 
-    public StripWordElementsFilter
-    (
-        XMLReader reader ,
-        String elementsToStrip
-    )
-    {
-        this( reader , elementsToStrip , null );
+    //  If we are in an element from which
+    //  to strip word elements ...
+
+    if (stripElementStack.size() > 0) {
+      if (sentenceMelder != null) {
+        sentenceMelder.setEmitXMLWrapperForBlank(false);
+      }
+      //  Set flag if we're starting a word
+      //  element.  We do not emit the word
+      //  element, just its text.
+
+      if (qName.equalsIgnoreCase("w")
+          || qName.equalsIgnoreCase("pc")
+          || qName.equalsIgnoreCase("c")) {
+        processingWord = true;
+      } else {
+        super.startElement(uri, localName, qName, atts);
+      }
+    } else {
+      super.startElement(uri, localName, qName, atts);
     }
+  }
 
-    /** Set associated sentence melder.
-     *
-     *  @param  sentenceMelder  Sentence melder.
-     */
+  /**
+   * Handle character data.
+   *
+   * @param ch Array of characters.
+   * @param start The starting position in the array.
+   * @param length The number of characters.
+   * @throws org.xml.sax.SAXException If there is an error.
+   */
+  public void characters(char ch[], int start, int length) throws SAXException {
+    //  If we're in a descendent of an element
+    //  from which to strip word elements,
+    //  only emit character if we're processing
+    //  a word element.
 
-    public void setSentenceMelder( XMLSentenceMelder sentenceMelder )
-    {
-                                //  Set XML sentence melder.
-
-        this.sentenceMelder = sentenceMelder;
+    if (stripElementStack.size() > 0) {
+      if (processingWord) {
+        super.characters(ch, start, length);
+      }
+    } else {
+      super.characters(ch, start, length);
     }
+  }
 
-    /** Handle start of an XML element.
-      *
-      * @param  uri         The XML element's URI.
-      * @param  localName   The XML element's local name.
-      * @param  qName       The XML element's qname.
-      * @param  atts        The XML element's attributes.
-      */
+  /**
+   * Handle end of an element.
+   *
+   * @param uri The XML element's URI.
+   * @param localName The XML element's local name.
+   * @param qName The XML element's qname.
+   */
+  public void endElement(String uri, String localName, String qName) throws SAXException {
+    //  Pop stack if this is the end of an
+    //  element from which to remove word
+    //  element tags.
 
-    public void startElement
-    (
-        String uri ,
-        String localName ,
-        String qName ,
-        Attributes atts
-    )
-        throws SAXException
-    {
-                                //  If this element is one from which
-                                //  we're to strip word elements,
-                                //  push the element onto the stack.
-
-        if ( elementsToStripSet.contains( localName ) )
-        {
-            stripElementStack.push( localName );
-        }
-                                //  Not processing word element yet.
-
-        processingWord  = false;
-
-                                //  If we are in an element from which
-                                //  to strip word elements ...
-
-        if ( stripElementStack.size() > 0 )
-        {
-            if ( sentenceMelder != null )
-            {
-                sentenceMelder.setEmitXMLWrapperForBlank( false );
-            }
-                                //  Set flag if we're starting a word
-                                //  element.  We do not emit the word
-                                //  element, just its text.
-
-            if  (   qName.equalsIgnoreCase( "w" ) ||
-                    qName.equalsIgnoreCase( "pc" ) ||
-                    qName.equalsIgnoreCase( "c" )
-                )
-            {
-                processingWord  = true;
-            }
-            else
-            {
-                super.startElement( uri , localName , qName , atts );
-            }
-        }
-        else
-        {
-            super.startElement( uri , localName , qName , atts );
-        }
+    if (elementsToStripSet.contains(localName)) {
+      stripElementStack.pop();
     }
+    //  Do not output end element tag
+    //  for skipped word element.
 
-    /** Handle character data.
-     *
-     *  @param  ch      Array of characters.
-     *  @param  start   The starting position in the array.
-     *  @param  length  The number of characters.
-     *
-     *  @throws org.xml.sax.SAXException If there is an error.
-     */
-
-    public void characters( char ch[] , int start , int length )
-        throws SAXException
-    {
-                                //  If we're in a descendent of an element
-                                //  from which to strip word elements,
-                                //  only emit character if we're processing
-                                //  a word element.
-
-        if ( stripElementStack.size() > 0 )
-        {
-            if ( processingWord )
-            {
-                super.characters( ch , start , length );
-            }
-        }
-        else
-        {
-            super.characters( ch , start , length );
-        }
+    if (stripElementStack.size() > 0) {
+      if (!processingWord) {
+        super.endElement(uri, localName, qName);
+      }
+    } else {
+      super.endElement(uri, localName, qName);
     }
+    //  Not processing word element anymore.
 
-    /** Handle end of an element.
-     *
-     *  @param  uri         The XML element's URI.
-     *  @param  localName   The XML element's local name.
-     *  @param  qName       The XML element's qname.
-     */
+    processingWord = false;
 
-    public void endElement
-    (
-        String uri ,
-        String localName ,
-        String qName
-    )
-        throws SAXException
-    {
-                                //  Pop stack if this is the end of an
-                                //  element from which to remove word
-                                //  element tags.
+    //  If not in element from which to
+    //  remove word elements anymore,
+    //  set XML wrapper for blanks to TRUE
+    //  in associated sentence melder.
 
-        if ( elementsToStripSet.contains( localName ) )
-        {
-            stripElementStack.pop();
-        }
-                                //  Do not output end element tag
-                                //  for skipped word element.
-
-        if ( stripElementStack.size() > 0 )
-        {
-            if ( !processingWord )
-            {
-                super.endElement( uri , localName , qName );
-            }
-        }
-        else
-        {
-            super.endElement( uri , localName , qName );
-        }
-                                //  Not processing word element anymore.
-
-        processingWord  = false;
-
-                                //  If not in element from which to
-                                //  remove word elements anymore,
-                                //  set XML wrapper for blanks to TRUE
-                                //  in associated sentence melder.
-
-        if ( stripElementStack.size() == 0 )
-        {
-            if ( sentenceMelder != null )
-            {
-                sentenceMelder.setEmitXMLWrapperForBlank( true );
-            }
-        }
+    if (stripElementStack.size() == 0) {
+      if (sentenceMelder != null) {
+        sentenceMelder.setEmitXMLWrapperForBlank(true);
+      }
     }
+  }
 }
 
 /*
@@ -277,6 +216,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

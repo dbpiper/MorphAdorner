@@ -5,114 +5,82 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.syllablecounter;
 import edu.northwestern.at.utils.ClassUtils;
 import edu.northwestern.at.utils.UTF8Properties;
 
-/** SyllableCounter factory.
- */
+/** SyllableCounter factory. */
+public class SyllableCounterFactory {
+  /**
+   * Get a syllablecounter.
+   *
+   * @return The syllablecounter.
+   */
+  public static SyllableCounter newSyllableCounter() {
+    String className = System.getProperty("syllablecounter.class");
 
-public class SyllableCounterFactory
-{
-    /** Get a syllablecounter.
-     *
-     *  @return     The syllablecounter.
-     */
-
-    public static SyllableCounter newSyllableCounter()
-    {
-        String className    =
-            System.getProperty( "syllablecounter.class" );
-
-        if ( className == null )
-        {
-            className   = "DefaultSyllableCounter";
-        }
-
-        return newSyllableCounter( className );
+    if (className == null) {
+      className = "DefaultSyllableCounter";
     }
 
-    /** Get a syllablecounter.
-     *
-     *  @param      properties      MorphAdorner properties.
-     *
-     *  @return     The syllablecounter.
-     */
+    return newSyllableCounter(className);
+  }
 
-    public static SyllableCounter newSyllableCounter
-    (
-        UTF8Properties properties
-    )
-    {
-        String className    = null;
+  /**
+   * Get a syllablecounter.
+   *
+   * @param properties MorphAdorner properties.
+   * @return The syllablecounter.
+   */
+  public static SyllableCounter newSyllableCounter(UTF8Properties properties) {
+    String className = null;
 
-        if ( properties != null )
-        {
-            className   = properties.getProperty( "syllablecounter.class" );
-        }
-
-        if ( className == null )
-        {
-            className   = "DefaultSyllableCounter";
-        }
-
-        return newSyllableCounter( className );
+    if (properties != null) {
+      className = properties.getProperty("syllablecounter.class");
     }
 
-    /** Get a syllablecounter of a specified class name.
-     *
-     *  @param  className   Class name for the syllablecounter.
-     *
-     *  @return             The syllablecounter.
-     */
-
-    public static SyllableCounter newSyllableCounter( String className )
-    {
-        SyllableCounter syllablecounter = null;
-
-        try
-        {
-            syllablecounter =
-                (SyllableCounter)Class.forName( className ).newInstance();
-        }
-        catch ( Exception e )
-        {
-            String fixedClassName   =
-                ClassUtils.packageName
-                (
-                    SyllableCounterFactory.class.getName()
-                ) +
-                "." + className;
-
-            try
-            {
-                syllablecounter =
-                    (SyllableCounter)Class.forName(
-                        fixedClassName ).newInstance();
-            }
-            catch ( Exception e2 )
-            {
-                System.err.println(
-                    "Unable to create syllablecounter of class " +
-                    fixedClassName + ", using default." );
-
-                try
-                {
-                    syllablecounter = new DefaultSyllableCounter();
-                }
-                catch ( Exception e3 )
-                {
-                                //  Assume higher-level code will
-                                //  catch null syllablecounter.
-/*
-                    System.err.println(
-                        "Unable to create syllablecounter, " +
-                        "MorphAdorner cannot continue." );
-
-                    System.exit( 1 );
-*/
-                }
-            }
-        }
-
-        return syllablecounter;
+    if (className == null) {
+      className = "DefaultSyllableCounter";
     }
+
+    return newSyllableCounter(className);
+  }
+
+  /**
+   * Get a syllablecounter of a specified class name.
+   *
+   * @param className Class name for the syllablecounter.
+   * @return The syllablecounter.
+   */
+  public static SyllableCounter newSyllableCounter(String className) {
+    SyllableCounter syllablecounter = null;
+
+    try {
+      syllablecounter = (SyllableCounter) Class.forName(className).newInstance();
+    } catch (Exception e) {
+      String fixedClassName =
+          ClassUtils.packageName(SyllableCounterFactory.class.getName()) + "." + className;
+
+      try {
+        syllablecounter = (SyllableCounter) Class.forName(fixedClassName).newInstance();
+      } catch (Exception e2) {
+        System.err.println(
+            "Unable to create syllablecounter of class " + fixedClassName + ", using default.");
+
+        try {
+          syllablecounter = new DefaultSyllableCounter();
+        } catch (Exception e3) {
+          //  Assume higher-level code will
+          //  catch null syllablecounter.
+          /*
+                              System.err.println(
+                                  "Unable to create syllablecounter, " +
+                                  "MorphAdorner cannot continue." );
+
+                              System.exit( 1 );
+          */
+        }
+      }
+    }
+
+    return syllablecounter;
+  }
 }
 
 /*
@@ -155,6 +123,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

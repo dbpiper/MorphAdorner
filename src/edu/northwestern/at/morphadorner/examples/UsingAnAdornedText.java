@@ -2,261 +2,181 @@ package edu.northwestern.at.morphadorner.examples;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.sentencemelder.*;
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.morphadorner.tools.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.sentencemelder.*;
-import edu.northwestern.at.utils.*;
-
-/** Using an adorned text.
+/**
+ * Using an adorned text.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <p>
- *  <code>
+ * <p><code>
  *  java -Xmx256m edu.northwestern.at.morphadorner.example.UsingAnAdornedText adornedtext.xml id1 id2 id3 id4
  *  </code>
- *  </p>
  *
- *  <p>
- *  where
- *  </p>
+ * <p>where
  *
- *  <ul>
- *  <li><em>adorntext.xml</em> is a MorphAdorned XML file</li>
- *  <li>id1 is a word ID in the adorned XML file</li>
- *  <li>id2 is a word ID in the adorned XML file which follows id1</li>
- *  <li>id3 is a word ID in the adorned XML file</li>
- *  <li>id4 is a word ID in the adorned XML file which follows id4</li>
- *  </ul>
+ * <ul>
+ *   <li><em>adorntext.xml</em> is a MorphAdorned XML file
+ *   <li>id1 is a word ID in the adorned XML file
+ *   <li>id2 is a word ID in the adorned XML file which follows id1
+ *   <li>id3 is a word ID in the adorned XML file
+ *   <li>id4 is a word ID in the adorned XML file which follows id4
+ * </ul>
  */
+public class UsingAnAdornedText {
+  /** Adorned XML reader. */
+  protected static AdornedXMLReader xmlReader;
 
-public class UsingAnAdornedText
-{
-    /** Adorned XML reader. */
+  /** The word IDs. */
+  protected static List<String> wordIDs = ListFactory.createNewList();
 
-    protected static AdornedXMLReader xmlReader;
+  /** UTF-8 print stream. */
+  protected static PrintStream printStream;
 
-    /** The word IDs. */
+  /** Main program. */
+  public static void main(String[] args) {
+    try {
+      doit(args);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-    protected static List<String> wordIDs   =
-        ListFactory.createNewList();
+  /** Read adorned file and perform extraction operations. */
+  public static void doit(String[] args) throws Exception {
+    printStream = new PrintStream(new BufferedOutputStream(System.out), true, "utf-8");
+    //  Read adorned input file.
 
-    /** UTF-8 print stream. */
+    xmlReader = new AdornedXMLReader(args[0]);
 
-    protected static PrintStream printStream;
+    //  Get list of word IDs.
 
-    /** Main program. */
+    wordIDs = xmlReader.getAdornedWordIDs();
 
-    public static void main( String[] args )
-    {
-        try
-        {
-            doit( args );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-        }
+    //  Report number of words in input.
+    printStream.println(
+        "Read "
+            + StringUtils.formatNumberWithCommas(wordIDs.size())
+            + " words from "
+            + args[0]
+            + " .");
+    //  Get sentences.
+
+    List<List<ExtendedAdornedWord>> sentences = xmlReader.getSentences();
+
+    //  Report number of sentences in input.
+    printStream.println(
+        "Read "
+            + StringUtils.formatNumberWithCommas(sentences.size())
+            + " sentences from "
+            + args[0]
+            + " .");
+    //  Display the first five sentences.
+    //  We use a sentence melder.
+    //  We also wrap the sentence text
+    //  at column 70 for display purposes.
+
+    printStream.println();
+
+    printStream.println("The first five sentences are:");
+
+    printStream.println();
+    printStream.println(StringUtils.dupl("-", 70));
+
+    SentenceMelder melder = new SentenceMelder();
+
+    for (int i = 0; i < Math.min(5, sentences.size()); i++) {
+      //  Get text for this sentence.
+
+      String sentenceText = melder.reconstituteSentence(sentences.get(i));
+
+      //  Wrap the sentence text at column 70.
+
+      sentenceText = StringUtils.wrapText(sentenceText, Env.LINE_SEPARATOR, 70);
+
+      //  Print wrapped sentence text.
+
+      printStream.println((i + 1) + ": " + sentenceText);
     }
 
-    /** Read adorned file and perform extraction operations. */
+    printStream.println(StringUtils.dupl("-", 70));
+    printStream.println();
 
-    public static void doit( String[] args )
-        throws Exception
-    {
-        printStream     =
-            new PrintStream
-            (
-                new BufferedOutputStream( System.out ) ,
-                true ,
-                "utf-8"
-            );
-                                //  Read adorned input file.
+    //  Word information for words in the
+    //  third sentence.
 
-        xmlReader   = new AdornedXMLReader( args[ 0 ] );
+    if (sentences.size() > 2) {
+      printStream.println();
 
-                                //  Get list of word IDs.
+      printStream.println("Words in the third sentence:");
 
-        wordIDs     = xmlReader.getAdornedWordIDs();
+      printStream.println();
+      printStream.println(StringUtils.dupl("-", 70));
 
-                                //  Report number of words in input.
-        printStream.println
-        (
-            "Read " +
-            StringUtils.formatNumberWithCommas( wordIDs.size() ) +
-            " words from " + args[ 0 ] + " ."
-        );
-                                //  Get sentences.
+      List<ExtendedAdornedWord> sentence = sentences.get(2);
 
-        List<List<ExtendedAdornedWord>> sentences   =
-            xmlReader.getSentences();
+      for (int i = 0; i < sentence.size(); i++) {
+        ExtendedAdornedWord adornedWord = sentence.get(i);
 
-                                //  Report number of sentences in input.
-        printStream.println
-        (
-            "Read " +
-            StringUtils.formatNumberWithCommas( sentences.size() ) +
-            " sentences from " + args[ 0 ] + " ."
-        );
-                                //  Display the first five sentences.
-                                //  We use a sentence melder.
-                                //  We also wrap the sentence text
-                                //  at column 70 for display purposes.
+        printStream.println("Word " + (i + 1));
 
-        printStream.println();
+        printStream.println("  Word ID          : " + adornedWord.getID());
+        printStream.println("  Token            : " + adornedWord.getToken());
+        printStream.println("  Spelling         : " + adornedWord.getSpelling());
+        printStream.println("  Lemmata          : " + adornedWord.getLemmata());
+        printStream.println("  Pos tags         : " + adornedWord.getPartsOfSpeech());
+        printStream.println("  Standard spelling: " + adornedWord.getStandardSpelling());
+        printStream.println("  Sentence number  : " + adornedWord.getSentenceNumber());
+        printStream.println("  Word number      : " + adornedWord.getWordNumber());
+        printStream.println("  XML path         : " + adornedWord.getPath());
+        printStream.println("  is EOS           : " + adornedWord.getEOS());
+        printStream.println("  word part flag   : " + adornedWord.getPart());
+        printStream.println("  word ordinal     : " + adornedWord.getOrd());
+        printStream.println("  page number      : " + adornedWord.getPageNumber());
+        printStream.println("  Main or side text: " + adornedWord.getMainSide());
+        printStream.println("  is spoken        : " + adornedWord.getSpoken());
+        printStream.println("  is verse         : " + adornedWord.getVerse());
+        printStream.println("  in jump tag      : " + adornedWord.getInJumpTag());
+        printStream.println("  is a gap         : " + adornedWord.getGap());
+      }
 
-        printStream.println
-        (
-            "The first five sentences are:"
-        );
-
-        printStream.println();
-        printStream.println( StringUtils.dupl( "-" , 70 ) );
-
-        SentenceMelder melder   = new SentenceMelder();
-
-        for ( int i = 0 ; i < Math.min( 5 , sentences.size() ) ; i++ )
-        {
-                                //  Get text for this sentence.
-
-            String sentenceText =
-                melder.reconstituteSentence( sentences.get( i ) );
-
-                                //  Wrap the sentence text at column 70.
-
-            sentenceText    =
-                StringUtils.wrapText(
-                    sentenceText, Env.LINE_SEPARATOR , 70 );
-
-                                //  Print wrapped sentence text.
-
-            printStream.println
-            (
-                ( i + 1 ) + ": " +
-                sentenceText
-            );
-        }
-
-        printStream.println( StringUtils.dupl( "-" , 70 ) );
-        printStream.println();
-
-                                //  Word information for words in the
-                                //  third sentence.
-
-        if ( sentences.size() > 2 )
-        {
-            printStream.println();
-
-            printStream.println
-            (
-                "Words in the third sentence:"
-            );
-
-            printStream.println();
-            printStream.println( StringUtils.dupl( "-" , 70 ) );
-
-            List<ExtendedAdornedWord> sentence  = sentences.get( 2 );
-
-            for ( int i = 0 ; i < sentence.size() ; i++ )
-            {
-                ExtendedAdornedWord adornedWord = sentence.get( i );
-
-                printStream.println( "Word " + ( i + 1 ) );
-
-                printStream.println(
-                    "  Word ID          : " + adornedWord.getID() );
-                printStream.println(
-                    "  Token            : " + adornedWord.getToken() );
-                printStream.println(
-                    "  Spelling         : " + adornedWord.getSpelling() );
-                printStream.println(
-                    "  Lemmata          : " + adornedWord.getLemmata() );
-                printStream.println(
-                    "  Pos tags         : " +
-                    adornedWord.getPartsOfSpeech() );
-                printStream.println(
-                    "  Standard spelling: " +
-                    adornedWord.getStandardSpelling() );
-                printStream.println(
-                    "  Sentence number  : " +
-                    adornedWord.getSentenceNumber() );
-                printStream.println(
-                    "  Word number      : " +
-                    adornedWord.getWordNumber() );
-                printStream.println(
-                    "  XML path         : " +
-                    adornedWord.getPath() );
-                printStream.println(
-                    "  is EOS           : " +
-                    adornedWord.getEOS() );
-                printStream.println(
-                    "  word part flag   : " +
-                    adornedWord.getPart() );
-                printStream.println(
-                    "  word ordinal     : " +
-                    adornedWord.getOrd() );
-                printStream.println(
-                    "  page number      : " +
-                    adornedWord.getPageNumber() );
-                printStream.println(
-                    "  Main or side text: " +
-                    adornedWord.getMainSide() );
-                printStream.println(
-                    "  is spoken        : " +
-                    adornedWord.getSpoken() );
-                printStream.println(
-                    "  is verse         : " +
-                    adornedWord.getVerse() );
-                printStream.println(
-                    "  in jump tag      : " +
-                    adornedWord.getInJumpTag() );
-                printStream.println(
-                    "  is a gap         : " +
-                    adornedWord.getGap() );
-            }
-
-            printStream.println( StringUtils.dupl( "-" , 70 ) );
-            printStream.println();
-        }
-                                //  Generate xml for selected word ranges.
-
-        generateXML( args[ 1 ] , args[ 2 ] );
-        generateXML( args[ 3 ] , args[ 4 ] );
+      printStream.println(StringUtils.dupl("-", 70));
+      printStream.println();
     }
+    //  Generate xml for selected word ranges.
 
-    /** Generate XML from one word ID to another.
-     *
-     *  @param  firstWordID     First word ID.
-     *  @param  secondWordID    Second word ID.
-     */
+    generateXML(args[1], args[2]);
+    generateXML(args[3], args[4]);
+  }
 
-    public static void generateXML
-    (
-        String firstWordID ,
-        String secondWordID
-    )
-    {
-                                //  Generate xml for selected word range.
+  /**
+   * Generate XML from one word ID to another.
+   *
+   * @param firstWordID First word ID.
+   * @param secondWordID Second word ID.
+   */
+  public static void generateXML(String firstWordID, String secondWordID) {
+    //  Generate xml for selected word range.
 
-        String xml  = xmlReader.generateXML( firstWordID , secondWordID );
+    String xml = xmlReader.generateXML(firstWordID, secondWordID);
 
-                                //  Display generated xml.
+    //  Display generated xml.
 
-        printStream.println();
+    printStream.println();
 
-        printStream.println( "Generated XML for words " +
-            firstWordID + " through " + secondWordID + ":" );
+    printStream.println(
+        "Generated XML for words " + firstWordID + " through " + secondWordID + ":");
 
-        printStream.println();
-        printStream.println( StringUtils.dupl( "-" , 70 ) );
-        printStream.println( xml );
-        printStream.println( StringUtils.dupl( "-" , 70 ) );
-        printStream.println();
-    }
+    printStream.println();
+    printStream.println(StringUtils.dupl("-", 70));
+    printStream.println(xml);
+    printStream.println(StringUtils.dupl("-", 70));
+    printStream.println();
+  }
 }
 
 /*
@@ -299,6 +219,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

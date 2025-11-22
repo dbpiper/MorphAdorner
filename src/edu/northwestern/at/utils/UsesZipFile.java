@@ -4,24 +4,21 @@ package edu.northwestern.at.utils;
 
 import java.util.zip.ZipFile;
 
-/** Interface for using a Zip file.
- */
+/** Interface for using a Zip file. */
+public interface UsesZipFile {
+  /**
+   * Get the zip file.
+   *
+   * @return The zip file.
+   */
+  public ZipFile getZipFile();
 
-public interface UsesZipFile
-{
-    /** Get the zip file.
-     *
-     *  @return     The zip file.
-     */
-
-    public ZipFile getZipFile();
-
-    /** Set the zip file.
-     *
-     *  @param  zipFile     The zip file.
-     */
-
-    public void setZipFile( ZipFile zipFile );
+  /**
+   * Set the zip file.
+   *
+   * @param zipFile The zip file.
+   */
+  public void setZipFile(ZipFile zipFile);
 }
 
 /*
@@ -64,6 +61,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

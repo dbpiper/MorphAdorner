@@ -2,239 +2,180 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namerecognizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.adornedword.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.partsofspeech.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.sentencesplitter.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-import edu.northwestern.at.utils.logger.*;
-
 import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.logger.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
-/** Abstract Name Recognizer.
- */
+/** Abstract Name Recognizer. */
+public abstract class AbstractNameRecognizer extends IsCloseableObject
+    implements NameRecognizer, UsesLexicon, UsesLogger {
+  /** Lexicon used by name recognizer. */
+  protected Lexicon lexicon = null;
 
-abstract public class AbstractNameRecognizer
-    extends IsCloseableObject
-    implements NameRecognizer, UsesLexicon, UsesLogger
-{
-    /** Lexicon used by name recognizer. */
+  /** Part of speech tagger used to find noun phrases. */
+  protected PartOfSpeechTagger partOfSpeechTagger = null;
 
-    protected Lexicon lexicon                       = null;
+  /** Word tokenizer. */
+  protected WordTokenizer wordTokenizer = null;
 
-    /** Part of speech tagger used to find noun phrases. */
+  /** Sentence splitter. */
+  protected SentenceSplitter sentenceSplitter = null;
 
-    protected PartOfSpeechTagger partOfSpeechTagger = null;
+  /** Part of speech tags. */
+  protected PartOfSpeechTags partOfSpeechTags = null;
 
-    /** Word tokenizer. */
+  /** Built-in name lists. */
+  protected Names names = new Names();
 
-    protected WordTokenizer wordTokenizer           = null;
+  /** Logger used for output. */
+  protected Logger logger = new DummyLogger();
 
-    /** Sentence splitter. */
+  /**
+   * Get the logger.
+   *
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
 
-    protected SentenceSplitter sentenceSplitter     = null;
+  /**
+   * Set the logger.
+   *
+   * @param logger The logger.
+   */
+  public void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
-    /** Part of speech tags. */
+  /**
+   * Get the word lexicon.
+   *
+   * @return The static word lexicon.
+   */
+  public Lexicon getLexicon() {
+    return lexicon;
+  }
 
-    protected PartOfSpeechTags partOfSpeechTags     = null;
+  /**
+   * Set the lexicon.
+   *
+   * @param lexicon Lexicon used for tagging.
+   */
+  public void setLexicon(Lexicon lexicon) {
+    this.lexicon = lexicon;
+  }
 
-    /** Built-in name lists. */
+  /**
+   * Get part of speech tagger.
+   *
+   * @return The part of speech tagger.
+   */
+  public PartOfSpeechTagger getPartOfSpeechTagger() {
+    return partOfSpeechTagger;
+  }
 
-    protected Names names   = new Names();
+  /**
+   * Set part of speech tagger used to find noun phrases.
+   *
+   * @param posTagger The part of speech tagger.
+   */
+  public void setPartOfSpeechTagger(PartOfSpeechTagger posTagger) {
+    //  Get default part of speech tagger
+    //  if none specified.
 
-    /** Logger used for output. */
+    if (posTagger == null) {
+      try {
+        partOfSpeechTagger = new DefaultPartOfSpeechTagger();
+      } catch (Exception e) {
+      }
+    } else {
+      partOfSpeechTagger = posTagger;
+    }
+    //  Get default word tokenizer.
 
-    protected Logger logger = new DummyLogger();
+    wordTokenizer = new DefaultWordTokenizer();
 
-    /** Get the logger.
-     *
-     *  @return     The logger.
-     */
+    //  Get default sentence splitter.
 
-    public Logger getLogger()
-    {
-        return logger;
+    sentenceSplitter = new DefaultSentenceSplitter();
+
+    //  Get the part of speech
+    //  guesser from the part of
+    //  speech tagger.  Set this into
+    //  sentence splitter to improve
+    //  sentence boundary recognition.
+
+    sentenceSplitter.setPartOfSpeechGuesser(partOfSpeechTagger.getPartOfSpeechGuesser());
+
+    //  Get part of speech tags.
+    partOfSpeechTags = partOfSpeechTagger.getLexicon().getPartOfSpeechTags();
+
+    //  Get default word lexicon from
+    //  part of speech tagger.
+
+    setLexicon(partOfSpeechTagger.getLexicon());
+  }
+
+  /**
+   * Get name from name position.
+   *
+   * @param sentences The collection of sentences.
+   * @param namePosition The name position.
+   * @return The name string.
+   */
+  public static <T extends AdornedWord> String namePositionToName(
+      List<List<T>> sentences, NamePosition namePosition) {
+    String result = "";
+
+    List<T> sentence = sentences.get(namePosition.sentence);
+
+    for (int i = namePosition.startingWord; i <= namePosition.endingWord; i++) {
+      result += sentence.get(i) + " ";
     }
 
-    /** Set the logger.
-     *
-     *  @param  logger      The logger.
-     */
+    return result.trim();
+  }
 
-    public void setLogger( Logger logger )
-    {
-        this.logger = logger;
-    }
+  /**
+   * Returns names from text.
+   *
+   * @param text The text from which to extract names.
+   * @return Array of Set of names and places as strings. [0] = Set of proper names. [1] = Set of
+   *     places.
+   */
+  public abstract Set<String>[] findNames(String text);
 
-    /** Get the word lexicon.
-     *
-     *  @return     The static word lexicon.
-     */
+  /**
+   * Returns names from list of adorned word sentences.
+   *
+   * @param sentences The collection of sentences.
+   * @return Array of Set of names and places. [0] = Set of proper names. [1] = Set of places.
+   */
+  public abstract <T extends AdornedWord> Set<String>[] findNames(List<List<T>> sentences);
 
-    public Lexicon getLexicon()
-    {
-        return lexicon;
-    }
+  /**
+   * Returns name positions in list of adorned word sentences.
+   *
+   * @param sentences The collection of sentences.
+   * @return Array of Set of names and places. [0] = Set of proper names. [1] = Set of places.
+   */
+  public abstract <T extends AdornedWord> List<NamePosition>[] findNamePositions(
+      List<List<T>> sentences);
 
-    /** Set the lexicon.
-     *
-     *  @param  lexicon     Lexicon used for tagging.
-     */
-
-    public void setLexicon( Lexicon lexicon )
-    {
-        this.lexicon    = lexicon;
-    }
-
-    /** Get part of speech tagger.
-     *
-     *  @return     The part of speech tagger.
-     *
-     */
-
-    public PartOfSpeechTagger getPartOfSpeechTagger()
-    {
-        return partOfSpeechTagger;
-    }
-
-    /** Set part of speech tagger used to find noun phrases.
-     *
-     *  @param  posTagger   The part of speech tagger.
-     *
-     */
-
-    public void setPartOfSpeechTagger
-    (
-        PartOfSpeechTagger posTagger
-    )
-    {
-                                //  Get default part of speech tagger
-                                //  if none specified.
-
-        if ( posTagger == null )
-        {
-            try
-            {
-                partOfSpeechTagger  = new DefaultPartOfSpeechTagger();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
-        else
-        {
-            partOfSpeechTagger  = posTagger;
-        }
-                                //  Get default word tokenizer.
-
-        wordTokenizer       = new DefaultWordTokenizer();
-
-                                //  Get default sentence splitter.
-
-        sentenceSplitter    = new DefaultSentenceSplitter();
-
-                                //  Get the part of speech
-                                //  guesser from the part of
-                                //  speech tagger.  Set this into
-                                //  sentence splitter to improve
-                                //  sentence boundary recognition.
-
-        sentenceSplitter.setPartOfSpeechGuesser
-        (
-            partOfSpeechTagger.getPartOfSpeechGuesser()
-        );
-
-                                //  Get part of speech tags.
-        partOfSpeechTags    =
-            partOfSpeechTagger.getLexicon().getPartOfSpeechTags();
-
-                                //  Get default word lexicon from
-                                //  part of speech tagger.
-
-        setLexicon( partOfSpeechTagger.getLexicon() );
-    }
-
-    /** Get name from name position.
-     *
-     *  @param  sentences       The collection of sentences.
-     *  @param  namePosition    The name position.
-     *
-     *  @return                 The name string.
-     */
-
-    public static <T extends AdornedWord> String namePositionToName
-    (
-        List<List<T>> sentences ,
-        NamePosition namePosition
-    )
-    {
-        String result       = "";
-
-        List<T> sentence    = sentences.get( namePosition.sentence );
-
-        for (   int i = namePosition.startingWord ;
-                i <= namePosition.endingWord ;
-                i++
-            )
-        {
-            result  += sentence.get( i ) + " ";
-        }
-
-        return result.trim();
-    }
-
-    /** Returns names from text.
-     *
-     *  @param  text    The text from which to extract names.
-     *
-     *  @return         Array of Set of names and places as strings.
-     *                      [0] = Set of proper names.
-     *                      [1] = Set of places.
-     */
-
-    abstract public Set<String>[] findNames( String text );
-
-    /** Returns names from list of adorned word sentences.
-     *
-     *  @param  sentences   The collection of sentences.
-     *
-     *  @return             Array of Set of names and places.
-     *                      [0] = Set of proper names.
-     *                      [1] = Set of places.
-     */
-
-    abstract public <T extends AdornedWord> Set<String>[] findNames
-    (
-        List<List<T>> sentences
-    );
-
-    /** Returns name positions in list of adorned word sentences.
-     *
-     *  @param  sentences       The collection of sentences.
-     *
-     *  @return                 Array of Set of names and places.
-     *                          [0] = Set of proper names.
-     *                          [1] = Set of places.
-     */
-
-    abstract public <T extends AdornedWord> List<NamePosition>[] findNamePositions
-    (
-        List<List<T>> sentences
-    );
-
-    /** Close the name recognizer.
-     */
-
-    public void close()
-    {
-        names   = null;
-    }
+  /** Close the name recognizer. */
+  public void close() {
+    names = null;
+  }
 }
 
 /*
@@ -277,6 +218,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

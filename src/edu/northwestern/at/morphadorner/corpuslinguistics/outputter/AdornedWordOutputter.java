@@ -2,76 +2,60 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.outputter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.morphadorner.corpuslinguistics.tokenizer.*;
-
 /** Interface for generating adorned word output. */
+public interface AdornedWordOutputter {
+  /**
+   * Outputs a word and its adornments (part of speech, lemmata, etc).
+   *
+   * @param wordAndAdornments Word and its adornments as an array of string.
+   * @throws IOException If an output error occurs.
+   */
+  public void outputWordAndAdornments(String[] wordAndAdornments) throws IOException;
 
-public interface AdornedWordOutputter
-{
-    /** Outputs a word and its adornments (part of speech, lemmata, etc).
-     *
-     *  @param  wordAndAdornments   Word and its adornments as
-     *                              an array of string.
-     *
-     *  @throws IOException         If an output error occurs.
-     */
+  /**
+   * Outputs a word and its adornments (part of speech, lemmata, etc).
+   *
+   * @param wordAndAdornments Word and its adornments as a list.
+   * @throws IOException If an output error occurs.
+   */
+  public void outputWordAndAdornments(List<String> wordAndAdornments) throws IOException;
 
-    public void outputWordAndAdornments( String[] wordAndAdornments )
-        throws IOException;
+  /**
+   * Create output file.
+   *
+   * @param fileName The output file name.
+   * @param encoding The encoding for the output file.
+   * @param sepChar The separator character.
+   */
+  public void createOutputFile(String fileName, String encoding, char sepChar) throws IOException;
 
-    /** Outputs a word and its adornments (part of speech, lemmata, etc).
-     *
-     *  @param  wordAndAdornments   Word and its adornments as a list.
-     *
-     *  @throws IOException         If an output error occurs.
-     */
+  /**
+   * Get output file name.
+   *
+   * @return Output file name. May be null.
+   */
+  public String getOutputFileName();
 
-    public void outputWordAndAdornments( List<String> wordAndAdornments )
-        throws IOException;
+  /**
+   * Get output file encoding.
+   *
+   * @return Output file encoding.
+   */
+  public String getOutputFileEncoding();
 
-    /** Create output file.
-     *
-     *  @param  fileName    The output file name.
-     *  @param  encoding    The encoding for the output file.
-     *  @param  sepChar     The separator character.
-     */
+  /**
+   * Set word attribute names.
+   *
+   * @param wordAttributeNames Word attribute names.
+   */
+  public void setWordAttributeNames(List<String> wordAttributeNames);
 
-    public void createOutputFile
-    (
-        String fileName ,
-        String encoding ,
-        char sepChar
-    )
-        throws IOException;
-
-    /** Get output file name.
-     *
-     *  @return Output file name.  May be null.
-     */
-
-    public String getOutputFileName();
-
-    /** Get output file encoding.
-     *
-     *  @return Output file encoding.
-     */
-
-    public String getOutputFileEncoding();
-
-    /** Set word attribute names.
-     *
-     *  @param  wordAttributeNames  Word attribute names.
-     */
-
-    public void setWordAttributeNames( List<String> wordAttributeNames );
-
-    /** Close outputter.
-     */
-
-    public void close();
+  /** Close outputter. */
+  public void close();
 }
 
 /*
@@ -114,6 +98,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

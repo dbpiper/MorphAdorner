@@ -6,199 +6,144 @@ import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 
-/** Zip file utilities.
- */
+/** Zip file utilities. */
+public class ZipUtils {
+  /**
+   * Zip files in a directory tree.
+   *
+   * @param inputDirectory The directory at which to start zipping.
+   * @param outputZipFileName The name of the output zip file.
+   * @throws IOException When something goes wrong.
+   *     <p>All the files in "inputDirectory" as well as its subdirectories are compressed and added
+   *     to the output zip file specified by "outputZipFileName". The file names have subdirectory
+   *     names prepended which are rooted at the specified input directory.
+   */
+  public static void zipDirectoryTree(String inputDirectory, String outputZipFileName)
+      throws IOException {
+    //  Open zip output stream to
+    //  specified output file.
 
-public class ZipUtils
-{
-    /** Zip files in a directory tree.
-     *
-     *  @param  inputDirectory      The directory at which to start zipping.
-     *  @param  outputZipFileName   The name of the output zip file.
-     *
-     *  @throws IOException         When something goes wrong.
-     *
-     *  <p>
-     *  All the files in "inputDirectory" as well as its subdirectories
-     *  are compressed and added to the output zip file specified
-     *  by "outputZipFileName".  The file names have subdirectory
-     *  names prepended which are rooted at the specified input directory.
-     *  </p>
-     */
+    ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(outputZipFileName));
 
-    public static void zipDirectoryTree
-    (
-        String inputDirectory ,
-        String outputZipFileName
-    )
-        throws IOException
-    {
-                                //  Open zip output stream to
-                                //  specified output file.
+    final File outputZipFile = new File(outputZipFileName);
 
-        ZipOutputStream zipOutputStream =
-            new ZipOutputStream
-            (
-                new FileOutputStream( outputZipFileName )
-            );
+    //  Zip the specified directory tree.
+    //  We use a filter to ensure the
+    //  zip file we are creating isn't
+    //  added to the output zip file.
+    zipDirectoryTree(
+        inputDirectory,
+        "",
+        new FilenameFilter() {
+          public boolean accept(File directory, String name) {
+            File testFile = new File(directory, name);
 
-        final File outputZipFile    = new File( outputZipFileName );
+            return !testFile.equals(outputZipFile);
+          }
+        },
+        zipOutputStream);
+    //  Close complete zip file.
 
-                                //  Zip the specified directory tree.
-                                //  We use a filter to ensure the
-                                //  zip file we are creating isn't
-                                //  added to the output zip file.
-        zipDirectoryTree
-        (
-            inputDirectory ,
-            "" ,
-            new FilenameFilter()
-            {
-                public boolean accept( File directory , String name )
-                {
-                    File testFile   = new File( directory , name );
+    zipOutputStream.close();
+  }
 
-                    return !testFile.equals( outputZipFile );
-                }
-            } ,
-            zipOutputStream
-        );
-                                //  Close complete zip file.
+  /**
+   * Zip files in a directory tree.
+   *
+   * @param inputDirectory The directory at which to start zipping.
+   * @param parentPath The parent path to the input directory.
+   * @param filenameFilter FileNameFilter for filtering files to zip.
+   * @param zipOutputStream ZipOutputStream to which to write files in directory tree. The stream
+   *     must already be open on entry to this method.
+   * @throws IOException When something goes wrong.
+   *     <p>All the files in "inputDirectory" as well as its subdirectories are compressed and added
+   *     to the ZipOutputStream specified by "zipOutputStream".
+   */
+  public static void zipDirectoryTree(
+      String inputDirectory,
+      String parentPath,
+      FilenameFilter filenameFilter,
+      ZipOutputStream zipOutputStream)
+      throws IOException {
+    //  Get input directory.
 
-        zipOutputStream.close();
-    }
+    File inputDir = new File(inputDirectory);
 
-    /** Zip files in a directory tree.
-     *
-     *  @param  inputDirectory      The directory at which to start zipping.
-     *  @param  parentPath          The parent path to the input directory.
-     *  @param  filenameFilter      FileNameFilter for filtering files
-     *                              to zip.
-     *  @param  zipOutputStream     ZipOutputStream to which to write
-     *                              files in directory tree.
-     *                              The stream must already be open
-     *                              on entry to this method.
-     *
-     *  @throws IOException         When something goes wrong.
-     *
-     *  <p>
-     *  All the files in "inputDirectory" as well as its subdirectories
-     *  are compressed and added to the ZipOutputStream specified
-     *  by "zipOutputStream".
-     *  </p>
-     */
+    //  Get list of files in input directory.
 
-    public static void zipDirectoryTree
-    (
-        String inputDirectory ,
-        String parentPath ,
-        FilenameFilter filenameFilter ,
-        ZipOutputStream zipOutputStream
-    )
-        throws IOException
-    {
-                                //  Get input directory.
+    File[] files = inputDir.listFiles();
 
-        File inputDir   = new File( inputDirectory );
+    //  Only zip files if we were able to
+    //  get the file list.
+    if (files != null) {
+      //  Loop through files and add each
+      //  to the zip output stream.
 
-                                //  Get list of files in input directory.
+      byte[] readBuffer = new byte[65536];
+      int bytesRead = 0;
 
-        File[] files    = inputDir.listFiles();
+      for (File file : files) {
+        //  If file does not pass filename filter,
+        //  skip it.
 
-                                //  Only zip files if we were able to
-                                //  get the file list.
-        if ( files != null )
-        {
-                                //  Loop through files and add each
-                                //  to the zip output stream.
+        if ((filenameFilter == null) || (filenameFilter.accept(inputDir, file.getName()))) {
+          //  If entry is a directory,
+          //  recurse to get files in that
+          //  directory.
 
-            byte[] readBuffer   = new byte[ 65536 ];
-            int bytesRead       = 0;
+          if (file.isDirectory()) {
+            String directoryPath = file.getName();
 
-            for ( File file : files )
-            {
-                                //  If file does not pass filename filter,
-                                //  skip it.
-
-                if  (   ( filenameFilter == null ) ||
-                        ( filenameFilter.accept( inputDir , file.getName() ) ) )
-                {
-                                //  If entry is a directory,
-                                //  recurse to get files in that
-                                //  directory.
-
-                    if ( file.isDirectory() )
-                    {
-                        String directoryPath    = file.getName();
-
-                        if  (   ( parentPath != null ) &&
-                                ( parentPath.length() > 0 )
-                            )
-                        {
-                            directoryPath   =
-//                              parentPath + File.separator + directoryPath;
-                                parentPath + "/" + directoryPath;
-                        }
-
-                        zipDirectoryTree
-                        (
-                            file.getPath() ,
-                            directoryPath ,
-                            filenameFilter ,
-                            zipOutputStream
-                        );
-                    }
-                                //  If entry is a file ...
-                    else
-                    {
-                                //  Open file stream over file.
-
-                        FileInputStream fileInputStream =
-                            new FileInputStream( file );
-
-                                //  Create new zip file entry.
-
-                        String entryName    = file.getName();
-
-                        if  (   ( parentPath != null ) &&
-                                ( parentPath.length() > 0 )
-                            )
-                        {
-                            entryName   =
-//                              parentPath + File.separator + entryName;
-                                parentPath + "/" + entryName;
-                        }
-
-                        ZipEntry zipEntry   = new ZipEntry( entryName );
-
-                                //  Add zip entry to ZipOutputStream.
-
-                        zipOutputStream.putNextEntry( zipEntry );
-
-                                //  Write file contents to ZipOutputStream.
-
-                        while( ( bytesRead = fileInputStream.read( readBuffer ) ) != -1 )
-                        {
-                            zipOutputStream.write( readBuffer , 0 , bytesRead );
-                        }
-                                //  Close input file stream.
-
-                        fileInputStream.close();
-
-                                //  Close zip file entry.
-
-                        zipOutputStream.closeEntry();
-                    }
-                }
+            if ((parentPath != null) && (parentPath.length() > 0)) {
+              directoryPath =
+                  //                              parentPath + File.separator + directoryPath;
+                  parentPath + "/" + directoryPath;
             }
+
+            zipDirectoryTree(file.getPath(), directoryPath, filenameFilter, zipOutputStream);
+          }
+          //  If entry is a file ...
+          else {
+            //  Open file stream over file.
+
+            FileInputStream fileInputStream = new FileInputStream(file);
+
+            //  Create new zip file entry.
+
+            String entryName = file.getName();
+
+            if ((parentPath != null) && (parentPath.length() > 0)) {
+              entryName =
+                  //                              parentPath + File.separator + entryName;
+                  parentPath + "/" + entryName;
+            }
+
+            ZipEntry zipEntry = new ZipEntry(entryName);
+
+            //  Add zip entry to ZipOutputStream.
+
+            zipOutputStream.putNextEntry(zipEntry);
+
+            //  Write file contents to ZipOutputStream.
+
+            while ((bytesRead = fileInputStream.read(readBuffer)) != -1) {
+              zipOutputStream.write(readBuffer, 0, bytesRead);
+            }
+            //  Close input file stream.
+
+            fileInputStream.close();
+
+            //  Close zip file entry.
+
+            zipOutputStream.closeEntry();
+          }
         }
+      }
     }
+  }
 
-    /** Don't allow instantiation, do allow overrides. */
-
-    protected ZipUtils()
-    {
-    }
+  /** Don't allow instantiation, do allow overrides. */
+  protected ZipUtils() {}
 }
 
 /*
@@ -241,6 +186,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

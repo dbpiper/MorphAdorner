@@ -2,41 +2,27 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.languagerecognizer;
 
 /*  Please see the license information at the end of this file. */
 
+import com.cybozu.labs.langdetect.*;
 import java.io.*;
 import java.util.*;
 
-import com.cybozu.labs.langdetect.*;
+/** DefaultLanguageRecognizer determines language in which a text is written. */
+public class DefaultLanguageRecognizer extends CybozuLabsLanguageRecognizer
+    implements LanguageRecognizer {
+  /** Create default language recognizer. */
+  public DefaultLanguageRecognizer() throws LangDetectException {
+    super();
+  }
 
-/** DefaultLanguageRecognizer determines language in which a text is written.
- */
-
-public class DefaultLanguageRecognizer
-    extends CybozuLabsLanguageRecognizer
-    implements LanguageRecognizer
-{
-    /** Create default language recognizer.
-     */
-
-    public DefaultLanguageRecognizer()
-        throws LangDetectException
-    {
-        super();
-    }
-
-    /** Create default language recognizer with list of languages to recognize.
-     *
-     *  @param  languages   List of names of languages to recognize.
-     *
-     *  <p>
-     *  The list of languages references the profile names.
-     *  </p>
-     */
-
-    public DefaultLanguageRecognizer( List<String> languages )
-        throws LangDetectException
-    {
-        super( languages );
-    }
+  /**
+   * Create default language recognizer with list of languages to recognize.
+   *
+   * @param languages List of names of languages to recognize.
+   *     <p>The list of languages references the profile names.
+   */
+  public DefaultLanguageRecognizer(List<String> languages) throws LangDetectException {
+    super(languages);
+  }
 }
 
 /*
@@ -79,6 +65,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

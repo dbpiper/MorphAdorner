@@ -2,163 +2,114 @@ package edu.northwestern.at.morphadorner.tools.sampletextfile;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 
-import edu.northwestern.at.utils.*;
-
-/** Sample a text file.
+/**
+ * Sample a text file.
  *
- *  <p>
- *  Copies one text file to another with a selection criterion.
- *  </p>
+ * <p>Copies one text file to another with a selection criterion.
  *
- *  <p>
- *  Subclasses must implement the setupSampling, lineSelected, and
- *  samplingDone methods.
- *  </p>
+ * <p>Subclasses must implement the setupSampling, lineSelected, and samplingDone methods.
  */
+public abstract class SampleTextFile {
+  /** Input file name. */
+  protected String inputFileName;
 
-abstract public class SampleTextFile
-{
-    /** Input file name. */
+  /** Output file name. */
+  protected String outputFileName;
 
-    protected String inputFileName;
+  /** Sample count, percentage, etc. */
+  protected double sample;
 
-    /** Output file name. */
+  /**
+   * Copy a text file to another while sampling the input lines.
+   *
+   * @param inputFileName Input file name.
+   * @param outputFileName Output file name.
+   * @param sample Sample count, percentage, etc.
+   */
+  public SampleTextFile(String inputFileName, String outputFileName, double sample) {
+    //  Save parameters.
 
-    protected String outputFileName;
+    this.inputFileName = inputFileName;
+    this.outputFileName = outputFileName;
+    this.sample = sample;
 
-    /** Sample count, percentage, etc. */
+    //  Setup sampling.
+    setupSampling();
+  }
 
-    protected double sample;
+  /**
+   * Copy a text file to another while sampling the input lines.
+   *
+   * @param inputFileName Input file name.
+   * @param outputFileName Output file name.
+   * @param sample Sample count, percentage, etc.
+   */
+  public SampleTextFile(String inputFileName, String outputFileName, int sample) {
+    this(inputFileName, outputFileName, (double) sample);
+  }
 
-    /** Copy a text file to another while sampling the input lines.
-     *
-     *  @param  inputFileName       Input file name.
-     *  @param  outputFileName      Output file name.
-     *  @param  sample              Sample count, percentage, etc.
-     */
+  /** Set up the sampling. */
+  protected void setupSampling() {}
 
-    public SampleTextFile
-    (
-        String inputFileName ,
-        String outputFileName ,
-        double sample
-    )
-    {
-                                //  Save parameters.
+  /** Perform the sampling. */
+  public void sample() {
+    try {
+      //  Open input file.
 
-        this.inputFileName  = inputFileName;
-        this.outputFileName = outputFileName;
-        this.sample         = sample;
+      UnicodeReader streamReader =
+          new UnicodeReader(new FileInputStream(new File(inputFileName)), "utf-8");
 
-                                //  Setup sampling.
-        setupSampling();
-    }
+      BufferedReader in = new BufferedReader(streamReader);
 
-    /** Copy a text file to another while sampling the input lines.
-     *
-     *  @param  inputFileName       Input file name.
-     *  @param  outputFileName      Output file name.
-     *  @param  sample              Sample count, percentage, etc.
-     */
+      //  Open output file.
 
-    public SampleTextFile
-    (
-        String inputFileName ,
-        String outputFileName ,
-        int sample
-    )
-    {
-        this( inputFileName , outputFileName , (double)sample );
-    }
+      PrintWriter printWriter =
+          new PrintWriter(
+              new OutputStreamWriter(new FileOutputStream(outputFileName, true), "utf-8"));
+      //  Read each line of input file and
+      //  copy selected lines to output file.
 
-    /** Set up the sampling.
-     */
+      String inputLine = in.readLine();
 
-    protected void setupSampling()
-    {
-    }
+      while ((inputLine != null) && !samplingDone()) {
+        //  Write input line to output if selected.
 
-    /** Perform the sampling.
-     */
-
-    public void sample()
-    {
-        try
-        {
-                                //  Open input file.
-
-            UnicodeReader streamReader  =
-                new UnicodeReader
-                (
-                    new FileInputStream( new File( inputFileName ) ) ,
-                    "utf-8"
-                );
-
-            BufferedReader in   = new BufferedReader( streamReader );
-
-                                //  Open output file.
-
-            PrintWriter printWriter =
-                new PrintWriter
-                (
-                    new OutputStreamWriter
-                    (
-                        new FileOutputStream( outputFileName , true ) ,
-                        "utf-8"
-                    )
-                );
-                                //  Read each line of input file and
-                                //  copy selected lines to output file.
-
-            String inputLine    = in.readLine();
-
-            while ( ( inputLine != null ) && !samplingDone() )
-            {
-                                //  Write input line to output if selected.
-
-                if ( lineSelected( inputLine ) )
-                {
-                    printWriter.println( inputLine );
-                }
-                                //  Read next input line.
-
-                inputLine   = in.readLine();
-            }
-                                //  Close the input and output files.
-            in.close();
-            printWriter.close();
+        if (lineSelected(inputLine)) {
+          printWriter.println(inputLine);
         }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-            System.out.println( "   *** Failed" );
-        }
+        //  Read next input line.
+
+        inputLine = in.readLine();
+      }
+      //  Close the input and output files.
+      in.close();
+      printWriter.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("   *** Failed");
     }
+  }
 
-    /** Check if line should be selected.
-     *
-     *  @param  inputLine       The input line.
-     *
-     *  @return true to select line.
-     *
-     *  <p>
-     *  Subclasses must override this method.
-     *  </p>
-     */
+  /**
+   * Check if line should be selected.
+   *
+   * @param inputLine The input line.
+   * @return true to select line.
+   *     <p>Subclasses must override this method.
+   */
+  protected abstract boolean lineSelected(String inputLine);
 
-    abstract protected boolean lineSelected( String inputLine );
-
-    /** Determine if sampling done.
-     *
-     *  @return true if sampling done.
-     */
-
-    public boolean samplingDone()
-    {
-        return false;
-    }
+  /**
+   * Determine if sampling done.
+   *
+   * @return true if sampling done.
+   */
+  public boolean samplingDone() {
+    return false;
+  }
 }
 
 /*
@@ -201,6 +152,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

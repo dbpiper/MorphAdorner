@@ -2,57 +2,45 @@ package edu.northwestern.at.morphadorner.tools.punktabbreviationdetector;
 
 /*  Please see the license information at the end of this file. */
 
-/** Punkt token type.
+/**
+ * Punkt token type.
  *
- *  <p>
- *  The Punkt algorithm for abbreviation detection classifies a token
- *  into one of four types.
- *  </p>
+ * <p>The Punkt algorithm for abbreviation detection classifies a token into one of four types.
  *
- *  <ul>
- *  <li>NONWORD -- token is not a word (special characters, etc.)
- *      </li>
- *  <li>NUMBER -- token is a number.
- *      </li>
- *  <li>WHITESPACE -- token is entirely whitespace (blanks, tabs, etc.)
- *      </li>
- *  <li>WORD -- token is a word.
- *      </li>
- *  </ul>
+ * <ul>
+ *   <li>NONWORD -- token is not a word (special characters, etc.)
+ *   <li>NUMBER -- token is a number.
+ *   <li>WHITESPACE -- token is entirely whitespace (blanks, tabs, etc.)
+ *   <li>WORD -- token is a word.
+ * </ul>
  */
+public enum PunktTokenType {
+  /** The token type definitions. */
+  NONWORD("nonword"),
+  NUMBER("number"),
+  WHITESPACE("whitespace"),
+  WORD("word");
 
-public enum PunktTokenType
-{
-    /** The token type definitions. */
+  /** Displayable string version for a token type. */
+  protected final String toStringValue;
 
-    NONWORD ( "nonword" ) ,
-    NUMBER ( "number" ) ,
-    WHITESPACE ( "whitespace" ) ,
-    WORD ( "word" ) ;
+  /**
+   * Create a Punkt token type.
+   *
+   * @param toStringValue Display string version of token type.
+   */
+  PunktTokenType(String toStringValue) {
+    this.toStringValue = toStringValue;
+  }
 
-    /** Displayable string version for a token type. */
-
-    protected final String toStringValue;
-
-    /** Create a Punkt token type.
-     *
-     *  @param  toStringValue   Display string version of token type.
-     */
-
-    PunktTokenType( String toStringValue )
-    {
-        this.toStringValue  = toStringValue;
-    }
-
-    /** Return displayable form of token type.
-     *
-     *  @return     Token type as a displayable string.
-     */
-
-    public String toString()
-    {
-        return toStringValue;
-    }
+  /**
+   * Return displayable form of token type.
+   *
+   * @return Token type as a displayable string.
+   */
+  public String toString() {
+    return toStringValue;
+  }
 }
 
 /*
@@ -95,6 +83,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -2,107 +2,75 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.textsummarizer;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
-import edu.northwestern.at.utils.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.stopwords.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.wordcounts.*;
+import edu.northwestern.at.utils.*;
+import java.util.*;
 
-/** SimpleTextSummarizer: Simple text summarizer.
+/**
+ * SimpleTextSummarizer: Simple text summarizer.
  *
- *  <p>
- *  This summarizer produces a summary by finding the (up to) 100 most
- *  commonly used words in a text (not including stop words) and outputting
- *  the first sentence containing each common word.  This works adequately
- *  for news articles or blog posting, but rather badly for literature.
- *  </p>
+ * <p>This summarizer produces a summary by finding the (up to) 100 most commonly used words in a
+ * text (not including stop words) and outputting the first sentence containing each common word.
+ * This works adequately for news articles or blog posting, but rather badly for literature.
  */
+public class SimpleTextSummarizer extends AbstractTextSummarizer implements TextSummarizer {
+  /** Create the default summarizer. */
+  public SimpleTextSummarizer() {
+    super();
+  }
 
-public class SimpleTextSummarizer
-    extends AbstractTextSummarizer
-    implements TextSummarizer
-{
-    /** Create the default summarizer.
-     */
+  /**
+   * Summarize text.
+   *
+   * @param sentences Tokenized sentences to summarize.
+   * @param summarySentences Maximum number of sentences to return in the summary.
+   * @return Summary of the input text.
+   */
+  public <T extends Comparable> List<Integer> summarize(
+      List<List<T>> sentences, int summarySentences) {
+    //  Get word counts ignoring stop words.
 
-    public SimpleTextSummarizer()
-    {
-        super();
+    Map<String, WordCountAndSentences> wordCounts =
+        WordCountUtils.countWordsInSentences(sentences, new BuckleyAndSaltonStopWords());
+    //  Sort the counts into descending
+    //  order by count.
+
+    List<WordCountAndSentences> wcsData = new SortedArrayList<WordCountAndSentences>();
+
+    Iterator<String> iterator = wordCounts.keySet().iterator();
+
+    while (iterator.hasNext()) {
+      wcsData.add(wordCounts.get(iterator.next()));
     }
+    //  Holds summary sentence indices.
 
-    /** Summarize text.
-     *
-     *  @param  sentences           Tokenized sentences to summarize.
-     *  @param  summarySentences    Maximum number of sentences to return
-     *                              in the summary.
-     *
-     *  @return                     Summary of the input text.
-     */
+    Set<Integer> summarySentencesSet = new TreeSet<Integer>();
 
-    public <T extends Comparable> List<Integer> summarize
-    (
-        List<List<T>> sentences ,
-        int summarySentences
-    )
-    {
-                                //  Get word counts ignoring stop words.
+    //  Use up to 100 most commonly used words.
 
-        Map<String , WordCountAndSentences> wordCounts  =
-            WordCountUtils.countWordsInSentences
-            (
-                sentences ,
-                new BuckleyAndSaltonStopWords()
-            );
-                                //  Sort the counts into descending
-                                //  order by count.
+    int maxWords = Math.min(100, wcsData.size());
 
-        List<WordCountAndSentences> wcsData =
-            new SortedArrayList<WordCountAndSentences>();
+    //  For each commonly word word,
+    //  find the first sentence in which
+    //  that word appears, and add it to the
+    //  summary sentences collection.
+    for (int i = 0; (i < wcsData.size()) && (summarySentencesSet.size() < summarySentences); i++) {
+      WordCountAndSentences wcs = wcsData.get(i);
 
-        Iterator<String> iterator   = wordCounts.keySet().iterator();
+      if (CharUtils.isNumber(wcs.word.toString())) continue;
+      if (CharUtils.hasDigit(wcs.word.toString())) continue;
 
-        while ( iterator.hasNext() )
-        {
-            wcsData.add( wordCounts.get( iterator.next() ) );
-        }
-                                //  Holds summary sentence indices.
+      Integer[] sentenceNumbers =
+          (Integer[]) wcs.sentences.toArray(new Integer[wcs.sentences.size()]);
 
-        Set<Integer> summarySentencesSet    = new TreeSet<Integer>();
-
-                                //  Use up to 100 most commonly used words.
-
-        int maxWords    = Math.min( 100 , wcsData.size() );
-
-                                //  For each commonly word word,
-                                //  find the first sentence in which
-                                //  that word appears, and add it to the
-                                //  summary sentences collection.
-        for
-        (
-            int i = 0 ;
-            ( i < wcsData.size() ) &&
-                ( summarySentencesSet.size() < summarySentences ) ;
-            i++
-        )
-        {
-            WordCountAndSentences wcs   = wcsData.get( i );
-
-            if ( CharUtils.isNumber( wcs.word.toString() ) ) continue;
-            if ( CharUtils.hasDigit( wcs.word.toString() ) ) continue;
-
-            Integer [] sentenceNumbers  =
-                (Integer[])wcs.sentences.toArray
-                (
-                    new Integer[ wcs.sentences.size() ]
-                );
-
-            summarySentencesSet.add( sentenceNumbers[ 0 ] );
-        }
-                                //  Return indices of selected
-                                //  summary sentences.
-
-        return new ArrayList<Integer>( summarySentencesSet );
+      summarySentencesSet.add(sentenceNumbers[0]);
     }
+    //  Return indices of selected
+    //  summary sentences.
+
+    return new ArrayList<Integer>(summarySentencesSet);
+  }
 }
 
 /*
@@ -145,6 +113,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

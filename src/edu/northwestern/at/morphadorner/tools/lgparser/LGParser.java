@@ -2,297 +2,245 @@ package edu.northwestern.at.morphadorner.tools.lgparser;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.StringTokenizer;
-import net.sf.jlinkgrammar.* ;
 import edu.northwestern.at.utils.StringUtils;
+import java.util.StringTokenizer;
+import net.sf.jlinkgrammar.*;
 
-/** Link grammar parser driver.
+/**
+ * Link grammar parser driver.
  *
- *  <p>
- *  Usage:
- *  </p>
- *  <blockquote>
- *  <pre>
+ * <p>Usage:
+ *
+ * <blockquote>
+ *
+ * <pre>
  *  java edu.northwestern.at.morphadorner.tools.lgparser.LGParser lgparserdatadirectory "sentence text to parse"
  *  </pre>
- *  </blockquote>
- *  <p>
- *  where <strong>lgparserdatadirectory</strong> is a directory containing link
- *  grammar parser data files and "sentence to parse" is the text of the
- *  sentence to parse.
- *  </p>
+ *
+ * </blockquote>
+ *
+ * <p>where <strong>lgparserdatadirectory</strong> is a directory containing link grammar parser
+ * data files and "sentence to parse" is the text of the sentence to parse.
  */
+public class LGParser {
+  /** Parser dictionary. */
+  protected static Dictionary dictionary;
 
-public class LGParser
-{
-    /** Parser dictionary. */
+  /** Parser options. */
+  protected ParseOptions parseOptions;
 
-    protected static Dictionary dictionary ;
+  /** Sentence to parse. */
+  protected Sentence sentence;
 
-    /** Parser options. */
+  /** Data file directory. */
+  protected static String defaultDataDirectory = "data/lgparser";
 
-    protected ParseOptions parseOptions ;
+  /** Create a linkage grammar parser. */
+  public LGParser() {
+    this(defaultDataDirectory, 100, 1);
+  }
 
-    /** Sentence to parse. */
+  /**
+   * Create a linkage grammar parser.
+   *
+   * @param dataDirectory The data directory.
+   */
+  public LGParser(String dataDirectory) {
+    this(dataDirectory, 100, 1);
+  }
 
-    protected Sentence sentence ;
+  /**
+   * Create a linkage grammar parser.
+   *
+   * @param maxLinkage Maximum number of linkages.
+   * @param maxParseTime Maximum parse time in seconds.
+   */
+  public LGParser(int maxLinkage, int maxParseTime) {
+    this(defaultDataDirectory, maxLinkage, maxParseTime);
+  }
 
-    /** Data file directory. */
+  /**
+   * Create a linkage grammar parser.
+   *
+   * @param dataDirectory The data directory.
+   * @param maxLinkage Maximum number of linkages.
+   * @param maxParseTime Maximum parse time in seconds.
+   */
+  public LGParser(String dataDirectory, int maxLinkage, int maxParseTime) {
+    parseOptions = new ParseOptions();
 
-    protected static String defaultDataDirectory    = "data/lgparser";
+    parseOptions.parse_options_set_short_length(10);
+    parseOptions.parse_options_set_max_null_count(10);
+    parseOptions.parse_options_set_linkage_limit(maxLinkage);
 
-    /** Create a linkage grammar parser. */
-
-    public LGParser()
-    {
-        this( defaultDataDirectory , 100 , 1 );
+    if (dictionary == null) {
+      try {
+        dictionary =
+            new Dictionary(
+                parseOptions,
+                dataDirectory + "/4.0.dict",
+                "4.0.knowledge",
+                "4.0.constituent-knowledge",
+                "4.0.affix");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
+  }
 
-    /** Create a linkage grammar parser.
-     *
-     *  @param  dataDirectory   The data directory.
-     */
+  /**
+   * Get a linkage from a parsed sentence.
+   *
+   * @param index The index of the linkage to return.
+   * @return The linkage at the specified index.
+   */
+  public Linkage getLinkage(int index) {
+    return new Linkage(index, sentence, parseOptions);
+  }
 
-    public LGParser( String dataDirectory )
-    {
-        this( dataDirectory , 100 , 1 );
+  /**
+   * Parse sentence text.
+   *
+   * @param s Sentence text to parse.
+   * @return Parse sentence.
+   */
+  public Sentence parse(String s) {
+    sentence = new Sentence(s, dictionary, parseOptions);
+
+    sentence.sentence_parse(parseOptions);
+
+    return sentence;
+  }
+
+  /**
+   * Main program.
+   *
+   * @param args Command line arguments.
+   */
+  public static void main(String[] args) {
+    if (args.length > 1) {
+      //  Get link grammar data directory.
+
+      String dataDirectory = args[0];
+
+      //  Get sentence text to parse.
+
+      String textToParse = args[1];
+
+      //  Create new parser.
+
+      LGParser parser = new LGParser(dataDirectory);
+
+      //  Parse sentence text.
+
+      Sentence sentence = parser.parse(textToParse);
+
+      //  Display linkages, if any found.
+
+      if (sentence.sentence_num_linkages_found() < 1) {
+        System.out.println("No linkage was found.");
+      } else {
+        Linkage link = parser.getLinkage(0);
+
+        System.out.println(link.linkage_print_diagram());
+
+        System.out.println(fixOutput(link.linkage_print_links_and_domains()));
+
+        System.out.println(link.linkage_print_constituent_tree(1));
+      }
     }
+  }
 
-    /** Create a linkage grammar parser.
-     *
-     *  @param  maxLinkage      Maximum number of linkages.
-     *  @param  maxParseTime    Maximum parse time in seconds.
-     */
+  /**
+   * Fix the output generated by the parser for presentation.
+   *
+   * @param s Output generated by parser.
+   * @return Corrected output.
+   */
+  protected static String fixOutput(String s) {
+    //  Always six columns of output.
 
-    public LGParser( int maxLinkage , int maxParseTime )
-    {
-        this( defaultDataDirectory , maxLinkage , maxParseTime );
+    int[] colWidths = new int[6];
+
+    //  Holds maximum width of each column.
+
+    for (int i = 0; i < colWidths.length; i++) {
+      colWidths[i] = 0;
     }
+    //  Split output into lines.
 
-    /** Create a linkage grammar parser.
-     *
-     *  @param  dataDirectory   The data directory.
-     *  @param  maxLinkage      Maximum number of linkages.
-     *  @param  maxParseTime    Maximum parse time in seconds.
-     */
+    String[] lines = s.split("\n");
 
-    public LGParser
-    (
-        String dataDirectory ,
-        int maxLinkage ,
-        int maxParseTime
-    )
-    {
-        parseOptions = new ParseOptions();
+    //  For each line of output ...
 
-        parseOptions.parse_options_set_short_length( 10 );
-        parseOptions.parse_options_set_max_null_count( 10 );
-        parseOptions.parse_options_set_linkage_limit( maxLinkage );
+    for (int i = 0; i < lines.length; i++) {
+      //  Get next line.
 
-        if ( dictionary == null )
-        {
-            try
-            {
-                dictionary =
-                    new Dictionary
-                    (
-                        parseOptions ,
-                        dataDirectory + "/4.0.dict" ,
-                        "4.0.knowledge" ,
-                        "4.0.constituent-knowledge" ,
-                        "4.0.affix"
-                    );
-            }
-            catch ( Exception e )
-            {
-                e.printStackTrace();
-            }
+      String line = lines[i];
+
+      //  If line is not empty ...
+
+      if (!line.equals("\n")) {
+        //  Split line into columns and
+        //  compute width of each column.
+
+        StringTokenizer tokenizer = new StringTokenizer(line);
+
+        int j = 0;
+
+        if (line.charAt(0) == ' ') {
+          j++;
         }
-    }
 
-    /** Get a linkage from a parsed sentence.
-     *
-     *  @param  index   The index of the linkage to return.
-     *
-     *  @return         The linkage at the specified index.
-     */
+        while (tokenizer.hasMoreTokens()) {
+          String token = tokenizer.nextToken().trim();
 
-    public Linkage getLinkage( int index )
-    {
-        return new Linkage( index , sentence , parseOptions );
-    }
+          //  Remember the maximum width of each
+          //  column so far.
 
-    /** Parse sentence text.
-     *
-     *  @param  s   Sentence text to parse.
-     *
-     *  @return     Parse sentence.
-     */
+          colWidths[j] = Math.max(colWidths[j], token.length());
 
-    public Sentence parse( String s )
-    {
-        sentence = new Sentence( s , dictionary , parseOptions );
-
-        sentence.sentence_parse( parseOptions );
-
-        return sentence ;
-    }
-
-    /** Main program.
-     *
-     *  @param  args    Command line arguments.
-     */
-
-    public static void main( String[] args )
-    {
-        if ( args.length > 1 )
-        {
-                                //  Get link grammar data directory.
-
-            String dataDirectory    = args[ 0 ];
-
-                                //  Get sentence text to parse.
-
-            String textToParse      = args[ 1 ] ;
-
-                                //  Create new parser.
-
-            LGParser parser = new LGParser( dataDirectory );
-
-                                //  Parse sentence text.
-
-            Sentence sentence = parser.parse( textToParse );
-
-                                //  Display linkages, if any found.
-
-            if ( sentence.sentence_num_linkages_found() < 1 )
-            {
-                System.out.println( "No linkage was found." );
-            }
-            else
-            {
-                Linkage link = parser.getLinkage( 0 );
-
-                System.out.println( link.linkage_print_diagram() );
-
-                System.out.println
-                (
-                    fixOutput( link.linkage_print_links_and_domains() )
-                );
-
-                System.out.println
-                (
-                    link.linkage_print_constituent_tree( 1 )
-                );
-            }
+          j++;
         }
+      }
     }
+    //  Add space padding to each output column.
 
-    /** Fix the output generated by the parser for presentation.
-     *
-     *  @param  s   Output generated by parser.
-     *
-     *  @return     Corrected output.
-     */
-
-    protected static String fixOutput( String s )
-    {
-                                //  Always six columns of output.
-
-        int[] colWidths = new int[ 6 ];
-
-                                //  Holds maximum width of each column.
-
-        for ( int i =0 ; i < colWidths.length ; i++ )
-        {
-            colWidths[ i ]  = 0;
-        }
-                                //  Split output into lines.
-
-        String[] lines  = s.split( "\n" );
-
-                                //  For each line of output ...
-
-        for ( int i = 0 ; i < lines.length ; i++ )
-        {
-                                //  Get next line.
-
-            String line = lines[ i ];
-
-                                //  If line is not empty ...
-
-            if ( !line.equals( "\n" ) )
-            {
-                                //  Split line into columns and
-                                //  compute width of each column.
-
-                StringTokenizer tokenizer   =
-                    new StringTokenizer( line );
-
-                int j   = 0;
-
-                if ( line.charAt( 0 ) == ' ' )
-                {
-                    j++;
-                }
-
-                while ( tokenizer.hasMoreTokens() )
-                {
-                    String token    = tokenizer.nextToken().trim();
-
-                                //  Remember the maximum width of each
-                                //  column so far.
-
-                    colWidths[ j ]  =
-                        Math.max( colWidths[ j ] , token.length() );
-
-                    j++;
-                }
-            }
-        }
-                                //  Add space padding to each output column.
-
-        for ( int i = 0 ; i < colWidths.length ; i++ )
-        {
-            colWidths[ i ] += 2;
-        }
-                                //  Reconstruct output, using padded
-                                //  maximum column widths we just
-                                //  determined.  The corrected output
-                                //  is accumulated in a string buffer.
-
-        StringBuffer sb = new StringBuffer();
-
-        for ( int i = 0 ; i < lines.length ; i++ )
-        {
-            String line = lines[ i ];
-
-            if ( !line.equals( "\n" ) )
-            {
-                StringTokenizer tokenizer   =
-                    new StringTokenizer( line );
-
-                int j   = 0;
-
-                if ( line.charAt( 0 ) == ' ' )
-                {
-                    sb.append( StringUtils.dupl( " " ,  colWidths[ j++ ] ) );
-                }
-
-                while ( tokenizer.hasMoreTokens() )
-                {
-                    String token    = tokenizer.nextToken();
-
-                    sb.append( StringUtils.rpad( token , colWidths[ j++ ] ) );
-                }
-
-                sb.append( "\n" );
-            }
-        }
-                                //  Return corrected output.
-
-        return sb.toString();
+    for (int i = 0; i < colWidths.length; i++) {
+      colWidths[i] += 2;
     }
+    //  Reconstruct output, using padded
+    //  maximum column widths we just
+    //  determined.  The corrected output
+    //  is accumulated in a string buffer.
+
+    StringBuffer sb = new StringBuffer();
+
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+
+      if (!line.equals("\n")) {
+        StringTokenizer tokenizer = new StringTokenizer(line);
+
+        int j = 0;
+
+        if (line.charAt(0) == ' ') {
+          sb.append(StringUtils.dupl(" ", colWidths[j++]));
+        }
+
+        while (tokenizer.hasMoreTokens()) {
+          String token = tokenizer.nextToken();
+
+          sb.append(StringUtils.rpad(token, colWidths[j++]));
+        }
+
+        sb.append("\n");
+      }
+    }
+    //  Return corrected output.
+
+    return sb.toString();
+  }
 }
 
 /*
@@ -335,6 +283,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

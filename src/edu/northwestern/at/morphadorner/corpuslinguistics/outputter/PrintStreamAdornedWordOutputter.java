@@ -2,197 +2,132 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.outputter;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
+/** Outputs adorned words to a print stream. */
+public class PrintStreamAdornedWordOutputter implements AdornedWordOutputter {
+  /** PrintStream for console output. */
+  protected PrintStream printStream = null;
 
-/** Outputs adorned words to a print stream.
- */
+  /** Separator character for output. */
+  protected char separatorCharacter = '\t';
 
-public class PrintStreamAdornedWordOutputter
-    implements AdornedWordOutputter
-{
-    /** PrintStream for console output. */
+  /** Output file name. */
+  protected String fileName = null;
 
-    protected PrintStream printStream   = null;
+  /** Output file encoding. */
+  protected String fileEncoding = "utf-8";
 
-    /** Separator character for output.
-     */
+  /** Word attribute names. */
+  protected String[] wordAttributeNames;
 
-    protected char separatorCharacter   = '\t';
+  /** Create outputter. */
+  public PrintStreamAdornedWordOutputter() {}
 
-    /** Output file name. */
+  /**
+   * Create output file.
+   *
+   * @param fileName Output file name.
+   * @param encoding Encoding for the output file.
+   * @param separatorCharacter Output separator character.
+   */
+  public void createOutputFile(String fileName, String encoding, char separatorCharacter)
+      throws IOException {
+    if (!FileUtils.createPathForFile(fileName)) {
+      throw new IOException("Unable to create output directory.");
+    }
+    ;
 
-    protected String fileName           = null;
+    this.fileName = fileName;
+    this.fileEncoding = encoding;
+    this.separatorCharacter = separatorCharacter;
 
-    /** Output file encoding. */
+    FileOutputStream outputStream = new FileOutputStream(fileName, false);
 
-    protected String fileEncoding       = "utf-8";
+    String safeEncoding = (encoding == null) ? "" : encoding;
 
-    /** Word attribute names. */
+    if (safeEncoding.length() > 0) {
+      printStream = new PrintStream(new BufferedOutputStream(outputStream), true, encoding);
+    } else {
+      printStream = new PrintStream(new BufferedOutputStream(outputStream), true);
+    }
+  }
 
-    protected String[] wordAttributeNames;
+  /**
+   * Set word attribute names.
+   *
+   * @param wordAttributeNames Word attribute names.
+   */
+  public void setWordAttributeNames(List<String> wordAttributeNames) {
+    this.wordAttributeNames = new String[wordAttributeNames.size()];
 
-    /** Create outputter.
-     */
+    for (int i = 0; i < wordAttributeNames.size(); i++) {
+      this.wordAttributeNames[i] = wordAttributeNames.get(i);
+    }
+  }
 
-    public PrintStreamAdornedWordOutputter()
-    {
+  /**
+   * Outputs a word and its adornments (part of speech, lemmata, etc).
+   *
+   * @param wordAndAdornments Word and its adornments as an array of string.
+   * @throws IOException If an output error occurs.
+   *     <p>Outputs word and adornments as a tab-separated text line to a print stream.
+   */
+  public void outputWordAndAdornments(String[] wordAndAdornments) throws IOException {
+    for (int i = 0; i < wordAndAdornments.length; i++) {
+      if (i > 0) printStream.print(separatorCharacter);
+      printStream.print(wordAndAdornments[i]);
     }
 
-    /** Create output file.
-     *
-     *  @param  fileName                Output file name.
-     *  @param  encoding                Encoding for the output file.
-     *  @param  separatorCharacter      Output separator character.
-     */
+    printStream.println("");
+  }
 
-    public void createOutputFile
-    (
-        String fileName ,
-        String encoding ,
-        char separatorCharacter
-    )
-        throws IOException
-    {
-        if ( !FileUtils.createPathForFile( fileName ) )
-        {
-            throw new IOException( "Unable to create output directory." );
-        };
-
-        this.fileName           = fileName;
-        this.fileEncoding       = encoding;
-        this.separatorCharacter = separatorCharacter;
-
-        FileOutputStream outputStream   =
-            new FileOutputStream( fileName , false );
-
-        String safeEncoding = ( encoding == null ) ? "" : encoding;
-
-        if ( safeEncoding.length() > 0 )
-        {
-            printStream =
-                new PrintStream
-                (
-                    new BufferedOutputStream( outputStream ),
-                    true ,
-                    encoding
-                );
-        }
-        else
-        {
-            printStream =
-                new PrintStream
-                (
-                    new BufferedOutputStream( outputStream ) ,
-                    true
-                );
-        }
+  /**
+   * Outputs a word and its adornments (part of speech, lemmata, etc).
+   *
+   * @param wordAndAdornments Word and its adornments as a list of strings.
+   * @throws IOException If an output error occurs.
+   *     <p>Outputs word and adornments as a tab-separated text line to a print stream.
+   */
+  public void outputWordAndAdornments(List<String> wordAndAdornments) throws IOException {
+    for (int i = 0; i < wordAndAdornments.size(); i++) {
+      if (i > 0) printStream.print(separatorCharacter);
+      printStream.print(wordAndAdornments.get(i));
     }
 
-    /** Set word attribute names.
-     *
-     *  @param  wordAttributeNames  Word attribute names.
-     */
+    printStream.println("");
+  }
 
-    public void setWordAttributeNames( List<String> wordAttributeNames )
-    {
-        this.wordAttributeNames = new String[ wordAttributeNames.size() ];
+  /**
+   * Get output file name.
+   *
+   * @return Output file name.
+   */
+  public String getOutputFileName() {
+    return fileName;
+  }
 
-        for ( int i = 0 ; i < wordAttributeNames.size() ; i++ )
-        {
-            this.wordAttributeNames[ i ]    = wordAttributeNames.get( i );
-        }
+  /**
+   * Get output file encoding.
+   *
+   * @return Output file encoding.
+   */
+  public String getOutputFileEncoding() {
+    return fileEncoding;
+  }
+
+  /** Close outputter. */
+  public void close() {
+    if (printStream != null) {
+      try {
+        printStream.flush();
+        printStream.close();
+      } catch (Exception e) {
+      }
     }
-
-    /** Outputs a word and its adornments (part of speech, lemmata, etc).
-     *
-     *  @param  wordAndAdornments   Word and its adornments as an
-     *                              array of string.
-     *
-     *  @throws IOException         If an output error occurs.
-     *
-     *  <p>
-     *  Outputs word and adornments as a tab-separated text line to
-     *  a print stream.
-     *  </p>
-     */
-
-     public void outputWordAndAdornments( String[] wordAndAdornments )
-        throws IOException
-     {
-        for ( int i = 0 ; i < wordAndAdornments.length ; i++ )
-        {
-            if ( i > 0 ) printStream.print( separatorCharacter );
-            printStream.print( wordAndAdornments[ i ] );
-        }
-
-        printStream.println( "" );
-     }
-
-    /** Outputs a word and its adornments (part of speech, lemmata, etc).
-     *
-     *  @param  wordAndAdornments   Word and its adornments as a list
-     *                              of strings.
-     *
-     *  @throws IOException         If an output error occurs.
-     *
-     *  <p>
-     *  Outputs word and adornments as a tab-separated text line to
-     *  a print stream.
-     *  </p>
-     */
-
-     public void outputWordAndAdornments( List<String> wordAndAdornments )
-        throws IOException
-     {
-        for ( int i = 0 ; i < wordAndAdornments.size() ; i++ )
-        {
-            if ( i > 0 ) printStream.print( separatorCharacter );
-            printStream.print( wordAndAdornments.get( i ) );
-        }
-
-        printStream.println( "" );
-     }
-
-    /** Get output file name.
-     *
-     *  @return Output file name.
-     */
-
-    public String getOutputFileName()
-    {
-        return fileName;
-    }
-
-    /** Get output file encoding.
-     *
-     *  @return Output file encoding.
-     */
-
-    public String getOutputFileEncoding()
-    {
-        return fileEncoding;
-    }
-
-    /** Close outputter.
-     */
-
-    public void close()
-    {
-        if ( printStream != null )
-        {
-            try
-            {
-                printStream.flush();
-                printStream.close();
-            }
-            catch ( Exception e )
-            {
-            }
-        }
-    }
+  }
 }
 
 /*
@@ -235,6 +170,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

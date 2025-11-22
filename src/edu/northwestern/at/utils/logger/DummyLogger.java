@@ -2,143 +2,110 @@ package edu.northwestern.at.utils.logger;
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
 import java.io.*;
-
+import java.util.*;
 import org.apache.logging.log4j.*;
 
-/** Dummy logger which generates no output.
- */
+/** Dummy logger which generates no output. */
+public class DummyLogger implements Logger {
+  /** True if logger enabled. */
+  protected boolean loggerEnabled = false;
 
-public class DummyLogger implements Logger
-{
-    /** True if logger enabled. */
+  /** Create a dummy logger. */
+  public DummyLogger() {
+    loggerEnabled = true;
+  }
 
-    protected boolean loggerEnabled = false;
+  /** Terminates the logger. */
+  public void terminate() {
+    loggerEnabled = false;
+  }
 
-    /** Create a dummy logger.
-     */
+  /**
+   * Logs a message at the DEBUG level.
+   *
+   * @param str Log message.
+   */
+  public void logDebug(String str) {}
 
-    public DummyLogger()
-    {
-        loggerEnabled = true;
-    }
+  /**
+   * Logs a message at the INFO level.
+   *
+   * @param str Log message.
+   */
+  public void logInfo(String str) {}
 
-    /** Terminates the logger.
-     */
+  /**
+   * Logs a message at the WARN level.
+   *
+   * @param str Log message.
+   */
+  public void logWarning(String str) {}
 
-    public void terminate()
-    {
-        loggerEnabled = false;
-    }
+  /**
+   * Logs a message at the ERROR level.
+   *
+   * @param str Log message.
+   */
+  public void logError(String str) {}
 
-    /** Logs a message at the DEBUG level.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Logs a error message with a stack trace.
+   *
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void logError(String str, Throwable t) {}
 
-    public void logDebug( String str )
-    {
-    }
+  /**
+   * Logs a message at the FATAL level.
+   *
+   * @param str Log message.
+   */
+  public void logFatal(String str) {}
 
-    /** Logs a message at the INFO level.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Logs a fatal message with a stack trace.
+   *
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void logFatal(String str, Throwable t) {}
 
-    public void logInfo( String str )
-    {
-    }
+  /**
+   * Logs a message.
+   *
+   * @param level Log message level.
+   * @param str Log message.
+   */
+  public void log(int level, String str) {}
 
-    /** Logs a message at the WARN level.
-     *
-     *  @param  str         Log message.
-     */
+  /**
+   * Logs a message with a stack trace.
+   *
+   * @param level Log message level.
+   * @param str Log message.
+   * @param t Throwable.
+   */
+  public void log(int level, String str, Throwable t) {}
 
-    public void logWarning( String str )
-    {
-    }
+  /**
+   * Returns true if debugging messages are enabled.
+   *
+   * @return True if debugging messages are enabled.
+   */
+  public boolean isDebuggingEnabled() {
+    return false;
+  }
 
-    /** Logs a message at the ERROR level.
-     *
-     *  @param  str         Log message.
-     */
-
-    public void logError( String str )
-    {
-    }
-
-    /** Logs a error message with a stack trace.
-     *
-     *  @param  str     Log message.
-     *
-     *  @param  t       Throwable.
-     */
-
-    public void logError( String str , Throwable t )
-    {
-    }
-
-    /** Logs a message at the FATAL level.
-     *
-     *  @param  str         Log message.
-     */
-
-    public void logFatal( String str )
-    {
-    }
-
-    /** Logs a fatal message with a stack trace.
-     *
-     *  @param  str     Log message.
-     *
-     *  @param  t       Throwable.
-     */
-
-    public void logFatal( String str , Throwable t )
-    {
-    }
-
-    /** Logs a message.
-     *
-     *  @param  level       Log message level.
-     *  @param  str         Log message.
-     */
-
-    public void log( int level , String str )
-    {
-    }
-
-    /** Logs a message with a stack trace.
-     *
-     *  @param  level       Log message level.
-     *  @param  str         Log message.
-     *  @param  t           Throwable.
-     */
-
-    public void log( int level, String str, Throwable t )
-    {
-    }
-
-    /** Returns true if debugging messages are enabled.
-     *
-     *  @return     True if debugging messages are enabled.
-     */
-
-    public boolean isDebuggingEnabled()
-    {
-        return false;
-    }
-
-    /** Returns true if logger is enabled.
-     *
-     *  @return     True if logger is enabled.
-     */
-
-    public boolean isLoggerEnabled()
-    {
-        return loggerEnabled;
-    }
+  /**
+   * Returns true if logger is enabled.
+   *
+   * @return True if logger is enabled.
+   */
+  public boolean isLoggerEnabled() {
+    return loggerEnabled;
+  }
 }
 
 /*
@@ -181,6 +148,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

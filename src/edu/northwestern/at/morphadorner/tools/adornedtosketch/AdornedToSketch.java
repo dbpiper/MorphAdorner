@@ -2,548 +2,371 @@ package edu.northwestern.at.morphadorner.tools.adornedtosketch;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.tei.*;
+import edu.northwestern.at.morphadorner.tools.*;
+import edu.northwestern.at.utils.*;
+import edu.northwestern.at.utils.xml.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
-
 import org.jdom2.*;
 import org.jdom2.filter.*;
 import org.jdom2.input.*;
 import org.jdom2.output.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.utils.xml.*;
-import edu.northwestern.at.morphadorner.tei.*;
-import edu.northwestern.at.morphadorner.tools.*;
-
-/** Convert adorned file to input for Sketch or NoSketch engine.
+/**
+ * Convert adorned file to input for Sketch or NoSketch engine.
  *
- *  <p>
- *  AdornedToSketch converts adorned TEI XML files to the verticalized
- *  format required as input to the Sketch or NoSketch corpus search engines.
- *  </p>
+ * <p>AdornedToSketch converts adorned TEI XML files to the verticalized format required as input to
+ * the Sketch or NoSketch corpus search engines.
  *
- *  <p>
- *  Usage:
- *  </p>
+ * <p>Usage:
  *
- *  <blockquote>
- *  <p>
- *  <code>
+ * <blockquote>
+ *
+ * <p><code>
  *  java edu.northwestern.at.morphadorner.tools.adornedtosketch.AdornedToSketch sketchinput.txt corpusname adorned1.xml adorned2.xml ...
  *  </code>
- *  </p>
- *  </blockquote>
  *
- *  <p>
- *  where
- *  </p>
+ * </blockquote>
  *
- *  <ul>
- *  <li><strong>sketchinput.txt</strong> specifies the output filename of
- *  the verticalized representation required for input to the
- *  Sketch or NoSketch engines.
- *  </li>
- *  <li><strong>corpusname</strong> specifies the corpus name to be used
- *  when creating the Sketch engine input.
- *  </li>
- *  <li><strong>adorned1.xml adorned2.xml ...</strong> specifies the input
- *  MorphAdorned XML files from which to produce the Sketch engine
- *  input.
- *  </li>
- *  </ul>
+ * <p>where
  *
- *  <p>
- *  Known flaw: AdornedToSketch does not generate the "glue" elements which
- *  bind punctuation marks to word tokens.
- *  Searching the corpus still works fine in the Sketch or NoSketch engine,
- *  but the punctuation marks are displayed detached from any token to which
- *  they would normally be attached.
- *  </p>
+ * <ul>
+ *   <li><strong>sketchinput.txt</strong> specifies the output filename of the verticalized
+ *       representation required for input to the Sketch or NoSketch engines.
+ *   <li><strong>corpusname</strong> specifies the corpus name to be used when creating the Sketch
+ *       engine input.
+ *   <li><strong>adorned1.xml adorned2.xml ...</strong> specifies the input MorphAdorned XML files
+ *       from which to produce the Sketch engine input.
+ * </ul>
+ *
+ * <p>Known flaw: AdornedToSketch does not generate the "glue" elements which bind punctuation marks
+ * to word tokens. Searching the corpus still works fine in the Sketch or NoSketch engine, but the
+ * punctuation marks are displayed detached from any token to which they would normally be attached.
  */
+public class AdornedToSketch {
+  /** Number of documents to process. */
+  protected static int docsToProcess = 0;
 
-public class AdornedToSketch
-{
-    /** Number of documents to process. */
+  /** Current document. */
+  protected static int currentDocNumber = 0;
 
-    protected static int docsToProcess      = 0;
+  /** Input directory. */
+  protected static String inputDirectory;
 
-    /** Current document. */
+  /** Output file name. */
+  protected static String outputFile;
 
-    protected static int currentDocNumber   = 0;
+  /** Output file stream. */
+  protected static PrintStream outputFileStream;
 
-    /** Input directory. */
+  /** Wrapper for printStream to allow utf-8 output. */
+  protected static PrintStream printStream;
 
-    protected static String inputDirectory;
+  /** Corpus name. */
+  protected static String corpusName;
 
-    /** Output file name. */
+  /** # params before input file specs. */
+  protected static final int INITPARAMS = 2;
 
-    protected static String outputFile;
+  /**
+   * Main program.
+   *
+   * @param args Program parameters.
+   */
+  public static void main(String[] args) {
+    //  Initialize.
+    try {
+      if (!initialize(args)) {
+        System.exit(1);
+      }
+      //  Process all files.
 
-    /** Output file stream. */
+      long startTime = System.currentTimeMillis();
 
-    protected static PrintStream outputFileStream;
+      int filesProcessed = processFiles(args);
 
-    /** Wrapper for printStream to allow utf-8 output. */
+      long processingTime = (System.currentTimeMillis() - startTime + 999) / 1000;
 
-    protected static PrintStream printStream;
+      //  Terminate.
 
-    /** Corpus name. */
+      terminate(filesProcessed, processingTime);
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+    }
+  }
 
-    protected static String corpusName;
+  /** Initialize. */
+  protected static boolean initialize(String[] args) throws Exception {
+    //  Allow utf-8 output to printStream .
+    printStream = new PrintStream(new BufferedOutputStream(System.out), true, "utf-8");
+    //  Get the file to check for non-standard
+    //  spellings.
 
-    /** # params before input file specs. */
+    if (args.length < (INITPARAMS + 1)) {
+      System.err.println("Not enough parameters.");
+      return false;
+    }
+    //  Get output file name.
 
-    protected static final int INITPARAMS   = 2;
+    outputFile = args[0];
 
-    /** Main program.
-     *
-     *  @param  args    Program parameters.
-     */
+    //  Get corpus name.
 
-    public static void main( String[] args )
-    {
-                                //  Initialize.
-        try
-        {
-            if ( !initialize( args ) )
-            {
-                System.exit( 1 );
-            }
-                                //  Process all files.
+    corpusName = args[1];
 
-            long startTime      = System.currentTimeMillis();
+    return true;
+  }
 
-            int filesProcessed  = processFiles( args );
+  /**
+   * Split word path into separate tags.
+   *
+   * @param path The word path.
+   * @return String array of split XML tags. The trailing "w[]" element is removed.
+   */
+  protected static String[] splitPathFull(String path) {
+    //  Split path into tags at backslashes.
 
-            long processingTime =
-                ( System.currentTimeMillis() - startTime + 999 ) / 1000;
+    String[] tags = path.split("\\\\");
 
-                                //  Terminate.
+    String[] result = new String[tags.length - 1];
 
-            terminate( filesProcessed , processingTime );
-        }
-        catch ( Exception e )
-        {
-            System.out.println( e.getMessage() );
-        }
+    int j = 0;
+    //  Skip the trailing word tag.
+
+    for (int i = 0; i < tags.length - 1; i++) {
+      result[j++] = tags[i];
     }
 
-    /** Initialize.
-     */
+    return result;
+  }
 
-    protected static boolean initialize( String[] args )
-        throws Exception
-    {
-                                //  Allow utf-8 output to printStream .
-        printStream =
-            new PrintStream
-            (
-                new BufferedOutputStream( System.out ) ,
-                true ,
-                "utf-8"
-            );
-                                //  Get the file to check for non-standard
-                                //  spellings.
+  /**
+   * Split word path into separate tags.
+   *
+   * @param path The word path.
+   * @return String array of split XML tags. Both the leading document name tag and the trailing
+   *     word (w[]) tag are removed.
+   */
+  protected static String[] splitPath(String path) {
+    //  Get split tags with leading
+    //  document name included.
 
-        if ( args.length < ( INITPARAMS + 1  ) )
-        {
-            System.err.println( "Not enough parameters." );
-            return false;
-        }
-                                //  Get output file name.
+    String[] tags = splitPathFull(path);
 
-        outputFile  = args[ 0 ];
+    //  Now remove the leading slash and
+    //  document name.
 
-                                //  Get corpus name.
+    String[] result = new String[tags.length - 2];
 
-        corpusName  = args[ 1 ];
+    int j = 0;
+    //  Skip the leading slash and
+    //  work name, as well as the trailing
+    //  word tag.
 
-        return true;
+    for (int i = 2; i < tags.length; i++) {
+      result[j++] = tags[i];
     }
 
-    /** Split word path into separate tags.
-     *
-     *  @param  path    The word path.
-     *
-     *  @return         String array of split XML tags.
-     *                  The trailing "w[]" element is removed.
-     */
+    return result;
+  }
 
-    protected static String[] splitPathFull( String path )
-    {
-                                //  Split path into tags at backslashes.
+  /**
+   * Process one file.
+   *
+   * @param xmlFileName Adorned XML file name to reformat for CWB.
+   */
+  protected static void processOneFile(String xmlFileName) {
+    String outputXmlFileName = "";
 
-        String[] tags   = path.split( "\\\\" );
+    try {
+      //  Strip path from file name.
 
-        String[] result = new String[ tags.length - 1 ];
+      String shortInputXmlFileName = FileNameUtils.stripPathName(xmlFileName);
 
-        int j   = 0;
-                                //  Skip the trailing word tag.
+      //  Load bibliographic information.
 
-        for ( int i = 0 ; i < tags.length - 1 ; i++ )
-        {
-            result[ j++ ]   = tags[ i ];
+      BibadornedInfo bibadornedInfo = new BibadornedInfo(xmlFileName);
+
+      //  Remember if Monk header found.
+
+      boolean monkHeaderFound = bibadornedInfo.getMonkHeaderFound();
+
+      //  Get standard TEI header information.
+
+      TEIHeaderInfo teiadornedInfo = new TEIHeaderInfo(xmlFileName);
+
+      //  Emit work tag.
+
+      outputFileStream.print("<work filename=\"");
+
+      if (monkHeaderFound) {
+        outputFileStream.print(bibadornedInfo.getFileName());
+      } else {
+        outputFileStream.print(teiadornedInfo.getFileName());
+      }
+
+      outputFileStream.print("\" title=\"");
+
+      outputFileStream.print(teiadornedInfo.getTitle());
+
+      outputFileStream.print("\" author=\"");
+
+      List<TEIHeaderAuthor> authors;
+
+      if (monkHeaderFound) {
+        authors = bibadornedInfo.getAuthors();
+      } else {
+        authors = teiadornedInfo.getAuthors();
+      }
+
+      boolean first = true;
+
+      Set<String> prevAuthors = SetFactory.createNewSet();
+
+      for (TEIHeaderAuthor author : authors) {
+        String authorName = author.getName();
+
+        if (!prevAuthors.contains(authorName)) {
+          if (!first) {
+            outputFileStream.print("|");
+          }
+
+          outputFileStream.print(authorName);
+
+          first = false;
         }
 
-        return result;
+        prevAuthors.add(authorName);
+      }
+
+      outputFileStream.print("\"");
+
+      if (monkHeaderFound) {
+        outputFileStream.print(" circulationYear=\"");
+
+        outputFileStream.print(bibadornedInfo.getCirculationYear());
+
+        outputFileStream.print("\" genre=\"");
+
+        outputFileStream.print(bibadornedInfo.getGenre());
+
+        outputFileStream.print("\" subgenre=\"");
+
+        outputFileStream.print(bibadornedInfo.getSubgenre());
+
+        outputFileStream.print("\"");
+      }
+
+      outputFileStream.print(">");
+
+      outputFileStream.println();
+
+      //  Load words from input files.
+
+      AdornedXMLReader xmlReader = new AdornedXMLReader(xmlFileName);
+
+      //  Emit sentences.
+
+      List<List<ExtendedAdornedWord>> sentences = xmlReader.getSentences();
+
+      for (int i = 0; i < sentences.size(); i++) {
+        outputFileStream.println("<s>");
+
+        List<ExtendedAdornedWord> sentence = sentences.get(i);
+
+        for (int j = 0; j < sentence.size(); j++) {
+          ExtendedAdornedWord word = sentence.get(j);
+
+          outputFileStream.print(word.getSpelling());
+          outputFileStream.print("\t");
+
+          outputFileStream.print(word.getPartsOfSpeech());
+          outputFileStream.print("\t");
+
+          outputFileStream.print(word.getLemmata());
+          outputFileStream.print("\t");
+
+          outputFileStream.print(word.getStandardSpelling());
+          outputFileStream.print("\t");
+
+          outputFileStream.println(word.getID());
+        }
+
+        outputFileStream.println("</s>");
+      }
+      //  Close work tag.
+
+      outputFileStream.println("</work>");
+      //  Generate CWB input from words.
+
+      printStream.println("Processed " + xmlFileName);
+    } catch (Exception e) {
+      printStream.println(
+          "Problem converting " + xmlFileName + " to " + outputXmlFileName + ": " + e.getMessage());
     }
+  }
 
-    /** Split word path into separate tags.
-     *
-     *  @param  path    The word path.
-     *
-     *  @return         String array of split XML tags.
-     *                  Both the leading document name tag and
-     *                  the trailing word (w[]) tag are removed.
-     */
+  /** Process files. */
+  protected static int processFiles(String[] args) throws Exception {
+    int result = 0;
+    //  Get file name/file wildcard specs.
 
-    protected static String[] splitPath( String path )
-    {
-                                //  Get split tags with leading
-                                //  document name included.
+    String[] wildCards = new String[args.length - INITPARAMS];
 
-        String[] tags   = splitPathFull( path );
-
-                                //  Now remove the leading slash and
-                                //  document name.
-
-        String[] result = new String[ tags.length - 2 ];
-
-        int j   = 0;
-                                //  Skip the leading slash and
-                                //  work name, as well as the trailing
-                                //  word tag.
-
-        for ( int i = 2 ; i < tags.length ; i++ )
-        {
-            result[ j++ ]   = tags[ i ];
-        }
-
-        return result;
+    for (int i = INITPARAMS; i < args.length; i++) {
+      wildCards[i - INITPARAMS] = args[i];
     }
+    //  Expand wildcards to list of
+    //  file names,
 
-    /** Process one file.
-     *
-     *  @param  xmlFileName     Adorned XML file name to reformat for CWB.
-     */
+    String[] fileNames = FileNameUtils.expandFileNameWildcards(wildCards);
 
-    protected static void processOneFile( String xmlFileName )
-    {
-        String outputXmlFileName    = "";
+    docsToProcess = fileNames.length;
 
-        try
-        {
-                                //  Strip path from file name.
+    //  Open output file.
+    outputFileStream =
+        new PrintStream(new BufferedOutputStream(new FileOutputStream(outputFile)), true, "utf-8");
 
-            String shortInputXmlFileName    =
-                FileNameUtils.stripPathName( xmlFileName );
+    outputFileStream.println("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>");
 
-                                //  Load bibliographic information.
+    outputFileStream.print("<corpus name=\"");
 
-            BibadornedInfo bibadornedInfo   =
-                new BibadornedInfo( xmlFileName );
+    outputFileStream.print(corpusName);
 
-                                //  Remember if Monk header found.
+    outputFileStream.println("\">");
+    //  Process each file.
 
-            boolean monkHeaderFound = bibadornedInfo.getMonkHeaderFound();
-
-                                //  Get standard TEI header information.
-
-            TEIHeaderInfo teiadornedInfo    =
-                new TEIHeaderInfo( xmlFileName );
-
-                                //  Emit work tag.
-
-            outputFileStream.print
-            (
-                "<work filename=\""
-            );
-
-            if ( monkHeaderFound )
-            {
-                outputFileStream.print
-                (
-                    bibadornedInfo.getFileName()
-                );
-            }
-            else
-            {
-                outputFileStream.print
-                (
-                    teiadornedInfo.getFileName()
-                );
-            }
-
-            outputFileStream.print
-            (
-                "\" title=\""
-            );
-
-            outputFileStream.print
-            (
-                teiadornedInfo.getTitle()
-            );
-
-            outputFileStream.print
-            (
-                "\" author=\""
-            );
-
-            List<TEIHeaderAuthor> authors;
-
-            if ( monkHeaderFound )
-            {
-                authors = bibadornedInfo.getAuthors();
-            }
-            else
-            {
-                authors = teiadornedInfo.getAuthors();
-            }
-
-            boolean first   = true;
-
-            Set<String> prevAuthors = SetFactory.createNewSet();
-
-            for ( TEIHeaderAuthor author : authors )
-            {
-                String authorName   = author.getName();
-
-                if ( !prevAuthors.contains( authorName ) )
-                {
-                    if ( !first )
-                    {
-                        outputFileStream.print( "|" );
-                    }
-
-                    outputFileStream.print( authorName );
-
-                    first   = false;
-                }
-
-                prevAuthors.add( authorName );
-            }
-
-            outputFileStream.print
-            (
-                "\""
-            );
-
-            if ( monkHeaderFound )
-            {
-                outputFileStream.print
-                (
-                    " circulationYear=\""
-                );
-
-                outputFileStream.print
-                (
-                    bibadornedInfo.getCirculationYear()
-                );
-
-                outputFileStream.print
-                (
-                    "\" genre=\""
-                );
-
-                outputFileStream.print
-                (
-                    bibadornedInfo.getGenre()
-                );
-
-                outputFileStream.print
-                (
-                    "\" subgenre=\""
-                );
-
-                outputFileStream.print
-                (
-                    bibadornedInfo.getSubgenre()
-                );
-
-                outputFileStream.print
-                (
-                    "\""
-                );
-            }
-
-            outputFileStream.print
-            (
-                ">"
-            );
-
-            outputFileStream.println();
-
-                                //  Load words from input files.
-
-            AdornedXMLReader xmlReader  =
-                new AdornedXMLReader( xmlFileName );
-
-                                //  Emit sentences.
-
-            List<List<ExtendedAdornedWord>> sentences   =
-                xmlReader.getSentences();
-
-            for ( int i = 0 ; i < sentences.size() ; i++ )
-            {
-                outputFileStream.println
-                (
-                    "<s>"
-                );
-
-                List<ExtendedAdornedWord> sentence  =
-                    sentences.get( i );
-
-                for ( int j = 0 ; j < sentence.size() ; j++ )
-                {
-                    ExtendedAdornedWord word    = sentence.get( j );
-
-                    outputFileStream.print( word.getSpelling() );
-                    outputFileStream.print( "\t" );
-
-                    outputFileStream.print( word.getPartsOfSpeech() );
-                    outputFileStream.print( "\t" );
-
-                    outputFileStream.print( word.getLemmata() );
-                    outputFileStream.print( "\t" );
-
-                    outputFileStream.print( word.getStandardSpelling() );
-                    outputFileStream.print( "\t" );
-
-                    outputFileStream.println( word.getID() );
-                }
-
-                outputFileStream.println
-                (
-                    "</s>"
-                );
-            }
-                                //  Close work tag.
-
-            outputFileStream.println
-            (
-                "</work>"
-            );
-                                //  Generate CWB input from words.
-
-            printStream.println
-            (
-                "Processed " + xmlFileName
-            );
-        }
-        catch ( Exception e )
-        {
-            printStream.println
-            (
-                "Problem converting " + xmlFileName + " to " +
-                outputXmlFileName +
-                ": " + e.getMessage()
-            );
-        }
+    for (int i = 0; i < fileNames.length; i++) {
+      processOneFile(fileNames[i]);
     }
+    //  Close corpus tag.
 
-    /** Process files.
-     */
+    outputFileStream.println("</corpus>");
+    //  Close output file.
 
-    protected static int processFiles( String[] args )
-        throws Exception
-    {
-        int result  = 0;
-                                //  Get file name/file wildcard specs.
+    outputFileStream.close();
 
-        String[] wildCards  = new String[ args.length - INITPARAMS ];
+    //  Return # of files processed.
 
-        for ( int i = INITPARAMS ; i < args.length ; i++ )
-        {
-            wildCards[ i - INITPARAMS ] = args[ i ];
-        }
-                                //  Expand wildcards to list of
-                                //  file names,
+    return fileNames.length;
+  }
 
-        String[] fileNames  =
-            FileNameUtils.expandFileNameWildcards( wildCards );
-
-        docsToProcess       = fileNames.length;
-
-                                //  Open output file.
-        outputFileStream    =
-            new PrintStream
-            (
-                new BufferedOutputStream
-                (
-                    new FileOutputStream( outputFile )
-                ) ,
-                true ,
-                "utf-8"
-            );
-
-        outputFileStream.println
-        (
-            "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>"
-        );
-
-        outputFileStream.print
-        (
-            "<corpus name=\""
-        );
-
-        outputFileStream.print
-        (
-            corpusName
-        );
-
-        outputFileStream.println
-        (
-            "\">"
-        );
-                                //  Process each file.
-
-        for ( int i = 0 ; i < fileNames.length ; i++ )
-        {
-            processOneFile( fileNames[ i ] );
-        }
-                                //  Close corpus tag.
-
-        outputFileStream.println
-        (
-            "</corpus>"
-        );
-                                //  Close output file.
-
-        outputFileStream.close();
-
-                                //  Return # of files processed.
-
-        return fileNames.length;
-    }
-
-    /** Terminate.
-     *
-     *  @param  filesProcessed  Number of files processed.
-     *  @param  processingTime  Processing time in seconds.
-     */
-
-    protected static void terminate
-    (
-        int filesProcessed ,
-        long processingTime
-    )
-    {
-        printStream.println
-        (
-            "Processed " +
-            Formatters.formatIntegerWithCommas
-            (
-                filesProcessed
-            ) +
-            " files in " +
-            Formatters.formatLongWithCommas
-            (
-                processingTime
-            ) +
-            " seconds."
-        );
-    }
+  /**
+   * Terminate.
+   *
+   * @param filesProcessed Number of files processed.
+   * @param processingTime Processing time in seconds.
+   */
+  protected static void terminate(int filesProcessed, long processingTime) {
+    printStream.println(
+        "Processed "
+            + Formatters.formatIntegerWithCommas(filesProcessed)
+            + " files in "
+            + Formatters.formatLongWithCommas(processingTime)
+            + " seconds.");
+  }
 }
 
 /*
@@ -586,6 +409,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

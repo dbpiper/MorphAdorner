@@ -2,79 +2,66 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.namestandardizer;
 
 /*  Please see the license information at the end of this file. */
 
+import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+import edu.northwestern.at.utils.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import edu.northwestern.at.utils.*;
-import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
+/** Interface for a Name Standardizer. */
+public interface NameStandardizer {
+  /**
+   * Load names from a file.
+   *
+   * @param properNamesFileName File containing proper names data.
+   */
+  public void loadNames(String properNamesFileName) throws IOException;
 
-/** Interface for a Name Standardizer.
- */
+  /**
+   * Load names from a collection of names.
+   *
+   * @param properNamesCollection Collection containing proper names.
+   */
+  public void loadNames(Collection<String> properNamesCollection);
 
-public interface NameStandardizer
-{
-    /** Load names from a file.
-     *
-     *  @param  properNamesFileName     File containing proper names data.
-     */
+  /**
+   * Load names from a lexicon.
+   *
+   * @param lexicon The lexicon from which to load names.
+   */
+  public void loadNamesFromLexicon(Lexicon lexicon) throws IOException;
 
-    public void loadNames( String properNamesFileName )
-        throws IOException;
+  /**
+   * Return number of names.
+   *
+   * @return Number of names known to standardizer.
+   */
+  public int getNumberOfNames();
 
-    /** Load names from a collection of names.
-     *
-     *  @param  properNamesCollection   Collection containing proper names.
-     */
+  /**
+   * Check if we should not standardize a name.
+   *
+   * @param properName Name to check.
+   * @return True to avoid standardizing name.
+   *     <p>Names that are initials or contain periods are not standardized by default.
+   */
+  public boolean dontStandardize(String properName);
 
-    public void loadNames( Collection<String> properNamesCollection );
+  /**
+   * Preprocess proper name.
+   *
+   * @param properName Proper name to preprocess before standardization.
+   * @return Preprocessed proper name, ready for standardization.
+   */
+  public String preprocessProperName(String properName);
 
-    /** Load names from a lexicon.
-     *
-     *  @param  lexicon     The lexicon from which to load names.
-     */
-
-    public void loadNamesFromLexicon( Lexicon lexicon )
-        throws IOException;
-
-    /** Return number of names.
-     *
-     *  @return     Number of names known to standardizer.
-     */
-
-    public int getNumberOfNames();
-
-    /** Check if we should not standardize a name.
-     *
-     *  @param  properName  Name to check.
-     *
-     *  @return             True to avoid standardizing name.
-     *
-     *  <p>
-     *  Names that are initials or contain periods are not standardized
-     *  by default.
-     *  </p>
-     */
-
-    public boolean dontStandardize( String properName );
-
-    /** Preprocess proper name.
-     *
-     *  @param  properName  Proper name to preprocess before standardization.
-     *
-     *  @return             Preprocessed proper name, ready for standardization.
-     */
-
-    public String preprocessProperName( String properName );
-
-    /** Returns standard proper name given a proper name.
-     *
-     *  @param  properName  The proper name.
-     *
-     *  @return             The standard proper name.
-     */
-
-     public String standardizeProperName( String properName );
+  /**
+   * Returns standard proper name given a proper name.
+   *
+   * @param properName The proper name.
+   * @return The standard proper name.
+   */
+  public String standardizeProperName(String properName);
 }
 
 /*
@@ -117,6 +104,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

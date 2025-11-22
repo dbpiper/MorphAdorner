@@ -4,19 +4,15 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.contractionexpander;
 
 import java.util.*;
 
-/** Interface for a Contraction Expander.
- */
-
-public interface ContractionExpander
-{
-    /** Returns expanded form of a contracted spelling.
-     *
-     *  @param  spelling    The spelling.
-     *
-     *  @return             The expanded form of the contraction.
-     */
-
-    public String expandContraction( String spelling );
+/** Interface for a Contraction Expander. */
+public interface ContractionExpander {
+  /**
+   * Returns expanded form of a contracted spelling.
+   *
+   * @param spelling The spelling.
+   * @return The expanded form of the contraction.
+   */
+  public String expandContraction(String spelling);
 }
 
 /*
@@ -59,6 +55,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-

@@ -1,9 +1,8 @@
 package com.rmtheis.langdetect.profile;
 
-import java.util.HashMap;
-
 import com.cybozu.labs.langdetect.util.LangProfile;
 import com.cybozu.labs.langdetect.util.NGram;
+import java.util.HashMap;
 
 public class ZHTW extends CLangProfile {
   private static final String name = "zh-tw";
@@ -14,7 +13,7 @@ public class ZHTW extends CLangProfile {
     init();
   }
 
-  public  LangProfile getLangProfile() {
+  public LangProfile getLangProfile() {
     return new LangProfile(name, freq, n_words);
   }
 
@@ -2128,6 +2127,4 @@ public class ZHTW extends CLangProfile {
     freq.put("\u4e15\u5c0f", 677);
     freq.put("\u8d77", 4291);
   }
-
 }
-

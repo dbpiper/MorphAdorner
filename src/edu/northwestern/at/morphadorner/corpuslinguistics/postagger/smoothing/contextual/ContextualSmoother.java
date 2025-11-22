@@ -2,75 +2,55 @@ package edu.northwestern.at.morphadorner.corpuslinguistics.postagger.smoothing.c
 
 /*  Please see the license information at the end of this file. */
 
-import java.util.*;
-
 import edu.northwestern.at.morphadorner.corpuslinguistics.lexicon.*;
 import edu.northwestern.at.morphadorner.corpuslinguistics.postagger.*;
 import edu.northwestern.at.utils.math.*;
+import java.util.*;
 
-/** Interface for a contextual smoother.
+/**
+ * Interface for a contextual smoother.
  *
- *  <p>
- *  A contextual smoother computes the contextually smoothed probabability of
- *  a word given a part of speech tag, e.g., p( word | tag ).
- *  </p>
+ * <p>A contextual smoother computes the contextually smoothed probabability of a word given a part
+ * of speech tag, e.g., p( word | tag ).
  */
+public interface ContextualSmoother {
+  /**
+   * Set the part of speech tagger for this smoother.
+   *
+   * @param posTagger Part of speech tagger for which this smoother provides probabilities.
+   */
+  public void setPartOfSpeechTagger(PartOfSpeechTagger posTagger);
 
-public interface ContextualSmoother
-{
-    /** Set the part of speech tagger for this smoother.
-     *
-     *  @param  posTagger   Part of speech tagger for which
-     *                      this smoother provides probabilities.
-     */
+  /**
+   * Get the number of cached contextual probabilities.
+   *
+   * @return The number of cached contextual probabilities.
+   */
+  public int cachedProbabilitiesCount();
 
-    public void setPartOfSpeechTagger( PartOfSpeechTagger posTagger );
+  /** Clear cached probabilities.. */
+  public void clearCachedProbabilities();
 
-    /** Get the number of cached contextual probabilities.
-     *
-     *  @return     The number of cached contextual probabilities.
-     */
+  /**
+   * Compute smoothed contextual probability of a tag given the previous tag.
+   *
+   * @param tag The current tag.
+   * @param previousTag The previous tag.
+   * @return The probability of the current tag given the previous tag, e.g, p( tag | previousTag ).
+   */
+  public Probability contextualProbability(String tag, String previousTag);
 
-    public int cachedProbabilitiesCount();
-
-    /** Clear cached probabilities..
-     */
-
-    public void clearCachedProbabilities();
-
-    /** Compute smoothed contextual probability of a tag given the previous tag.
-     *
-     *  @param  tag             The current tag.
-     *  @param  previousTag     The previous tag.
-     *
-     *  @return                 The probability of the current tag given
-     *                          the previous tag, e.g,
-     *                          p( tag | previousTag ).
-     */
-
-    public Probability contextualProbability
-    (
-        String tag ,
-        String previousTag
-    );
-
-    /** Compute smoothed contextual probability of a tag given the previous tags.
-     *
-     *  @param  tag                     The current tag.
-     *  @param  previousTag             The previous tag.
-     *  @param  previousPreviousTag     The previous tag of the previous tag.
-     *
-     *  @return                 The probability of the current tag
-     *                          given the previous two tags, e.g,
-     *                          p( tag | prevTag , prevPrevTag ).
-     */
-
-    public Probability contextualProbability
-    (
-        String tag ,
-        String previousTag ,
-        String previousPreviousTag
-    );
+  /**
+   * Compute smoothed contextual probability of a tag given the previous tags.
+   *
+   * @param tag The current tag.
+   * @param previousTag The previous tag.
+   * @param previousPreviousTag The previous tag of the previous tag.
+   * @return The probability of the current tag given the previous two tags, e.g, p( tag | prevTag ,
+   *     prevPrevTag ).
+   */
+  public Probability contextualProbability(
+      String tag, String previousTag, String previousPreviousTag);
 }
 
 /*
@@ -113,6 +93,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
 */
-
-
-
